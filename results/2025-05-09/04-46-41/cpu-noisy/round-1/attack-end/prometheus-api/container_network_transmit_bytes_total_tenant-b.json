@@ -1,0 +1,71 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "container_network_transmit_bytes_total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod114a51ee_3889_4a43_b217_b3bc0875906c.slice/cri-containerd-ae000861e6c55551d01338fba916f577386744351bfd6999e23f49ee9025435a.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "interface": "eth0",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "ae000861e6c55551d01338fba916f577386744351bfd6999e23f49ee9025435a",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "cpu-stress-744878674f-9drln",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777286.890,
+          "1666"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "container_network_transmit_bytes_total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc6400ca0_b752_4413_a451_1f9872e7202b.slice/cri-containerd-5636f529b05289983b87763683ff56543c870ffaa88ad0da423ecc7561258ab6.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "interface": "eth0",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "5636f529b05289983b87763683ff56543c870ffaa88ad0da423ecc7561258ab6",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "iperf-client-555c88d495-mcfmk",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777286.890,
+          "8387"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "container_network_transmit_bytes_total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podce2b6dad_406b_4b18_b461_899ad8844a8e.slice/cri-containerd-867bbd5d48ca2e678f3531665e374bbd881d1751a187c01283a30ca5db3a4f15.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "interface": "eth0",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "867bbd5d48ca2e678f3531665e374bbd881d1751a187c01283a30ca5db3a4f15",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "memory-stress-7cf4986fd7-fwqkl",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777286.890,
+          "1708"
+        ]
+      }
+    ]
+  }
+}

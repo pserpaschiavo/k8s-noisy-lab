@@ -1,0 +1,4 @@
+[2025-05-09 04:39:47] Iniciando experimento: cpu-noisy
+[2025-05-09 04:39:47] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-09/04-39-47/cpu-noisy/experiment.log
+[2025-05-09 04:39:47] Verificando pré-requisitos...
+[2025-05-09 04:39:47] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-09/04-39-47/cpu-noisy

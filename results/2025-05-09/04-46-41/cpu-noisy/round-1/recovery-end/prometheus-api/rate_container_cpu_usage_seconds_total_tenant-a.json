@@ -1,0 +1,185 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod37bfca1e_f907_498d_beec_19d34d165243.slice/cri-containerd-8772044b9fff3fd17e8c82b798c8a72d9992c4c3996fb5ddf67cdfb8e368e611.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "8772044b9fff3fd17e8c82b798c8a72d9992c4c3996fb5ddf67cdfb8e368e611",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "iperf-server-5c44d6db7-zl5wb",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0"
+        ]
+      },
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod6174eb61_e0f4_4ed2_9cc3_69ef5b080218.slice/cri-containerd-5b2652af5aa0e75a43f21bd4a043961556a6888b2a5e2ef2523e8fe80238df8c.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "5b2652af5aa0e75a43f21bd4a043961556a6888b2a5e2ef2523e8fe80238df8c",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "cpu-stress-655b6bd675-rqknf",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0"
+        ]
+      },
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc352b664_9f9c_44a5_af30_dd4ed06dece3.slice/cri-containerd-0c56609e07b32ec87e503fa1591b79ca6d3bb77f9ae5132e4dcbff7394fca837.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "0c56609e07b32ec87e503fa1591b79ca6d3bb77f9ae5132e4dcbff7394fca837",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "memory-stress-7d546f95f7-hm67x",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0"
+        ]
+      },
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod37bfca1e_f907_498d_beec_19d34d165243.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "iperf-server-5c44d6db7-zl5wb",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0.00003817181940015714"
+        ]
+      },
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod6174eb61_e0f4_4ed2_9cc3_69ef5b080218.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "cpu-stress-655b6bd675-rqknf",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0.681907627067661"
+        ]
+      },
+      {
+        "metric": {
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc352b664_9f9c_44a5_af30_dd4ed06dece3.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "memory-stress-7d546f95f7-hm67x",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0"
+        ]
+      },
+      {
+        "metric": {
+          "container": "iperf3",
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod37bfca1e_f907_498d_beec_19d34d165243.slice/cri-containerd-7e47e031f3f0c760988d88b6f82eb375c28b0f488a6e3e4b41b1904776bb6024.scope",
+          "image": "docker.io/networkstatic/iperf3:latest",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "7e47e031f3f0c760988d88b6f82eb375c28b0f488a6e3e4b41b1904776bb6024",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "iperf-server-5c44d6db7-zl5wb",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0.0000360982431605629"
+        ]
+      },
+      {
+        "metric": {
+          "container": "stress-ng",
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod6174eb61_e0f4_4ed2_9cc3_69ef5b080218.slice/cri-containerd-7273d2bae34b8928dac93547bd9e0fa694dbd0c01b3e7bd8d59cfb4e221825ac.scope",
+          "image": "docker.io/colinianking/stress-ng:latest",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "7273d2bae34b8928dac93547bd9e0fa694dbd0c01b3e7bd8d59cfb4e221825ac",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "cpu-stress-655b6bd675-rqknf",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0.8002362294029531"
+        ]
+      },
+      {
+        "metric": {
+          "container": "stress-ng",
+          "cpu": "total",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc352b664_9f9c_44a5_af30_dd4ed06dece3.slice/cri-containerd-1255e0c55def0fe0566fba4761957566e0270617908e0f472d5aa4244a2e5f2a.scope",
+          "image": "docker.io/colinianking/stress-ng:latest",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "1255e0c55def0fe0566fba4761957566e0270617908e0f472d5aa4244a2e5f2a",
+          "namespace": "tenant-a",
+          "node": "noisy-lab",
+          "pod": "memory-stress-7d546f95f7-hm67x",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777362.848,
+          "0"
+        ]
+      }
+    ]
+  }
+}

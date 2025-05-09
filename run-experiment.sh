@@ -131,6 +131,36 @@ log() {
     echo "$formatted_message" >> "$LOG_FILE"
 }
 
+# Função para monitorar e proteger o tempo de cada fase
+execute_with_timeout() {
+    local phase=$1
+    local duration=$2
+    local command=$3
+    
+    log "$YELLOW" "Iniciando fase: $phase (duração máxima: ${duration}s)"
+    
+    # Executa o comando em background
+    eval "$command" &
+    local cmd_pid=$!
+    
+    # Monitora por tempo máximo
+    local timeout=$((duration + 30))  # 30 segundos extras para segurança
+    local count=0
+    
+    while kill -0 $cmd_pid 2>/dev/null; do
+        sleep 1
+        count=$((count+1))
+        
+        if [ $count -ge $timeout ]; then
+            log "$RED" "⚠️ Timeout atingido para fase $phase. Forçando continuação..."
+            kill -9 $cmd_pid 2>/dev/null || true
+            break
+        fi
+    done
+    
+    log "$GREEN" "Fase $phase concluída"
+}
+
 # Log inicial
 log "$GREEN" "Iniciando experimento: $EXPERIMENT_NAME"
 log "$GREEN" "Log sendo salvo em: $LOG_FILE"
@@ -148,7 +178,7 @@ else
     log "$YELLOW" "Coleta de métricas desativada"
 fi
 
-# Função para coletar métricas - modificada
+# Função para coletar métricas - corrigida
 collect_metrics() {
     local phase=$1
     local round=$2
@@ -158,36 +188,13 @@ collect_metrics() {
         mkdir -p "$output_dir"
         log "$BLUE" "Coletando métricas para a fase: ${phase} (Round ${round})..."
         
-        # Mude para o diretório do projeto antes de executar o Python
-        cd "${BASE_DIR}" || { log "$RED" "Erro ao navegar para diretório base"; return 1; }
-        
-        # Executa o coletor de métricas com timeout e tratamento de erro
-        ( timeout 60s python3 -c "
-import sys
-sys.path.insert(0, '${BASE_DIR}')
-from prometheus_metrics import main
-sys.argv = ['${BASE_DIR}/prometheus_metrics/main.py', 
-            '--prometheus-url', 'http://localhost:9090',
-            '--output-dir', '$output_dir',
-            '--format', 'both',
-            '--namespace', 'tenant-a tenant-b tenant-c',
-            '--interval', '0']
-main.main()
-" >> "$LOG_FILE" 2>&1 ) || {
-            log "$YELLOW" "⚠️ Aviso: Problema na coleta de métricas. Continuando o experimento..."
-            echo "Falha na coleta de métricas: $(date)" >> "${output_dir}/failure.txt"
-        }
-        
-        # Voltar para o diretório original
-        cd "${BASE_DIR}" || true
-        
-        # Coleta básica em caso de falha do Python
+        # Coleta básica de informações do cluster
         log "$BLUE" "Coletando informações do cluster..."
         kubectl get pods -A -o wide > "${output_dir}/pods.txt" 2>> "$LOG_FILE" || true
         kubectl top pods -A > "${output_dir}/top-pods.txt" 2>> "$LOG_FILE" || true
         kubectl top nodes > "${output_dir}/top-nodes.txt" 2>> "$LOG_FILE" || true
         
-        # Captura métricas diretamente via curl 
+        # Captura métricas diretamente via curl - CORRIGIDA
         log "$BLUE" "Capturando métricas via API do Prometheus..."
         mkdir -p "${output_dir}/prometheus-api"
         
@@ -200,17 +207,47 @@ main.main()
           "container_cpu_cfs_throttled_periods_total"
         )
         
+        # Capturar métricas por namespace individualmente (evita problemas de escape)
+        namespaces=("tenant-a" "tenant-b" "tenant-c")
         for metric in "${metrics[@]}"; do
-          curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query?query=${metric}{namespace=~\"tenant-a|tenant-b|tenant-c\"}" | \
-            jq . > "${output_dir}/prometheus-api/${metric}.json" || true
+            for ns in "${namespaces[@]}"; do
+                # Usando namespace individual evita o problema com =~ na consulta
+                curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode "query=${metric}{namespace=\"$ns\"}" | \
+                  jq . > "${output_dir}/prometheus-api/${metric}_${ns}.json" || true
+            done
+            
+            # Também salvar taxa de uso para métricas de contador
+            if [[ "$metric" == *"_total" ]]; then
+                for ns in "${namespaces[@]}"; do
+                    curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode "query=rate(${metric}{namespace=\"$ns\"}[1m])" | \
+                      jq . > "${output_dir}/prometheus-api/rate_${metric}_${ns}.json" || true
+                done
+            fi
         done
+        
+        # Métricas adicionais específicas para noisy neighbours
+        log "$BLUE" "Capturando métricas específicas para noisy neighbours..."
+        
+        # CPU Throttling - importante para detectar contenção
+        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
+          "query=sum(rate(container_cpu_cfs_throttled_periods_total[1m])) by (namespace, pod) / sum(rate(container_cpu_cfs_periods_total[1m])) by (namespace, pod)" | \
+          jq . > "${output_dir}/prometheus-api/cpu_throttling_ratio.json" || true
+        
+        # Uso de recursos como % do limite
+        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
+          "query=sum(container_memory_working_set_bytes) by (namespace) / 1024 / 1024" | \
+          jq . > "${output_dir}/prometheus-api/memory_usage_mb_by_namespace.json" || true
+          
+        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
+          "query=sum(rate(container_cpu_usage_seconds_total[1m])) by (namespace)" | \
+          jq . > "${output_dir}/prometheus-api/cpu_usage_by_namespace.json" || true
     fi
 }
 
 # Função para configurar port-forwarding do Prometheus
 setup_prometheus_forward() {
     log "$BLUE" "Configurando port-forward para o Prometheus..."
-    kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 > /dev/null 2>> "$LOG_FILE" &
+    kubectl port-forward -n monitoring service/prometheus-kube-prometheus-prometheus 9090:9090 > /dev/null 2>> "$LOG_FILE" &
     PROMETHEUS_PID=$!
     sleep 5  # Espera o port-forward estabelecer
     
@@ -257,7 +294,7 @@ fi
 
 # Esperar pela inicialização do Prometheus
 log "$GREEN" "Aguardando inicialização do Prometheus..."
-kubectl -n monitoring wait --for=condition=available --timeout=300s deployment/prometheus-kube-prometheus-prometheus >> "$LOG_FILE" 2>&1 || {
+kubectl wait --for=condition=Ready -n monitoring pod -l app.kubernetes.io/name=prometheus --timeout=300s >> "$LOG_FILE" 2>&1 || {
     log "$YELLOW" "Não foi possível detectar o deployment do Prometheus. Continuando mesmo assim..."
 }
 
@@ -299,67 +336,55 @@ for round in $(seq 1 $NUM_ROUNDS); do
         sleep 10  # Espera para garantir que tudo foi removido
     fi
     
-    # Implantar tenant-a (referência) e tenant-c (vítima)
-    log "$GREEN" "Implantando tenant-a (referência)..."
-    kubectl apply -f "$BASE_DIR/manifests/tenant-a/" >> "$LOG_FILE" 2>&1
-    
-    log "$GREEN" "Aguardando inicialização dos serviços do tenant-a..."
-    kubectl -n tenant-a wait --for=condition=available --timeout=120s deployment/iperf-server >> "$LOG_FILE" 2>&1 || log "$YELLOW" "Timeout aguardando pelo iperf-server"
-    
-    log "$GREEN" "Implantando tenant-c (vítima)..."
-    kubectl apply -f "$BASE_DIR/manifests/tenant-c/" >> "$LOG_FILE" 2>&1
-    
-    log "$GREEN" "Aguardando inicialização dos workloads do tenant-c..."
-    sleep 15
-    
-    # Coletar métricas do baseline
-    collect_metrics "baseline" "$round"
-    
-    # Aguardar duração da fase de baseline
-    log "$YELLOW" "Aguardando fase de baseline (${BASELINE_DURATION} segundos)..."
-    sleep "$BASELINE_DURATION"
+    # Executar fase de baseline com timeout
+    execute_with_timeout "baseline" "$BASELINE_DURATION" "
+        log \"\$GREEN\" \"Implantando tenant-a (referência)...\"
+        kubectl apply -f \"\$BASE_DIR/manifests/tenant-a/\" >> \"\$LOG_FILE\" 2>&1
+        
+        log \"\$GREEN\" \"Aguardando inicialização dos serviços do tenant-a...\"
+        kubectl -n tenant-a wait --for=condition=available --timeout=120s deployment/iperf-server >> \"\$LOG_FILE\" 2>&1 || log \"\$YELLOW\" \"Timeout aguardando pelo iperf-server\"
+        
+        log \"\$GREEN\" \"Implantando tenant-c (vítima)...\"
+        kubectl apply -f \"\$BASE_DIR/manifests/tenant-c/\" >> \"\$LOG_FILE\" 2>&1
+        
+        log \"\$GREEN\" \"Aguardando inicialização dos workloads do tenant-c...\"
+        sleep 15
+        
+        collect_metrics \"baseline\" \"\$round\"
+        sleep \"\$BASELINE_DURATION\"
+    "
     
     # FASE 2: ATAQUES
     log "$BLUE" "=== Fase 2: ATAQUES ==="
     
-    # Implantar tenant-b (noisy neighbour)
-    log "$GREEN" "Implantando tenant-b (noisy neighbour)..."
-    kubectl apply -f "$BASE_DIR/manifests/tenant-b/" >> "$LOG_FILE" 2>&1
-    
-    # Aguardar inicialização do tenant-b
-    log "$GREEN" "Aguardando inicialização dos workloads do tenant-b..."
-    sleep 15
-    
-    # Coletar métricas durante o ataque
-    collect_metrics "attack-start" "$round"
-    
-    # Aguardar duração da fase de ataque
-    log "$YELLOW" "Aguardando fase de ataque (${ATTACK_DURATION} segundos)..."
-    sleep "$ATTACK_DURATION"
-    
-    # Coletar métricas novamente após o período de ataque
-    collect_metrics "attack-end" "$round"
+    # Executar fase de ataque com timeout
+    execute_with_timeout "attack" "$ATTACK_DURATION" "
+        log \"\$GREEN\" \"Implantando tenant-b (noisy neighbour)...\"
+        kubectl apply -f \"\$BASE_DIR/manifests/tenant-b/\" >> \"\$LOG_FILE\" 2>&1
+        
+        log \"\$GREEN\" \"Aguardando inicialização dos workloads do tenant-b...\"
+        sleep 15
+        
+        collect_metrics \"attack-start\" \"\$round\"
+        sleep \"\$ATTACK_DURATION\"
+        collect_metrics \"attack-end\" \"\$round\"
+    "
     
     # FASE 3: RECUPERAÇÃO
     log "$BLUE" "=== Fase 3: RECUPERAÇÃO ==="
     
-    # Remover tenant-b (noisy neighbour)
-    log "$GREEN" "Removendo tenant-b (noisy neighbour)..."
-    kubectl delete -f "$BASE_DIR/manifests/tenant-b/" >> "$LOG_FILE" 2>&1
-    
-    # Aguardar remoção completa do tenant-b
-    log "$GREEN" "Aguardando remoção completa do tenant-b..."
-    sleep 15
-    
-    # Coletar métricas no início da recuperação
-    collect_metrics "recovery-start" "$round"
-    
-    # Aguardar duração da fase de recuperação
-    log "$YELLOW" "Aguardando fase de recuperação (${RECOVERY_DURATION} segundos)..."
-    sleep "$RECOVERY_DURATION"
-    
-    # Coletar métricas no final da recuperação
-    collect_metrics "recovery-end" "$round"
+    # Executar fase de recuperação com timeout
+    execute_with_timeout "recovery" "$RECOVERY_DURATION" "
+        log \"\$GREEN\" \"Removendo tenant-b (noisy neighbour)...\"
+        kubectl delete -f \"\$BASE_DIR/manifests/tenant-b/\" >> \"\$LOG_FILE\" 2>&1
+        
+        log \"\$GREEN\" \"Aguardando remoção completa do tenant-b...\"
+        sleep 15
+        
+        collect_metrics \"recovery-start\" \"\$round\"
+        sleep \"\$RECOVERY_DURATION\"
+        collect_metrics \"recovery-end\" \"\$round\"
+    "
     
     log "$GREEN" "Round ${round}/${NUM_ROUNDS} concluído com sucesso!"
 done

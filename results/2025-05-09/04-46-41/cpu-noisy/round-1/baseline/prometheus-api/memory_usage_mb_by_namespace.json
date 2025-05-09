@@ -1,0 +1,44 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "namespace": "monitoring"
+        },
+        "value": [
+          1746777160.324,
+          "1169.6875"
+        ]
+      },
+      {
+        "metric": {
+          "namespace": "kube-system"
+        },
+        "value": [
+          1746777160.324,
+          "1633.56640625"
+        ]
+      },
+      {
+        "metric": {
+          "namespace": "tenant-a"
+        },
+        "value": [
+          1746777160.324,
+          "1102.4765625"
+        ]
+      },
+      {
+        "metric": {
+          "namespace": "tenant-c"
+        },
+        "value": [
+          1746777160.324,
+          "427.9921875"
+        ]
+      }
+    ]
+  }
+}

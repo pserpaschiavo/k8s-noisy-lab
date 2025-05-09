@@ -1,0 +1,59 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod09c3ba69_9230_4641_946e_b3507a46a7ed.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-c",
+          "node": "noisy-lab",
+          "pod": "memory-stress-df7cf5bbd-k5rql",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777160.308,
+          "0.24999999999999997"
+        ]
+      },
+      {
+        "metric": {
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod9c9a750f_7101_4a59_89d7_65e233e4b985.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-c",
+          "node": "noisy-lab",
+          "pod": "iperf-client-69bf9df696-4vntr",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777160.308,
+          "0"
+        ]
+      },
+      {
+        "metric": {
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podf6848cab_fe46_4c85_83e6_5d436c671be9.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-c",
+          "node": "noisy-lab",
+          "pod": "cpu-stress-5d46db5d49-dz42b",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777160.308,
+          "0.8500000000000001"
+        ]
+      }
+    ]
+  }
+}

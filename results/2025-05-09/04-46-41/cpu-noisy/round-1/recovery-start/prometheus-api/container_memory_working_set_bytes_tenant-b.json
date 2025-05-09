@@ -1,0 +1,67 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "container_memory_working_set_bytes",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc6400ca0_b752_4413_a451_1f9872e7202b.slice",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "iperf-client-555c88d495-mcfmk",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777302.552,
+          "811008"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "container_memory_working_set_bytes",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc6400ca0_b752_4413_a451_1f9872e7202b.slice/cri-containerd-5636f529b05289983b87763683ff56543c870ffaa88ad0da423ecc7561258ab6.scope",
+          "image": "registry.k8s.io/pause:3.10",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "5636f529b05289983b87763683ff56543c870ffaa88ad0da423ecc7561258ab6",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "iperf-client-555c88d495-mcfmk",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777302.552,
+          "233472"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "container_memory_working_set_bytes",
+          "container": "iperf3",
+          "endpoint": "https-metrics",
+          "id": "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podc6400ca0_b752_4413_a451_1f9872e7202b.slice/cri-containerd-3d68951947395fd41abb2574d83faa691dc13ef7949710cb2d305b71eb4acefd.scope",
+          "image": "docker.io/networkstatic/iperf3:latest",
+          "instance": "192.168.49.2:10250",
+          "job": "kubelet",
+          "metrics_path": "/metrics/cadvisor",
+          "name": "3d68951947395fd41abb2574d83faa691dc13ef7949710cb2d305b71eb4acefd",
+          "namespace": "tenant-b",
+          "node": "noisy-lab",
+          "pod": "iperf-client-555c88d495-mcfmk",
+          "service": "prometheus-kube-prometheus-kubelet"
+        },
+        "value": [
+          1746777302.552,
+          "1019904"
+        ]
+      }
+    ]
+  }
+}
