@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: noisy-neighbours-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: noisy-neighbours-alerts
+    rules:
+    - alert: HighCPUUsage
+      expr: sum(rate(container_cpu_usage_seconds_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m])) by (namespace, pod) > 0.9 * sum(kube_pod_container_resource_limits{resource="cpu",namespace=~"tenant-a|tenant-b|tenant-c"}) by (namespace, pod)
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage detected"
+        description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is using more than 90% of its CPU limit for 5 minutes."
+        
+    - alert: HighMemoryUsage
+      expr: sum(container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"}) by (namespace, pod) > 0.9 * sum(kube_pod_container_resource_limits{resource="memory",namespace=~"tenant-a|tenant-b|tenant-c"}) by (namespace, pod)
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage detected"
+        description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is using more than 90% of its memory limit for 5 minutes."
+        
+    - alert: NoisyNeighbourDetected
+      expr: rate(container_cpu_usage_seconds_total{namespace="tenant-b"}[1m]) > 3 * rate(container_cpu_usage_seconds_total{namespace="tenant-c"}[1m])
+      for: 3m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Noisy neighbour detected"
+        description: "Tenant B is using more than 3x the CPU of Tenant C for 3 minutes - potential noisy neighbour."
+        
+    - alert: CPUThrottling
+      expr: sum(rate(container_cpu_cfs_throttled_periods_total{namespace=~"tenant-a|tenant-b|tenant-c"}[5m])) by (namespace, pod) / sum(rate(container_cpu_cfs_periods_total{namespace=~"tenant-a|tenant-b|tenant-c"}[5m])) by (namespace, pod) > 0.25
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "CPU throttling detected"
+        description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is experiencing {{ $value | humanizePercentage }} CPU throttling for 2 minutes."
+    
+    - alert: SchedulingFailures
+      expr: sum(kube_pod_status_unschedulable{namespace=~"tenant-a|tenant-b|tenant-c"}) by (namespace, pod) > 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod scheduling failure"
+        description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} cannot be scheduled due to insufficient resources."

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-stress
+  namespace: tenant-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cpu-stress
+  template:
+    metadata:
+      labels:
+        app: cpu-stress
+    spec:
+      containers:
+      - name: stress-ng
+        image: colinianking/stress-ng
+        resources:
+          requests:
+            cpu: "0.8"
+            memory: "256Mi"
+          limits:
+            cpu: "1.2"
+            memory: "512Mi"
+        command: ["stress-ng"]
+        args: ["--cpu", "1", "--cpu-load", "90", "--timeout", "0h"]

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tenant-a-monitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: tenant-a-app
+  namespaceSelector:
+    matchNames:
+      - tenant-a
+  endpoints:
+    - port: metrics
+      interval: 5s

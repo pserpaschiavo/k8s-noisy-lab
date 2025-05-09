@@ -1,0 +1,441 @@
+# Valores customizados para o Prometheus Operator
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: 'kubernetes-pods-custom'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+
+    # Limitando recursos para não interferir no experimento
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+# Dashboard para visualização dos containers com alta utilização
+grafana:
+  dashboards:
+    default:
+      noisy-neighbours:
+        json: |
+          {
+            "annotations": {
+              "list": [
+                {
+                  "builtIn": 1,
+                  "datasource": "-- Grafana --",
+                  "enable": true,
+                  "hide": true,
+                  "iconColor": "rgba(0, 211, 255, 1)",
+                  "name": "Annotations & Alerts",
+                  "type": "dashboard"
+                }
+              ]
+            },
+            "editable": true,
+            "gnetId": null,
+            "graphTooltip": 0,
+            "id": 10,
+            "links": [],
+            "panels": [
+              {
+                "datasource": null,
+                "gridPos": {
+                  "h": 2,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 8,
+                "options": {
+                  "content": "# Kubernetes Noisy Neighbours Monitoring Dashboard\nThis dashboard helps identify and analyze noisy neighbours in the Kubernetes cluster by showing resource usage across namespaces.",
+                  "mode": "markdown"
+                },
+                "pluginVersion": "7.4.3",
+                "targets": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "",
+                "type": "text"
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                  "defaults": {
+                    "custom": {}
+                  },
+                  "overrides": []
+                },
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                  "h": 9,
+                  "w": 12,
+                  "x": 0,
+                  "y": 2
+                },
+                "hiddenSeries": false,
+                "id": 2,
+                "legend": {
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                  "alertThreshold": true
+                },
+                "percentage": false,
+                "pluginVersion": "7.4.3",
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\",image!=\"\"}[5m])) by (namespace)",
+                    "interval": "",
+                    "legendFormat": "{{namespace}}",
+                    "refId": "A"
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "CPU Usage by Namespace",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "short",
+                    "label": "CPU Cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ],
+                "yaxis": {
+                  "align": false,
+                  "alignLevel": null
+                }
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                  "defaults": {
+                    "custom": {}
+                  },
+                  "overrides": []
+                },
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                  "h": 9,
+                  "w": 12,
+                  "x": 12,
+                  "y": 2
+                },
+                "hiddenSeries": false,
+                "id": 4,
+                "legend": {
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                  "alertThreshold": true
+                },
+                "percentage": false,
+                "pluginVersion": "7.4.3",
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(container_memory_working_set_bytes{namespace=~\"tenant-a|tenant-b|tenant-c\",image!=\"\"}) by (namespace)",
+                    "interval": "",
+                    "legendFormat": "{{namespace}}",
+                    "refId": "A"
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "Memory Usage by Namespace",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ],
+                "yaxis": {
+                  "align": false,
+                  "alignLevel": null
+                }
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                  "defaults": {
+                    "custom": {}
+                  },
+                  "overrides": []
+                },
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                  "h": 9,
+                  "w": 12,
+                  "x": 0,
+                  "y": 11
+                },
+                "hiddenSeries": false,
+                "id": 6,
+                "legend": {
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                  "alertThreshold": true
+                },
+                "percentage": false,
+                "pluginVersion": "7.4.3",
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(rate(container_network_transmit_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[5m])) by (namespace)",
+                    "interval": "",
+                    "legendFormat": "{{namespace}} - transmit",
+                    "refId": "A"
+                  },
+                  {
+                    "expr": "sum(rate(container_network_receive_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[5m])) by (namespace)",
+                    "interval": "",
+                    "legendFormat": "{{namespace}} - receive",
+                    "refId": "B"
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "Network I/O by Namespace",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ],
+                "yaxis": {
+                  "align": false,
+                  "alignLevel": null
+                }
+              },
+              {
+                "datasource": null,
+                "fieldConfig": {
+                  "defaults": {
+                    "custom": {},
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "orange",
+                          "value": 70
+                        },
+                        {
+                          "color": "red",
+                          "value": 90
+                        }
+                      ]
+                    },
+                    "unit": "percent"
+                  },
+                  "overrides": []
+                },
+                "gridPos": {
+                  "h": 9,
+                  "w": 12,
+                  "x": 12,
+                  "y": 11
+                },
+                "id": 10,
+                "options": {
+                  "displayMode": "gradient",
+                  "orientation": "horizontal",
+                  "reduceOptions": {
+                    "calcs": [
+                      "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                  },
+                  "showUnfilled": true
+                },
+                "pluginVersion": "7.4.3",
+                "targets": [
+                  {
+                    "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\",container!=\"\",container!=\"POD\"}[5m])) by (pod, namespace) * 100 / sum(kube_pod_container_resource_limits{resource=\"cpu\",namespace=~\"tenant-a|tenant-b|tenant-c\"}) by (pod, namespace)",
+                    "interval": "",
+                    "legendFormat": "{{namespace}}: {{pod}}",
+                    "refId": "A"
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "CPU Usage % of Limit by Pod",
+                "type": "bargauge"
+              }
+            ],
+            "refresh": "10s",
+            "schemaVersion": 27,
+            "style": "dark",
+            "tags": [],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-1h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "Noisy Neighbours Dashboard",
+            "uid": "noisy-neighbours",
+            "version": 1
+          }

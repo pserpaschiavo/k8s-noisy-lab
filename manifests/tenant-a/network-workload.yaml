@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf-server
+  template:
+    metadata:
+      labels:
+        app: iperf-server
+    spec:
+      containers:
+      - name: iperf3
+        image: networkstatic/iperf3
+        ports:
+        - containerPort: 5201
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+        command: ["iperf3", "-s"]
+        livenessProbe:
+          tcpSocket:
+            port: 5201
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 5201
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  selector:
+    app: iperf-server
+  ports:
+  - port: 5201
+    targetPort: 5201
+  type: ClusterIP

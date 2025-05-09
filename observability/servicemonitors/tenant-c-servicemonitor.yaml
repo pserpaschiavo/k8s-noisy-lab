@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tenant-c-monitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: iperf-client
+  namespaceSelector:
+    matchNames:
+      - tenant-c
+  endpoints:
+    - targetPort: 5201
+      interval: 5s
