@@ -42,3 +42,15 @@ spec:
             - --version
           initialDelaySeconds: 5
           periodSeconds: 10
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Testing connectivity to iperf-server...";
+          if nc -z -v -w5 iperf-server.tenant-a.svc.cluster.local 5201; then
+            echo "iperf-server is reachable. Starting iperf3...";
+            iperf3 -c iperf-server.tenant-a.svc.cluster.local -t 300;
+          else
+            echo "iperf-server is not reachable. Exiting.";
+            exit 1;
+          fi
