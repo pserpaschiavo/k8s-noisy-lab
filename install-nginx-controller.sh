@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -eo pipefail
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+NO_COLOR='\033[0m'
+
+echo -e "${GREEN}Installing NGINX Ingress Controller...${NO_COLOR}"
+# Install NGINX Ingress Controller
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --set controller.metrics.enabled=true \
+  --set controller.serviceMonitor.enabled=true \
+  --set controller.serviceMonitor.namespace=monitoring \
+  --set controller.serviceMonitor.additionalLabels.release=kube-prometheus-stack
+
+echo -e "${ORANGE}Waiting for NGINX Ingress Controller to be ready...${NO_COLOR}"
+kubectl wait --namespace ingress-nginx   --for=condition=Ready \
+    pod -l app.kubernetes.io/name=ingress-nginx --timeout=120s
+
+echo -e "${GREEN}NGINX Ingress Controller is ready!${NO_COLOR}"
+
+# Port-forward to access the NGINX Ingress Controller
+echo -e "${ORANGE}Port-forwarding to access NGINX Ingress Controller...${NO_COLOR}"
+kubectl port-forward svc/ingress-nginx-controller -n ingress-nginx 8080:80
+echo -e "${GREEN}NGINX Ingress Controller is accessible at http://localhost:8080${NO_COLOR}"

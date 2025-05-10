@@ -68,5 +68,6 @@ kubectl apply -f "$DIR/observability/grafana-dashboards/noisy-neighbours-dashboa
 printf "\n%bCreating PrometheusRules for noisy neighbour detection...%b\n" "$GREEN" "$NO_COLOR"
 kubectl apply -f "$DIR/observability/prometheus-rules/noisy-neighbours-rules.yaml"
 
+
 printf "\n%bTo open Prometheus UI execute \nkubectl -n %s port-forward svc/%s-kube-prometheus-prometheus 9090\nand open your browser at http://localhost:9090\n\n" "$GREEN" "$KUBE_PROMETHEUS_STACK_NAMESPACE" "$KUBE_PROMETHEUS_STACK_NAME"
 printf "To open Grafana UI execute \nkubectl -n %s port-forward svc/%s-grafana 3000:80\nand open your browser at http://localhost:3000\nusername: admin, password: admin%b\n" "$KUBE_PROMETHEUS_STACK_NAMESPACE" "$KUBE_PROMETHEUS_STACK_NAME" "$NO_COLOR"

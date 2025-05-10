@@ -161,6 +161,116 @@ execute_with_timeout() {
     log "$GREEN" "Fase $phase concluída"
 }
 
+# Queries PromQL para coleta de métricas - versão limpa e otimizada
+declare -A PROM_QUERIES=(
+    # CPU
+    ["cpu_usage"]="sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+    ["cpu_throttled_time"]="sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+    ["cpu_throttled_ratio"]="sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+    
+    # Memória
+    ["memory_usage"]="sum(container_memory_working_set_bytes{namespace=~\"tenant-a|tenant-b|tenant-c\"}) by (namespace)"
+    ["oom_kills"]="sum(container_oom_events_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}) by (namespace)"
+    
+    # Rede
+    ["network_dropped"]="sum(rate(container_network_receive_packets_dropped_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+)
+
+# Função para coletar métricas continuamente a cada 5 segundos
+collect_metrics_continuously() {
+    local phase_identifier=$1 # e.g., "1-baseline"
+    local round_number=$2
+    
+    log "$BLUE" "Iniciando coleta de métricas para fase: $phase_identifier (Round $round_number)"
+    
+    # Criar estrutura de diretórios para cada namespace
+    for ns in "tenant-a" "tenant-b" "tenant-c"; do
+        mkdir -p "${METRICS_DIR}/round-${round_number}/${phase_identifier}/${ns}"
+    done
+    
+    # Também criar diretório para métricas sem namespace específico
+    mkdir -p "${METRICS_DIR}/round-${round_number}/${phase_identifier}/cluster"
+
+    while true; do
+        local current_timestamp=$(date +%Y%m%d_%H%M%S)
+        
+        for query_name in "${!PROM_QUERIES[@]}"; do
+            local query="${PROM_QUERIES[$query_name]}"
+            
+            # Execute a query do Prometheus
+            curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" \
+                --data-urlencode "query=$query" | \
+                jq -r --arg time "$current_timestamp" '
+                    # Criar um header para novo arquivo, se necessário
+                    if ($time == "header") then
+                        ["timestamp", "namespace", "value"] | @csv
+                    else
+                        .data.result[] | [
+                            $time,
+                            (.metric.namespace // "cluster"),
+                            (.value[1] // "N/A")
+                        ] | @csv
+                    end
+                ' | while IFS= read -r csv_line; do
+                    # Pular linhas vazias
+                    [ -z "$csv_line" ] && continue
+                    
+                    # Extrair namespace do CSV (segundo campo)
+                    local ns=$(echo "$csv_line" | awk -F, '{gsub(/"/, "", $2); print $2}')
+                    
+                    # Determinar diretório de destino
+                    local target_dir
+                    if [ "$ns" = "cluster" ] || [ "$ns" = "N/A" ]; then
+                        target_dir="${METRICS_DIR}/round-${round_number}/${phase_identifier}/cluster"
+                    else
+                        target_dir="${METRICS_DIR}/round-${round_number}/${phase_identifier}/${ns}"
+                    fi
+                    
+                    # Verificar se o diretório existe, criar se necessário
+                    mkdir -p "$target_dir"
+                    
+                    # Arquivo de destino para esta métrica
+                    local output_file="${target_dir}/${query_name}.csv"
+                    
+                    # Adicionar cabeçalho se o arquivo não existir
+                    if [ ! -f "$output_file" ]; then
+                        echo "timestamp,value" > "$output_file"
+                    fi
+                    
+                    # Extrair timestamp e valor (primeiro e terceiro campos)
+                    local ts_val=$(echo "$csv_line" | awk -F, '{gsub(/"/, "", $1); gsub(/"/, "", $3); print $1 "," $3}')
+                    echo "$ts_val" >> "$output_file"
+                done
+        done
+        sleep 5
+    done
+}
+
+# Função para iniciar a coleta contínua
+start_collecting_metrics() {
+    local phase=$1
+    local round=$2
+    
+    if [ "$COLLECT_METRICS" = true ]; then
+        collect_metrics_continuously "$phase" "$round" &
+        METRICS_PID=$!
+        log "$BLUE" "Coleta de métricas iniciada com PID: $METRICS_PID"
+    else
+        log "$YELLOW" "Coleta de métricas desativada"
+    fi
+}
+
+# Função para interromper a coleta
+stop_collecting_metrics() {
+    if [ -n "$METRICS_PID" ] && kill -0 $METRICS_PID 2>/dev/null; then
+        log "$BLUE" "Interrompendo coleta de métricas (PID: $METRICS_PID)..."
+        kill $METRICS_PID
+        wait $METRICS_PID 2>/dev/null || true
+        log "$BLUE" "Coleta de métricas finalizada."
+    fi
+    unset METRICS_PID
+}
+
 # Log inicial
 log "$GREEN" "Iniciando experimento: $EXPERIMENT_NAME"
 log "$GREEN" "Log sendo salvo em: $LOG_FILE"
@@ -177,100 +287,6 @@ if [ "$COLLECT_METRICS" = true ]; then
 else
     log "$YELLOW" "Coleta de métricas desativada"
 fi
-
-# Função para coletar métricas - corrigida
-collect_metrics() {
-    local phase=$1
-    local round=$2
-    local output_dir="${METRICS_DIR}/round-${round}/${phase}"
-    
-    if [ "$COLLECT_METRICS" = true ]; then
-        mkdir -p "$output_dir"
-        log "$BLUE" "Coletando métricas para a fase: ${phase} (Round ${round})..."
-        
-        # Coleta básica de informações do cluster
-        log "$BLUE" "Coletando informações do cluster..."
-        kubectl get pods -A -o wide > "${output_dir}/pods.txt" 2>> "$LOG_FILE" || true
-        kubectl top pods -A > "${output_dir}/top-pods.txt" 2>> "$LOG_FILE" || true
-        kubectl top nodes > "${output_dir}/top-nodes.txt" 2>> "$LOG_FILE" || true
-        
-        # Captura métricas diretamente via curl - CORRIGIDA
-        log "$BLUE" "Capturando métricas via API do Prometheus..."
-        mkdir -p "${output_dir}/prometheus-api"
-        
-        # Lista de métricas principais para capturar
-        metrics=(
-          "container_cpu_usage_seconds_total"
-          "container_memory_working_set_bytes"
-          "container_network_receive_bytes_total"
-          "container_network_transmit_bytes_total"
-          "container_cpu_cfs_throttled_periods_total"
-        )
-        
-        # Capturar métricas por namespace individualmente (evita problemas de escape)
-        namespaces=("tenant-a" "tenant-b" "tenant-c")
-        for metric in "${metrics[@]}"; do
-            for ns in "${namespaces[@]}"; do
-                # Usando namespace individual evita o problema com =~ na consulta
-                curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode "query=${metric}{namespace=\"$ns\"}" | \
-                  jq . > "${output_dir}/prometheus-api/${metric}_${ns}.json" || true
-            done
-            
-            # Também salvar taxa de uso para métricas de contador
-            if [[ "$metric" == *"_total" ]]; then
-                for ns in "${namespaces[@]}"; do
-                    curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode "query=rate(${metric}{namespace=\"$ns\"}[1m])" | \
-                      jq . > "${output_dir}/prometheus-api/rate_${metric}_${ns}.json" || true
-                done
-            fi
-        done
-        
-        # Métricas adicionais específicas para noisy neighbours
-        log "$BLUE" "Capturando métricas específicas para noisy neighbours..."
-        
-        # CPU Throttling - importante para detectar contenção
-        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
-          "query=sum(rate(container_cpu_cfs_throttled_periods_total[1m])) by (namespace, pod) / sum(rate(container_cpu_cfs_periods_total[1m])) by (namespace, pod)" | \
-          jq . > "${output_dir}/prometheus-api/cpu_throttling_ratio.json" || true
-        
-        # Uso de recursos como % do limite
-        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
-          "query=sum(container_memory_working_set_bytes) by (namespace) / 1024 / 1024" | \
-          jq . > "${output_dir}/prometheus-api/memory_usage_mb_by_namespace.json" || true
-          
-        curl -s --connect-timeout 5 "http://localhost:9090/api/v1/query" --data-urlencode \
-          "query=sum(rate(container_cpu_usage_seconds_total[1m])) by (namespace)" | \
-          jq . > "${output_dir}/prometheus-api/cpu_usage_by_namespace.json" || true
-    fi
-}
-
-# Função para configurar port-forwarding do Prometheus
-setup_prometheus_forward() {
-    log "$BLUE" "Configurando port-forward para o Prometheus..."
-    kubectl port-forward -n monitoring service/prometheus-kube-prometheus-prometheus 9090:9090 > /dev/null 2>> "$LOG_FILE" &
-    PROMETHEUS_PID=$!
-    sleep 5  # Espera o port-forward estabelecer
-    
-    # Verificar se o port-forward está funcionando
-    if ! curl -s http://localhost:9090/-/healthy > /dev/null; then
-        log "$RED" "Falha ao conectar com o Prometheus. Verifique se o serviço está em execução."
-        kill $PROMETHEUS_PID 2>/dev/null || true
-        return 1
-    fi
-    
-    log "$GREEN" "Port-forward para Prometheus configurado com sucesso"
-    return 0
-}
-
-# Função para interromper port-forwarding
-stop_prometheus_forward() {
-    if [ -n "$PROMETHEUS_PID" ]; then
-        log "$BLUE" "Interrompendo port-forward do Prometheus..."
-        kill $PROMETHEUS_PID 2>/dev/null || true
-        wait $PROMETHEUS_PID 2>/dev/null || true
-        unset PROMETHEUS_PID
-    fi
-}
 
 # Validar recursos
 log "$GREEN" "Validando recursos do cluster..."
@@ -298,14 +314,6 @@ kubectl wait --for=condition=Ready -n monitoring pod -l app.kubernetes.io/name=p
     log "$YELLOW" "Não foi possível detectar o deployment do Prometheus. Continuando mesmo assim..."
 }
 
-# Configurar port-forwarding para o Prometheus
-if [ "$COLLECT_METRICS" = true ]; then
-    setup_prometheus_forward || {
-        log "$YELLOW" "Aviso: Não foi possível configurar o port-forward para o Prometheus. A coleta de métricas será desabilitada."
-        COLLECT_METRICS=false
-    }
-fi
-
 # Início do experimento
 log "$GREEN" "======= INÍCIO DO EXPERIMENTO: ${EXPERIMENT_NAME} ======="
 log "$GREEN" "Data: ${START_DATE//-//}, Hora: ${START_TIME//-/:}"
@@ -318,6 +326,11 @@ echo "Início do experimento: $(date)" > "${METRICS_DIR}/info.txt"
 echo "Número de rounds: $NUM_ROUNDS" >> "${METRICS_DIR}/info.txt"
 echo "Duração das fases: Baseline=$BASELINE_DURATION, Ataque=$ATTACK_DURATION, Recuperação=$RECOVERY_DURATION" >> "${METRICS_DIR}/info.txt"
 
+# Definir nomes das fases com numeração
+PHASE_1_NAME="1 - Baseline"
+PHASE_2_NAME="2 - Attack"
+PHASE_3_NAME="3 - Recovery"
+
 # Executar cada round do experimento
 for round in $(seq 1 $NUM_ROUNDS); do
     mkdir -p "${METRICS_DIR}/round-${round}"
@@ -325,7 +338,10 @@ for round in $(seq 1 $NUM_ROUNDS); do
     log "$YELLOW" "===== ROUND ${round}/${NUM_ROUNDS} ====="
     
     # FASE 1: BASELINE
-    log "$BLUE" "=== Fase 1: BASELINE ==="
+    log "$BLUE" "=== Fase $PHASE_1_NAME ==="
+    if [ "$COLLECT_METRICS" = true ]; then
+      start_collecting_metrics "$PHASE_1_NAME" "$round"
+    fi
     
     # Limpar quaisquer workloads anteriores se for o primeiro round
     if [ "$round" -eq 1 ]; then
@@ -337,7 +353,7 @@ for round in $(seq 1 $NUM_ROUNDS); do
     fi
     
     # Executar fase de baseline com timeout
-    execute_with_timeout "baseline" "$BASELINE_DURATION" "
+    execute_with_timeout "$PHASE_1_NAME" "$BASELINE_DURATION" "
         log \"\$GREEN\" \"Implantando tenant-a (referência)...\"
         kubectl apply -f \"\$BASE_DIR/manifests/tenant-a/\" >> \"\$LOG_FILE\" 2>&1
         
@@ -350,47 +366,54 @@ for round in $(seq 1 $NUM_ROUNDS); do
         log \"\$GREEN\" \"Aguardando inicialização dos workloads do tenant-c...\"
         sleep 15
         
-        collect_metrics \"baseline\" \"\$round\"
         sleep \"\$BASELINE_DURATION\"
     "
+    if [ "$COLLECT_METRICS" = true ]; then
+      stop_collecting_metrics
+    fi
     
     # FASE 2: ATAQUES
-    log "$BLUE" "=== Fase 2: ATAQUES ==="
+    log "$BLUE" "=== Fase $PHASE_2_NAME ==="
+    if [ "$COLLECT_METRICS" = true ]; then
+      start_collecting_metrics "$PHASE_2_NAME" "$round"
+    fi
     
     # Executar fase de ataque com timeout
-    execute_with_timeout "attack" "$ATTACK_DURATION" "
+    execute_with_timeout "$PHASE_2_NAME" "$ATTACK_DURATION" "
         log \"\$GREEN\" \"Implantando tenant-b (noisy neighbour)...\"
         kubectl apply -f \"\$BASE_DIR/manifests/tenant-b/\" >> \"\$LOG_FILE\" 2>&1
         
         log \"\$GREEN\" \"Aguardando inicialização dos workloads do tenant-b...\"
         sleep 15
         
-        collect_metrics \"attack-start\" \"\$round\"
         sleep \"\$ATTACK_DURATION\"
-        collect_metrics \"attack-end\" \"\$round\"
     "
+    if [ "$COLLECT_METRICS" = true ]; then
+      stop_collecting_metrics
+    fi
     
     # FASE 3: RECUPERAÇÃO
-    log "$BLUE" "=== Fase 3: RECUPERAÇÃO ==="
+    log "$BLUE" "=== Fase $PHASE_3_NAME ==="
+    if [ "$COLLECT_METRICS" = true ]; then
+      start_collecting_metrics "$PHASE_3_NAME" "$round"
+    fi
     
     # Executar fase de recuperação com timeout
-    execute_with_timeout "recovery" "$RECOVERY_DURATION" "
+    execute_with_timeout "$PHASE_3_NAME" "$RECOVERY_DURATION" "
         log \"\$GREEN\" \"Removendo tenant-b (noisy neighbour)...\"
         kubectl delete -f \"\$BASE_DIR/manifests/tenant-b/\" >> \"\$LOG_FILE\" 2>&1
         
         log \"\$GREEN\" \"Aguardando remoção completa do tenant-b...\"
-        sleep 15
+        sleep 15 # Give time for resources to be deleted before metrics might disappear
         
-        collect_metrics \"recovery-start\" \"\$round\"
         sleep \"\$RECOVERY_DURATION\"
-        collect_metrics \"recovery-end\" \"\$round\"
     "
+    if [ "$COLLECT_METRICS" = true ]; then
+      stop_collecting_metrics
+    fi
     
     log "$GREEN" "Round ${round}/${NUM_ROUNDS} concluído com sucesso!"
 done
-
-# Coletar métricas finais do experimento
-collect_metrics "final" "all"
 
 # Registrar o fim do experimento
 END_TIMESTAMP=$(date +%s)
@@ -398,8 +421,6 @@ TOTAL_DURATION=$((END_TIMESTAMP - START_TIMESTAMP))
 echo "Fim do experimento: $(date)" >> "${METRICS_DIR}/info.txt"
 echo "Duração total: $TOTAL_DURATION segundos ($(($TOTAL_DURATION / 60)) minutos)" >> "${METRICS_DIR}/info.txt"
 
-# Parar port-forwarding
-stop_prometheus_forward
 
 # Limpar recursos no final (opcional, comentado por padrão)
 # log "$GREEN" "Limpando recursos..."

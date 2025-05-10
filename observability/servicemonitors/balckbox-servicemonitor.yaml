@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+    - port: http
+      path: /probe
+      interval: 15s
+      params:
+        module: [http_2xx]
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - sourceLabels: [__address__]
+          targetLabel: __param_target
+        - targetLabel: __address__
+          replacement: blackbox-exporter.monitoring.svc.cluster.local:9115
