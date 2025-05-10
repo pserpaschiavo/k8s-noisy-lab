@@ -1,3 +1,0 @@
-Início do experimento: Sat May 10 03:13:54 AM -03 2025
-Número de rounds: 1
-Duração das fases: Baseline=30, Ataque=30, Recuperação=30

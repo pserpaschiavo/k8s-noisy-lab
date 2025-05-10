@@ -1,0 +1,1175 @@
+[2025-05-10 17:01:33] Namespace 'tenant-a' já existe.
+[2025-05-10 17:01:33] Namespace 'tenant-b' já existe.
+[2025-05-10 17:01:33] Namespace 'tenant-c' já existe.
+[2025-05-10 17:01:33] Namespace 'monitoring' já existe.
+[2025-05-10 17:01:33] Namespace 'ingress-nginx' já existe.
+[2025-05-10 17:01:33] Iniciando experimento: add-metrics-1
+[2025-05-10 17:01:33] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/17-01-33/add-metrics-1/experiment.log
+[2025-05-10 17:01:33] Verificando pré-requisitos...
+[2025-05-10 17:01:33] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/17-01-33/add-metrics-1
+[2025-05-10 17:01:33] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 17:01:37] Criando namespaces...
+NAME              STATUS   AGE
+default           Active   9m8s
+ingress-nginx     Active   6m56s
+kube-node-lease   Active   9m8s
+kube-public       Active   9m8s
+kube-system       Active   9m8s
+metallb-system    Active   6m38s
+monitoring        Active   8m3s
+tenant-a          Active   8m48s
+tenant-b          Active   8m46s
+tenant-c          Active   8m44s
+[2025-05-10 17:01:42] Aplicando resource quotas...
+resourcequota/tenant-a-quota unchanged
+resourcequota/tenant-b-quota unchanged
+resourcequota/tenant-c-quota unchanged
+[2025-05-10 17:01:47] Stack de observabilidade já instalada.
+[2025-05-10 17:01:47] Aguardando inicialização do Prometheus...
+pod/prometheus-prometheus-kube-prometheus-prometheus-0 condition met
+[2025-05-10 17:01:47] Adicionando deployment do blackbox-exporter...
+[2025-05-10 17:01:47] ======= INÍCIO DO EXPERIMENTO: add-metrics-1 =======
+[2025-05-10 17:01:47] Data: 2025/05/10, Hora: 17:01:33
+[2025-05-10 17:01:47] Número de rounds: 1
+[2025-05-10 17:01:47] Duração das fases: Baseline=30s, Ataque=600s, Recuperação=30s
+[2025-05-10 17:01:47] ===== ROUND 1/1 =====
+[2025-05-10 17:01:47] === Fase 1 - Baseline ===
+[2025-05-10 17:01:47] Coleta de métricas iniciada com PID: 116031
+[2025-05-10 17:01:47] Limpando workloads anteriores...
+[20250510_170147] WARN: no data for cpu_throttled_time
+deployment.apps "nginx-deployment" deleted
+[20250510_170147] WARN: no data for memory_usage_noisy_victim_ratio
+service "nginx" deleted
+job.batch "nginx-benchmark" deleted
+deployment.apps "iperf-server" deleted
+service "iperf-server" deleted
+[20250510_170147] WARN: no data for memory_usage_noisy_network_ratio
+deployment.apps "redis-deployment" deleted
+job.batch "redis-benchmark" deleted
+[20250510_170147] WARN: no data for resource_dominance_index
+[20250510_170147] WARN: no data for memory_oomkill_events
+[20250510_170147] WARN: no data for cpu_throttled_ratio
+[20250510_170147] WARN: no data for memory_pressure
+[20250510_170147] WARN: no data for correlation_memory_latency
+[20250510_170147] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170147] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170147] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170147] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170147] WARN: no data for correlation_cpu_latency
+[20250510_170147] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170147] WARN: no data for tenant_latency_comparison
+[20250510_170147] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170147] WARN: no data for latency_process_time
+[20250510_170153] WARN: no data for cpu_throttled_time
+[20250510_170153] WARN: no data for pending_pods
+[20250510_170153] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170153] WARN: no data for memory_usage
+[20250510_170153] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170153] WARN: no data for resource_dominance_index
+[20250510_170153] WARN: no data for memory_oomkill_events
+[20250510_170153] WARN: no data for cpu_throttled_ratio
+[20250510_170153] WARN: no data for cpu_usage_pct_of_limit
+[20250510_170153] WARN: no data for memory_pressure
+[20250510_170153] WARN: no data for correlation_memory_latency
+[20250510_170153] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170153] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170153] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170153] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170153] WARN: no data for correlation_cpu_latency
+[20250510_170153] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170153] WARN: no data for pod_ready_age
+[20250510_170153] WARN: no data for tenant_latency_comparison
+[20250510_170153] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170153] WARN: no data for latency_process_time
+[20250510_170153] WARN: no data for pod_readiness_ratio
+[2025-05-10 17:01:57] Iniciando fase: 1 - Baseline com duração máxima de 30s
+[2025-05-10 17:01:57] Implantando tenant-a (referência)...
+deployment.apps/nginx-deployment created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-10 17:01:58] Aguardando inicialização dos serviços do tenant-a...
+[20250510_170159] WARN: no data for cpu_throttled_time
+[20250510_170159] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170159] WARN: no data for memory_usage
+[20250510_170159] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170159] WARN: no data for resource_dominance_index
+[20250510_170159] WARN: no data for memory_oomkill_events
+[20250510_170159] WARN: no data for cpu_throttled_ratio
+[20250510_170159] WARN: no data for memory_pressure
+[20250510_170159] WARN: no data for correlation_memory_latency
+[20250510_170159] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170159] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170159] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170159] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170159] WARN: no data for correlation_cpu_latency
+[20250510_170159] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170159] WARN: no data for tenant_latency_comparison
+[20250510_170159] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170159] WARN: no data for latency_process_time
+deployment.apps/iperf-server condition met
+[2025-05-10 17:02:01] Implantando tenant-c (vítima)...
+deployment.apps/redis-deployment created
+job.batch/redis-benchmark created
+[2025-05-10 17:02:01] Aguardando inicialização dos workloads do tenant-c...
+[20250510_170205] WARN: no data for cpu_throttled_time
+[20250510_170205] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170205] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170205] WARN: no data for resource_dominance_index
+[20250510_170205] WARN: no data for memory_oomkill_events
+[20250510_170205] WARN: no data for cpu_throttled_ratio
+[20250510_170205] WARN: no data for memory_pressure
+[20250510_170205] WARN: no data for correlation_memory_latency
+[20250510_170205] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170205] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170205] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170205] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170205] WARN: no data for correlation_cpu_latency
+[20250510_170205] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170205] WARN: no data for tenant_latency_comparison
+[20250510_170205] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170205] WARN: no data for latency_process_time
+[20250510_170210] WARN: no data for cpu_throttled_time
+[20250510_170210] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170210] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170210] WARN: no data for resource_dominance_index
+[20250510_170210] WARN: no data for memory_oomkill_events
+[20250510_170210] WARN: no data for cpu_throttled_ratio
+[20250510_170210] WARN: no data for memory_pressure
+[20250510_170210] WARN: no data for correlation_memory_latency
+[20250510_170210] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170210] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170210] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170210] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170210] WARN: no data for correlation_cpu_latency
+[20250510_170210] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170210] WARN: no data for tenant_latency_comparison
+[20250510_170210] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170210] WARN: no data for latency_process_time
+[20250510_170216] WARN: no data for cpu_throttled_time
+[20250510_170216] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170216] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170216] WARN: no data for resource_dominance_index
+[20250510_170216] WARN: no data for memory_oomkill_events
+[20250510_170216] WARN: no data for cpu_throttled_ratio
+[20250510_170216] WARN: no data for memory_pressure
+[20250510_170216] WARN: no data for correlation_memory_latency
+[20250510_170216] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170216] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170216] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170216] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170216] WARN: no data for correlation_cpu_latency
+[20250510_170216] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170216] WARN: no data for tenant_latency_comparison
+[20250510_170216] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170216] WARN: no data for latency_process_time
+[20250510_170222] WARN: no data for cpu_throttled_time
+[20250510_170222] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170222] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170222] WARN: no data for resource_dominance_index
+[20250510_170222] WARN: no data for memory_oomkill_events
+[20250510_170222] WARN: no data for cpu_throttled_ratio
+[20250510_170222] WARN: no data for memory_pressure
+[20250510_170222] WARN: no data for correlation_memory_latency
+[20250510_170222] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170222] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170222] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170222] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170222] WARN: no data for correlation_cpu_latency
+[20250510_170222] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170222] WARN: no data for tenant_latency_comparison
+[20250510_170222] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170222] WARN: no data for latency_process_time
+[2025-05-10 17:02:27] Timeout de fase 1 - Baseline atingido. Matando processo 117562
+[2025-05-10 17:02:27] Fase 1 - Baseline concluída
+[2025-05-10 17:02:27] Interrompendo coleta de métricas (PID: 116031)...
+[2025-05-10 17:02:27] Coleta de métricas finalizada.
+[2025-05-10 17:02:27] === Fase 2 - Attack ===
+[2025-05-10 17:02:27] Coleta de métricas iniciada com PID: 120965
+[2025-05-10 17:02:27] Iniciando fase: 2 - Attack com duração máxima de 600s
+[2025-05-10 17:02:27] Implantando tenant-b (noisy neighbour)...
+[20250510_170227] WARN: no data for cpu_throttled_time
+[20250510_170227] WARN: no data for memory_usage_noisy_victim_ratio
+deployment.apps/iperf created
+deployment.apps/stress-ng created
+[2025-05-10 17:02:28] Aguardando inicialização dos workloads do tenant-b...
+[20250510_170227] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170227] WARN: no data for resource_dominance_index
+[20250510_170227] WARN: no data for memory_oomkill_events
+[20250510_170227] WARN: no data for cpu_throttled_ratio
+[20250510_170227] WARN: no data for memory_pressure
+[20250510_170227] WARN: no data for correlation_memory_latency
+[20250510_170227] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170227] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170227] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170227] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170227] WARN: no data for correlation_cpu_latency
+[20250510_170227] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170227] WARN: no data for tenant_latency_comparison
+[20250510_170227] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170227] WARN: no data for latency_process_time
+[20250510_170233] WARN: no data for cpu_throttled_time
+[20250510_170233] WARN: no data for resource_dominance_index
+[20250510_170233] WARN: no data for memory_oomkill_events
+[20250510_170233] WARN: no data for cpu_throttled_ratio
+[20250510_170233] WARN: no data for memory_pressure
+[20250510_170233] WARN: no data for correlation_memory_latency
+[20250510_170233] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170233] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170233] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170233] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170233] WARN: no data for correlation_cpu_latency
+[20250510_170233] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170233] WARN: no data for tenant_latency_comparison
+[20250510_170233] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170233] WARN: no data for latency_process_time
+[20250510_170239] WARN: no data for cpu_throttled_time
+[20250510_170239] WARN: no data for resource_dominance_index
+[20250510_170239] WARN: no data for memory_oomkill_events
+[20250510_170239] WARN: no data for cpu_throttled_ratio
+[20250510_170239] WARN: no data for memory_pressure
+[20250510_170239] WARN: no data for correlation_memory_latency
+[20250510_170239] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170239] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170239] WARN: no data for correlation_cpu_latency
+[20250510_170239] WARN: no data for tenant_latency_comparison
+[20250510_170239] WARN: no data for latency_process_time
+[20250510_170245] WARN: no data for cpu_throttled_time
+[20250510_170245] WARN: no data for memory_oomkill_events
+[20250510_170245] WARN: no data for cpu_throttled_ratio
+[20250510_170245] WARN: no data for memory_pressure
+[20250510_170245] WARN: no data for correlation_memory_latency
+[20250510_170245] WARN: no data for correlation_cpu_latency
+[20250510_170245] WARN: no data for tenant_latency_comparison
+[20250510_170245] WARN: no data for latency_process_time
+[20250510_170251] WARN: no data for cpu_throttled_time
+[20250510_170251] WARN: no data for memory_oomkill_events
+[20250510_170251] WARN: no data for cpu_throttled_ratio
+[20250510_170251] WARN: no data for memory_pressure
+[20250510_170251] WARN: no data for correlation_memory_latency
+[20250510_170251] WARN: no data for correlation_cpu_latency
+[20250510_170251] WARN: no data for tenant_latency_comparison
+[20250510_170251] WARN: no data for latency_process_time
+[20250510_170257] WARN: no data for cpu_throttled_time
+[20250510_170257] WARN: no data for memory_oomkill_events
+[20250510_170257] WARN: no data for cpu_throttled_ratio
+[20250510_170257] WARN: no data for memory_pressure
+[20250510_170257] WARN: no data for correlation_memory_latency
+[20250510_170257] WARN: no data for correlation_cpu_latency
+[20250510_170257] WARN: no data for tenant_latency_comparison
+[20250510_170257] WARN: no data for latency_process_time
+[20250510_170302] WARN: no data for cpu_throttled_time
+[20250510_170302] WARN: no data for memory_oomkill_events
+[20250510_170302] WARN: no data for cpu_throttled_ratio
+[20250510_170302] WARN: no data for memory_pressure
+[20250510_170302] WARN: no data for correlation_memory_latency
+[20250510_170302] WARN: no data for correlation_cpu_latency
+[20250510_170302] WARN: no data for tenant_latency_comparison
+[20250510_170302] WARN: no data for latency_process_time
+[20250510_170308] WARN: no data for cpu_throttled_time
+[20250510_170308] WARN: no data for memory_oomkill_events
+[20250510_170308] WARN: no data for cpu_throttled_ratio
+[20250510_170308] WARN: no data for memory_pressure
+[20250510_170308] WARN: no data for correlation_memory_latency
+[20250510_170308] WARN: no data for correlation_cpu_latency
+[20250510_170308] WARN: no data for tenant_latency_comparison
+[20250510_170308] WARN: no data for latency_process_time
+[20250510_170314] WARN: no data for cpu_throttled_time
+[20250510_170314] WARN: no data for memory_oomkill_events
+[20250510_170314] WARN: no data for cpu_throttled_ratio
+[20250510_170314] WARN: no data for memory_pressure
+[20250510_170314] WARN: no data for correlation_memory_latency
+[20250510_170314] WARN: no data for correlation_cpu_latency
+[20250510_170314] WARN: no data for tenant_latency_comparison
+[20250510_170314] WARN: no data for latency_process_time
+[20250510_170320] WARN: no data for cpu_throttled_time
+[20250510_170320] WARN: no data for memory_oomkill_events
+[20250510_170320] WARN: no data for cpu_throttled_ratio
+[20250510_170320] WARN: no data for memory_pressure
+[20250510_170320] WARN: no data for correlation_memory_latency
+[20250510_170320] WARN: no data for correlation_cpu_latency
+[20250510_170320] WARN: no data for tenant_latency_comparison
+[20250510_170320] WARN: no data for latency_process_time
+[20250510_170326] WARN: no data for cpu_throttled_time
+[20250510_170326] WARN: no data for memory_oomkill_events
+[20250510_170326] WARN: no data for cpu_throttled_ratio
+[20250510_170326] WARN: no data for memory_pressure
+[20250510_170326] WARN: no data for correlation_memory_latency
+[20250510_170326] WARN: no data for correlation_cpu_latency
+[20250510_170326] WARN: no data for tenant_latency_comparison
+[20250510_170326] WARN: no data for latency_process_time
+[20250510_170331] WARN: no data for cpu_throttled_time
+[20250510_170331] WARN: no data for memory_oomkill_events
+[20250510_170331] WARN: no data for cpu_throttled_ratio
+[20250510_170331] WARN: no data for memory_pressure
+[20250510_170331] WARN: no data for correlation_memory_latency
+[20250510_170331] WARN: no data for correlation_cpu_latency
+[20250510_170331] WARN: no data for tenant_latency_comparison
+[20250510_170331] WARN: no data for latency_process_time
+[20250510_170337] WARN: no data for cpu_throttled_time
+[20250510_170337] WARN: no data for memory_oomkill_events
+[20250510_170337] WARN: no data for cpu_throttled_ratio
+[20250510_170337] WARN: no data for memory_pressure
+[20250510_170337] WARN: no data for correlation_memory_latency
+[20250510_170337] WARN: no data for correlation_cpu_latency
+[20250510_170337] WARN: no data for tenant_latency_comparison
+[20250510_170337] WARN: no data for latency_process_time
+[20250510_170343] WARN: no data for cpu_throttled_time
+[20250510_170343] WARN: no data for memory_oomkill_events
+[20250510_170343] WARN: no data for cpu_throttled_ratio
+[20250510_170343] WARN: no data for memory_pressure
+[20250510_170343] WARN: no data for correlation_memory_latency
+[20250510_170343] WARN: no data for correlation_cpu_latency
+[20250510_170343] WARN: no data for tenant_latency_comparison
+[20250510_170343] WARN: no data for latency_process_time
+[20250510_170349] WARN: no data for cpu_throttled_time
+[20250510_170349] WARN: no data for memory_oomkill_events
+[20250510_170349] WARN: no data for cpu_throttled_ratio
+[20250510_170349] WARN: no data for memory_pressure
+[20250510_170349] WARN: no data for correlation_memory_latency
+[20250510_170349] WARN: no data for correlation_cpu_latency
+[20250510_170349] WARN: no data for tenant_latency_comparison
+[20250510_170349] WARN: no data for latency_process_time
+[20250510_170355] WARN: no data for cpu_throttled_time
+[20250510_170355] WARN: no data for memory_oomkill_events
+[20250510_170355] WARN: no data for cpu_throttled_ratio
+[20250510_170355] WARN: no data for memory_pressure
+[20250510_170355] WARN: no data for correlation_memory_latency
+[20250510_170355] WARN: no data for correlation_cpu_latency
+[20250510_170355] WARN: no data for tenant_latency_comparison
+[20250510_170355] WARN: no data for latency_process_time
+[20250510_170400] WARN: no data for cpu_throttled_time
+[20250510_170400] WARN: no data for memory_oomkill_events
+[20250510_170400] WARN: no data for cpu_throttled_ratio
+[20250510_170400] WARN: no data for memory_pressure
+[20250510_170400] WARN: no data for correlation_memory_latency
+[20250510_170400] WARN: no data for correlation_cpu_latency
+[20250510_170400] WARN: no data for tenant_latency_comparison
+[20250510_170400] WARN: no data for latency_process_time
+[20250510_170406] WARN: no data for cpu_throttled_time
+[20250510_170406] WARN: no data for memory_oomkill_events
+[20250510_170406] WARN: no data for cpu_throttled_ratio
+[20250510_170406] WARN: no data for memory_pressure
+[20250510_170406] WARN: no data for correlation_memory_latency
+[20250510_170406] WARN: no data for correlation_cpu_latency
+[20250510_170406] WARN: no data for tenant_latency_comparison
+[20250510_170406] WARN: no data for latency_process_time
+[20250510_170412] WARN: no data for cpu_throttled_time
+[20250510_170412] WARN: no data for memory_oomkill_events
+[20250510_170412] WARN: no data for cpu_throttled_ratio
+[20250510_170412] WARN: no data for memory_pressure
+[20250510_170412] WARN: no data for correlation_memory_latency
+[20250510_170412] WARN: no data for correlation_cpu_latency
+[20250510_170412] WARN: no data for tenant_latency_comparison
+[20250510_170412] WARN: no data for latency_process_time
+[20250510_170418] WARN: no data for cpu_throttled_time
+[20250510_170418] WARN: no data for memory_oomkill_events
+[20250510_170418] WARN: no data for cpu_throttled_ratio
+[20250510_170418] WARN: no data for memory_pressure
+[20250510_170418] WARN: no data for correlation_memory_latency
+[20250510_170418] WARN: no data for correlation_cpu_latency
+[20250510_170418] WARN: no data for tenant_latency_comparison
+[20250510_170418] WARN: no data for latency_process_time
+[20250510_170424] WARN: no data for cpu_throttled_time
+[20250510_170424] WARN: no data for memory_oomkill_events
+[20250510_170424] WARN: no data for cpu_throttled_ratio
+[20250510_170424] WARN: no data for memory_pressure
+[20250510_170424] WARN: no data for correlation_memory_latency
+[20250510_170424] WARN: no data for correlation_cpu_latency
+[20250510_170424] WARN: no data for tenant_latency_comparison
+[20250510_170424] WARN: no data for latency_process_time
+[20250510_170430] WARN: no data for cpu_throttled_time
+[20250510_170430] WARN: no data for memory_oomkill_events
+[20250510_170430] WARN: no data for cpu_throttled_ratio
+[20250510_170430] WARN: no data for memory_pressure
+[20250510_170430] WARN: no data for correlation_memory_latency
+[20250510_170430] WARN: no data for correlation_cpu_latency
+[20250510_170430] WARN: no data for tenant_latency_comparison
+[20250510_170430] WARN: no data for latency_process_time
+[20250510_170435] WARN: no data for cpu_throttled_time
+[20250510_170435] WARN: no data for memory_oomkill_events
+[20250510_170435] WARN: no data for cpu_throttled_ratio
+[20250510_170435] WARN: no data for memory_pressure
+[20250510_170435] WARN: no data for correlation_memory_latency
+[20250510_170435] WARN: no data for correlation_cpu_latency
+[20250510_170435] WARN: no data for tenant_latency_comparison
+[20250510_170435] WARN: no data for latency_process_time
+[20250510_170441] WARN: no data for cpu_throttled_time
+[20250510_170441] WARN: no data for memory_oomkill_events
+[20250510_170441] WARN: no data for cpu_throttled_ratio
+[20250510_170441] WARN: no data for memory_pressure
+[20250510_170441] WARN: no data for correlation_memory_latency
+[20250510_170441] WARN: no data for correlation_cpu_latency
+[20250510_170441] WARN: no data for tenant_latency_comparison
+[20250510_170441] WARN: no data for latency_process_time
+[20250510_170447] WARN: no data for cpu_throttled_time
+[20250510_170447] WARN: no data for memory_oomkill_events
+[20250510_170447] WARN: no data for cpu_throttled_ratio
+[20250510_170447] WARN: no data for memory_pressure
+[20250510_170447] WARN: no data for correlation_cpu_latency
+[20250510_170447] WARN: no data for tenant_latency_comparison
+[20250510_170447] WARN: no data for latency_process_time
+[20250510_170453] WARN: no data for cpu_throttled_time
+[20250510_170453] WARN: no data for memory_oomkill_events
+[20250510_170453] WARN: no data for cpu_throttled_ratio
+[20250510_170453] WARN: no data for memory_pressure
+[20250510_170453] WARN: no data for correlation_memory_latency
+[20250510_170453] WARN: no data for correlation_cpu_latency
+[20250510_170453] WARN: no data for tenant_latency_comparison
+[20250510_170453] WARN: no data for latency_process_time
+[20250510_170459] WARN: no data for cpu_throttled_time
+[20250510_170459] WARN: no data for memory_oomkill_events
+[20250510_170459] WARN: no data for cpu_throttled_ratio
+[20250510_170459] WARN: no data for memory_pressure
+[20250510_170459] WARN: no data for correlation_memory_latency
+[20250510_170459] WARN: no data for correlation_cpu_latency
+[20250510_170459] WARN: no data for tenant_latency_comparison
+[20250510_170459] WARN: no data for latency_process_time
+[20250510_170505] WARN: no data for cpu_throttled_time
+[20250510_170505] WARN: no data for memory_oomkill_events
+[20250510_170505] WARN: no data for cpu_throttled_ratio
+[20250510_170505] WARN: no data for memory_pressure
+[20250510_170505] WARN: no data for correlation_memory_latency
+[20250510_170505] WARN: no data for correlation_cpu_latency
+[20250510_170505] WARN: no data for tenant_latency_comparison
+[20250510_170505] WARN: no data for latency_process_time
+[20250510_170511] WARN: no data for cpu_throttled_time
+[20250510_170511] WARN: no data for memory_oomkill_events
+[20250510_170511] WARN: no data for cpu_throttled_ratio
+[20250510_170511] WARN: no data for memory_pressure
+[20250510_170511] WARN: no data for correlation_memory_latency
+[20250510_170511] WARN: no data for correlation_cpu_latency
+[20250510_170511] WARN: no data for tenant_latency_comparison
+[20250510_170511] WARN: no data for latency_process_time
+[20250510_170517] WARN: no data for cpu_throttled_time
+[20250510_170517] WARN: no data for memory_oomkill_events
+[20250510_170517] WARN: no data for cpu_throttled_ratio
+[20250510_170517] WARN: no data for memory_pressure
+[20250510_170517] WARN: no data for correlation_memory_latency
+[20250510_170517] WARN: no data for correlation_cpu_latency
+[20250510_170517] WARN: no data for tenant_latency_comparison
+[20250510_170517] WARN: no data for latency_process_time
+[20250510_170523] WARN: no data for cpu_throttled_time
+[20250510_170523] WARN: no data for memory_oomkill_events
+[20250510_170523] WARN: no data for cpu_throttled_ratio
+[20250510_170523] WARN: no data for memory_pressure
+[20250510_170523] WARN: no data for correlation_memory_latency
+[20250510_170523] WARN: no data for correlation_cpu_latency
+[20250510_170523] WARN: no data for tenant_latency_comparison
+[20250510_170523] WARN: no data for latency_process_time
+[20250510_170528] WARN: no data for cpu_throttled_time
+[20250510_170528] WARN: no data for memory_oomkill_events
+[20250510_170528] WARN: no data for cpu_throttled_ratio
+[20250510_170528] WARN: no data for memory_pressure
+[20250510_170528] WARN: no data for correlation_memory_latency
+[20250510_170528] WARN: no data for correlation_cpu_latency
+[20250510_170528] WARN: no data for tenant_latency_comparison
+[20250510_170528] WARN: no data for latency_process_time
+[20250510_170534] WARN: no data for cpu_throttled_time
+[20250510_170534] WARN: no data for memory_oomkill_events
+[20250510_170534] WARN: no data for cpu_throttled_ratio
+[20250510_170534] WARN: no data for memory_pressure
+[20250510_170534] WARN: no data for correlation_memory_latency
+[20250510_170534] WARN: no data for correlation_cpu_latency
+[20250510_170534] WARN: no data for tenant_latency_comparison
+[20250510_170534] WARN: no data for latency_process_time
+[20250510_170540] WARN: no data for cpu_throttled_time
+[20250510_170540] WARN: no data for memory_oomkill_events
+[20250510_170540] WARN: no data for cpu_throttled_ratio
+[20250510_170540] WARN: no data for memory_pressure
+[20250510_170540] WARN: no data for correlation_memory_latency
+[20250510_170540] WARN: no data for correlation_cpu_latency
+[20250510_170540] WARN: no data for tenant_latency_comparison
+[20250510_170540] WARN: no data for latency_process_time
+[20250510_170546] WARN: no data for cpu_throttled_time
+[20250510_170546] WARN: no data for memory_oomkill_events
+[20250510_170546] WARN: no data for cpu_throttled_ratio
+[20250510_170546] WARN: no data for memory_pressure
+[20250510_170546] WARN: no data for correlation_memory_latency
+[20250510_170546] WARN: no data for correlation_cpu_latency
+[20250510_170546] WARN: no data for tenant_latency_comparison
+[20250510_170546] WARN: no data for latency_process_time
+[20250510_170552] WARN: no data for cpu_throttled_time
+[20250510_170552] WARN: no data for memory_oomkill_events
+[20250510_170552] WARN: no data for cpu_throttled_ratio
+[20250510_170552] WARN: no data for memory_pressure
+[20250510_170552] WARN: no data for correlation_memory_latency
+[20250510_170552] WARN: no data for correlation_cpu_latency
+[20250510_170552] WARN: no data for tenant_latency_comparison
+[20250510_170552] WARN: no data for latency_process_time
+[20250510_170557] WARN: no data for cpu_throttled_time
+[20250510_170557] WARN: no data for memory_oomkill_events
+[20250510_170557] WARN: no data for cpu_throttled_ratio
+[20250510_170557] WARN: no data for memory_pressure
+[20250510_170557] WARN: no data for correlation_memory_latency
+[20250510_170557] WARN: no data for correlation_cpu_latency
+[20250510_170557] WARN: no data for tenant_latency_comparison
+[20250510_170557] WARN: no data for latency_process_time
+[20250510_170603] WARN: no data for cpu_throttled_time
+[20250510_170603] WARN: no data for memory_oomkill_events
+[20250510_170603] WARN: no data for cpu_throttled_ratio
+[20250510_170603] WARN: no data for memory_pressure
+[20250510_170603] WARN: no data for correlation_memory_latency
+[20250510_170603] WARN: no data for correlation_cpu_latency
+[20250510_170603] WARN: no data for tenant_latency_comparison
+[20250510_170603] WARN: no data for latency_process_time
+[20250510_170609] WARN: no data for cpu_throttled_time
+[20250510_170609] WARN: no data for memory_oomkill_events
+[20250510_170609] WARN: no data for cpu_throttled_ratio
+[20250510_170609] WARN: no data for memory_pressure
+[20250510_170609] WARN: no data for correlation_memory_latency
+[20250510_170609] WARN: no data for correlation_cpu_latency
+[20250510_170609] WARN: no data for tenant_latency_comparison
+[20250510_170609] WARN: no data for latency_process_time
+[20250510_170615] WARN: no data for cpu_throttled_time
+[20250510_170615] WARN: no data for memory_oomkill_events
+[20250510_170615] WARN: no data for cpu_throttled_ratio
+[20250510_170615] WARN: no data for memory_pressure
+[20250510_170615] WARN: no data for correlation_memory_latency
+[20250510_170615] WARN: no data for correlation_cpu_latency
+[20250510_170615] WARN: no data for tenant_latency_comparison
+[20250510_170615] WARN: no data for latency_process_time
+[20250510_170621] WARN: no data for cpu_throttled_time
+[20250510_170621] WARN: no data for memory_oomkill_events
+[20250510_170621] WARN: no data for cpu_throttled_ratio
+[20250510_170621] WARN: no data for memory_pressure
+[20250510_170621] WARN: no data for correlation_memory_latency
+[20250510_170621] WARN: no data for correlation_cpu_latency
+[20250510_170621] WARN: no data for tenant_latency_comparison
+[20250510_170621] WARN: no data for latency_process_time
+[20250510_170627] WARN: no data for cpu_throttled_time
+[20250510_170627] WARN: no data for memory_oomkill_events
+[20250510_170627] WARN: no data for cpu_throttled_ratio
+[20250510_170627] WARN: no data for memory_pressure
+[20250510_170627] WARN: no data for correlation_memory_latency
+[20250510_170627] WARN: no data for correlation_cpu_latency
+[20250510_170627] WARN: no data for tenant_latency_comparison
+[20250510_170627] WARN: no data for latency_process_time
+[20250510_170632] WARN: no data for cpu_throttled_time
+[20250510_170632] WARN: no data for memory_oomkill_events
+[20250510_170632] WARN: no data for cpu_throttled_ratio
+[20250510_170632] WARN: no data for memory_pressure
+[20250510_170632] WARN: no data for correlation_memory_latency
+[20250510_170632] WARN: no data for correlation_cpu_latency
+[20250510_170632] WARN: no data for tenant_latency_comparison
+[20250510_170632] WARN: no data for latency_process_time
+[20250510_170638] WARN: no data for cpu_throttled_time
+[20250510_170638] WARN: no data for memory_oomkill_events
+[20250510_170638] WARN: no data for cpu_throttled_ratio
+[20250510_170638] WARN: no data for memory_pressure
+[20250510_170638] WARN: no data for correlation_memory_latency
+[20250510_170638] WARN: no data for correlation_cpu_latency
+[20250510_170638] WARN: no data for tenant_latency_comparison
+[20250510_170638] WARN: no data for latency_process_time
+[20250510_170644] WARN: no data for cpu_throttled_time
+[20250510_170644] WARN: no data for memory_oomkill_events
+[20250510_170644] WARN: no data for cpu_throttled_ratio
+[20250510_170644] WARN: no data for memory_pressure
+[20250510_170644] WARN: no data for correlation_memory_latency
+[20250510_170644] WARN: no data for correlation_cpu_latency
+[20250510_170644] WARN: no data for tenant_latency_comparison
+[20250510_170644] WARN: no data for latency_process_time
+[20250510_170650] WARN: no data for cpu_throttled_time
+[20250510_170650] WARN: no data for memory_oomkill_events
+[20250510_170650] WARN: no data for cpu_throttled_ratio
+[20250510_170650] WARN: no data for memory_pressure
+[20250510_170650] WARN: no data for correlation_memory_latency
+[20250510_170650] WARN: no data for correlation_cpu_latency
+[20250510_170650] WARN: no data for tenant_latency_comparison
+[20250510_170650] WARN: no data for latency_process_time
+[20250510_170656] WARN: no data for cpu_throttled_time
+[20250510_170656] WARN: no data for memory_oomkill_events
+[20250510_170656] WARN: no data for cpu_throttled_ratio
+[20250510_170656] WARN: no data for memory_pressure
+[20250510_170656] WARN: no data for correlation_memory_latency
+[20250510_170656] WARN: no data for correlation_cpu_latency
+[20250510_170656] WARN: no data for tenant_latency_comparison
+[20250510_170656] WARN: no data for latency_process_time
+[20250510_170702] WARN: no data for cpu_throttled_time
+[20250510_170702] WARN: no data for memory_oomkill_events
+[20250510_170702] WARN: no data for cpu_throttled_ratio
+[20250510_170702] WARN: no data for memory_pressure
+[20250510_170702] WARN: no data for correlation_memory_latency
+[20250510_170702] WARN: no data for correlation_cpu_latency
+[20250510_170702] WARN: no data for tenant_latency_comparison
+[20250510_170702] WARN: no data for latency_process_time
+[20250510_170707] WARN: no data for cpu_throttled_time
+[20250510_170707] WARN: no data for memory_oomkill_events
+[20250510_170707] WARN: no data for cpu_throttled_ratio
+[20250510_170707] WARN: no data for memory_pressure
+[20250510_170707] WARN: no data for correlation_memory_latency
+[20250510_170707] WARN: no data for correlation_cpu_latency
+[20250510_170707] WARN: no data for tenant_latency_comparison
+[20250510_170707] WARN: no data for latency_process_time
+[20250510_170713] WARN: no data for cpu_throttled_time
+[20250510_170713] WARN: no data for memory_oomkill_events
+[20250510_170713] WARN: no data for cpu_throttled_ratio
+[20250510_170713] WARN: no data for memory_pressure
+[20250510_170713] WARN: no data for correlation_memory_latency
+[20250510_170713] WARN: no data for correlation_cpu_latency
+[20250510_170713] WARN: no data for tenant_latency_comparison
+[20250510_170713] WARN: no data for latency_process_time
+[20250510_170719] WARN: no data for cpu_throttled_time
+[20250510_170719] WARN: no data for memory_oomkill_events
+[20250510_170719] WARN: no data for cpu_throttled_ratio
+[20250510_170719] WARN: no data for memory_pressure
+[20250510_170719] WARN: no data for correlation_memory_latency
+[20250510_170719] WARN: no data for correlation_cpu_latency
+[20250510_170719] WARN: no data for tenant_latency_comparison
+[20250510_170719] WARN: no data for latency_process_time
+[20250510_170725] WARN: no data for cpu_throttled_time
+[20250510_170725] WARN: no data for memory_oomkill_events
+[20250510_170725] WARN: no data for cpu_throttled_ratio
+[20250510_170725] WARN: no data for memory_pressure
+[20250510_170725] WARN: no data for correlation_memory_latency
+[20250510_170725] WARN: no data for correlation_cpu_latency
+[20250510_170725] WARN: no data for tenant_latency_comparison
+[20250510_170725] WARN: no data for latency_process_time
+[20250510_170731] WARN: no data for cpu_throttled_time
+[20250510_170731] WARN: no data for memory_oomkill_events
+[20250510_170731] WARN: no data for cpu_throttled_ratio
+[20250510_170731] WARN: no data for memory_pressure
+[20250510_170731] WARN: no data for correlation_memory_latency
+[20250510_170731] WARN: no data for correlation_cpu_latency
+[20250510_170731] WARN: no data for tenant_latency_comparison
+[20250510_170731] WARN: no data for latency_process_time
+[20250510_170737] WARN: no data for cpu_throttled_time
+[20250510_170737] WARN: no data for memory_oomkill_events
+[20250510_170737] WARN: no data for cpu_throttled_ratio
+[20250510_170737] WARN: no data for memory_pressure
+[20250510_170737] WARN: no data for correlation_memory_latency
+[20250510_170737] WARN: no data for correlation_cpu_latency
+[20250510_170737] WARN: no data for tenant_latency_comparison
+[20250510_170737] WARN: no data for latency_process_time
+[20250510_170742] WARN: no data for cpu_throttled_time
+[20250510_170742] WARN: no data for memory_oomkill_events
+[20250510_170742] WARN: no data for cpu_throttled_ratio
+[20250510_170742] WARN: no data for memory_pressure
+[20250510_170742] WARN: no data for correlation_memory_latency
+[20250510_170742] WARN: no data for correlation_cpu_latency
+[20250510_170742] WARN: no data for tenant_latency_comparison
+[20250510_170742] WARN: no data for latency_process_time
+[20250510_170748] WARN: no data for cpu_throttled_time
+[20250510_170748] WARN: no data for memory_oomkill_events
+[20250510_170748] WARN: no data for cpu_throttled_ratio
+[20250510_170748] WARN: no data for memory_pressure
+[20250510_170748] WARN: no data for correlation_memory_latency
+[20250510_170748] WARN: no data for correlation_cpu_latency
+[20250510_170748] WARN: no data for tenant_latency_comparison
+[20250510_170748] WARN: no data for latency_process_time
+[20250510_170754] WARN: no data for cpu_throttled_time
+[20250510_170754] WARN: no data for memory_oomkill_events
+[20250510_170754] WARN: no data for cpu_throttled_ratio
+[20250510_170754] WARN: no data for memory_pressure
+[20250510_170754] WARN: no data for correlation_memory_latency
+[20250510_170754] WARN: no data for correlation_cpu_latency
+[20250510_170754] WARN: no data for tenant_latency_comparison
+[20250510_170754] WARN: no data for latency_process_time
+[20250510_170800] WARN: no data for cpu_throttled_time
+[20250510_170800] WARN: no data for memory_oomkill_events
+[20250510_170800] WARN: no data for cpu_throttled_ratio
+[20250510_170800] WARN: no data for memory_pressure
+[20250510_170800] WARN: no data for correlation_memory_latency
+[20250510_170800] WARN: no data for correlation_cpu_latency
+[20250510_170800] WARN: no data for tenant_latency_comparison
+[20250510_170800] WARN: no data for latency_process_time
+[20250510_170805] WARN: no data for cpu_throttled_time
+[20250510_170805] WARN: no data for memory_oomkill_events
+[20250510_170805] WARN: no data for cpu_throttled_ratio
+[20250510_170805] WARN: no data for memory_pressure
+[20250510_170805] WARN: no data for correlation_memory_latency
+[20250510_170805] WARN: no data for correlation_cpu_latency
+[20250510_170805] WARN: no data for tenant_latency_comparison
+[20250510_170805] WARN: no data for latency_process_time
+[20250510_170811] WARN: no data for cpu_throttled_time
+[20250510_170811] WARN: no data for memory_oomkill_events
+[20250510_170811] WARN: no data for cpu_throttled_ratio
+[20250510_170811] WARN: no data for memory_pressure
+[20250510_170811] WARN: no data for correlation_memory_latency
+[20250510_170811] WARN: no data for correlation_cpu_latency
+[20250510_170811] WARN: no data for tenant_latency_comparison
+[20250510_170811] WARN: no data for latency_process_time
+[20250510_170817] WARN: no data for cpu_throttled_time
+[20250510_170817] WARN: no data for memory_oomkill_events
+[20250510_170817] WARN: no data for cpu_throttled_ratio
+[20250510_170817] WARN: no data for memory_pressure
+[20250510_170817] WARN: no data for correlation_memory_latency
+[20250510_170817] WARN: no data for correlation_cpu_latency
+[20250510_170817] WARN: no data for tenant_latency_comparison
+[20250510_170817] WARN: no data for latency_process_time
+[20250510_170823] WARN: no data for cpu_throttled_time
+[20250510_170823] WARN: no data for memory_oomkill_events
+[20250510_170823] WARN: no data for cpu_throttled_ratio
+[20250510_170823] WARN: no data for memory_pressure
+[20250510_170823] WARN: no data for correlation_memory_latency
+[20250510_170823] WARN: no data for correlation_cpu_latency
+[20250510_170823] WARN: no data for tenant_latency_comparison
+[20250510_170823] WARN: no data for latency_process_time
+[20250510_170829] WARN: no data for cpu_throttled_time
+[20250510_170829] WARN: no data for memory_oomkill_events
+[20250510_170829] WARN: no data for cpu_throttled_ratio
+[20250510_170829] WARN: no data for memory_pressure
+[20250510_170829] WARN: no data for correlation_memory_latency
+[20250510_170829] WARN: no data for correlation_cpu_latency
+[20250510_170829] WARN: no data for tenant_latency_comparison
+[20250510_170829] WARN: no data for latency_process_time
+[20250510_170834] WARN: no data for cpu_throttled_time
+[20250510_170834] WARN: no data for memory_oomkill_events
+[20250510_170834] WARN: no data for cpu_throttled_ratio
+[20250510_170834] WARN: no data for memory_pressure
+[20250510_170834] WARN: no data for correlation_memory_latency
+[20250510_170834] WARN: no data for correlation_cpu_latency
+[20250510_170834] WARN: no data for tenant_latency_comparison
+[20250510_170834] WARN: no data for latency_process_time
+[20250510_170840] WARN: no data for cpu_throttled_time
+[20250510_170840] WARN: no data for memory_oomkill_events
+[20250510_170840] WARN: no data for cpu_throttled_ratio
+[20250510_170840] WARN: no data for memory_pressure
+[20250510_170840] WARN: no data for correlation_memory_latency
+[20250510_170840] WARN: no data for correlation_cpu_latency
+[20250510_170840] WARN: no data for tenant_latency_comparison
+[20250510_170840] WARN: no data for latency_process_time
+[20250510_170846] WARN: no data for cpu_throttled_time
+[20250510_170846] WARN: no data for memory_oomkill_events
+[20250510_170846] WARN: no data for cpu_throttled_ratio
+[20250510_170846] WARN: no data for memory_pressure
+[20250510_170846] WARN: no data for correlation_memory_latency
+[20250510_170846] WARN: no data for correlation_cpu_latency
+[20250510_170846] WARN: no data for tenant_latency_comparison
+[20250510_170846] WARN: no data for latency_process_time
+[20250510_170852] WARN: no data for cpu_throttled_time
+[20250510_170852] WARN: no data for memory_oomkill_events
+[20250510_170852] WARN: no data for cpu_throttled_ratio
+[20250510_170852] WARN: no data for memory_pressure
+[20250510_170852] WARN: no data for correlation_memory_latency
+[20250510_170852] WARN: no data for correlation_cpu_latency
+[20250510_170852] WARN: no data for tenant_latency_comparison
+[20250510_170852] WARN: no data for latency_process_time
+[20250510_170858] WARN: no data for cpu_throttled_time
+[20250510_170858] WARN: no data for memory_oomkill_events
+[20250510_170858] WARN: no data for cpu_throttled_ratio
+[20250510_170858] WARN: no data for memory_pressure
+[20250510_170858] WARN: no data for correlation_memory_latency
+[20250510_170858] WARN: no data for correlation_cpu_latency
+[20250510_170858] WARN: no data for tenant_latency_comparison
+[20250510_170858] WARN: no data for latency_process_time
+[20250510_170903] WARN: no data for cpu_throttled_time
+[20250510_170903] WARN: no data for memory_oomkill_events
+[20250510_170903] WARN: no data for cpu_throttled_ratio
+[20250510_170903] WARN: no data for memory_pressure
+[20250510_170903] WARN: no data for correlation_memory_latency
+[20250510_170903] WARN: no data for correlation_cpu_latency
+[20250510_170903] WARN: no data for tenant_latency_comparison
+[20250510_170903] WARN: no data for latency_process_time
+[20250510_170909] WARN: no data for cpu_throttled_time
+[20250510_170909] WARN: no data for memory_oomkill_events
+[20250510_170909] WARN: no data for cpu_throttled_ratio
+[20250510_170909] WARN: no data for memory_pressure
+[20250510_170909] WARN: no data for correlation_memory_latency
+[20250510_170909] WARN: no data for correlation_cpu_latency
+[20250510_170909] WARN: no data for tenant_latency_comparison
+[20250510_170909] WARN: no data for latency_process_time
+[20250510_170915] WARN: no data for cpu_throttled_time
+[20250510_170915] WARN: no data for memory_oomkill_events
+[20250510_170915] WARN: no data for cpu_throttled_ratio
+[20250510_170915] WARN: no data for memory_pressure
+[20250510_170915] WARN: no data for correlation_memory_latency
+[20250510_170915] WARN: no data for correlation_cpu_latency
+[20250510_170915] WARN: no data for tenant_latency_comparison
+[20250510_170915] WARN: no data for latency_process_time
+[20250510_170921] WARN: no data for cpu_throttled_time
+[20250510_170921] WARN: no data for memory_oomkill_events
+[20250510_170921] WARN: no data for cpu_throttled_ratio
+[20250510_170921] WARN: no data for memory_pressure
+[20250510_170921] WARN: no data for correlation_memory_latency
+[20250510_170921] WARN: no data for correlation_cpu_latency
+[20250510_170921] WARN: no data for tenant_latency_comparison
+[20250510_170921] WARN: no data for latency_process_time
+[20250510_170926] WARN: no data for cpu_throttled_time
+[20250510_170926] WARN: no data for memory_oomkill_events
+[20250510_170926] WARN: no data for cpu_throttled_ratio
+[20250510_170926] WARN: no data for memory_pressure
+[20250510_170926] WARN: no data for correlation_memory_latency
+[20250510_170926] WARN: no data for correlation_cpu_latency
+[20250510_170926] WARN: no data for tenant_latency_comparison
+[20250510_170926] WARN: no data for latency_process_time
+[20250510_170932] WARN: no data for cpu_throttled_time
+[20250510_170932] WARN: no data for memory_oomkill_events
+[20250510_170932] WARN: no data for cpu_throttled_ratio
+[20250510_170932] WARN: no data for memory_pressure
+[20250510_170932] WARN: no data for correlation_memory_latency
+[20250510_170932] WARN: no data for correlation_cpu_latency
+[20250510_170932] WARN: no data for tenant_latency_comparison
+[20250510_170932] WARN: no data for latency_process_time
+[20250510_170938] WARN: no data for cpu_throttled_time
+[20250510_170938] WARN: no data for memory_oomkill_events
+[20250510_170938] WARN: no data for cpu_throttled_ratio
+[20250510_170938] WARN: no data for memory_pressure
+[20250510_170938] WARN: no data for correlation_memory_latency
+[20250510_170938] WARN: no data for correlation_cpu_latency
+[20250510_170938] WARN: no data for tenant_latency_comparison
+[20250510_170938] WARN: no data for latency_process_time
+[20250510_170944] WARN: no data for cpu_throttled_time
+[20250510_170944] WARN: no data for memory_oomkill_events
+[20250510_170944] WARN: no data for cpu_throttled_ratio
+[20250510_170944] WARN: no data for memory_pressure
+[20250510_170944] WARN: no data for correlation_memory_latency
+[20250510_170944] WARN: no data for correlation_cpu_latency
+[20250510_170944] WARN: no data for tenant_latency_comparison
+[20250510_170944] WARN: no data for latency_process_time
+[20250510_170950] WARN: no data for cpu_throttled_time
+[20250510_170950] WARN: no data for memory_oomkill_events
+[20250510_170950] WARN: no data for cpu_throttled_ratio
+[20250510_170950] WARN: no data for memory_pressure
+[20250510_170950] WARN: no data for correlation_memory_latency
+[20250510_170950] WARN: no data for correlation_cpu_latency
+[20250510_170950] WARN: no data for tenant_latency_comparison
+[20250510_170950] WARN: no data for latency_process_time
+[20250510_170956] WARN: no data for cpu_throttled_time
+[20250510_170956] WARN: no data for memory_oomkill_events
+[20250510_170956] WARN: no data for cpu_throttled_ratio
+[20250510_170956] WARN: no data for memory_pressure
+[20250510_170956] WARN: no data for correlation_memory_latency
+[20250510_170956] WARN: no data for correlation_cpu_latency
+[20250510_170956] WARN: no data for tenant_latency_comparison
+[20250510_170956] WARN: no data for latency_process_time
+[20250510_171001] WARN: no data for cpu_throttled_time
+[20250510_171001] WARN: no data for memory_oomkill_events
+[20250510_171001] WARN: no data for cpu_throttled_ratio
+[20250510_171001] WARN: no data for memory_pressure
+[20250510_171001] WARN: no data for correlation_memory_latency
+[20250510_171001] WARN: no data for correlation_cpu_latency
+[20250510_171001] WARN: no data for tenant_latency_comparison
+[20250510_171001] WARN: no data for latency_process_time
+[20250510_171007] WARN: no data for cpu_throttled_time
+[20250510_171007] WARN: no data for memory_oomkill_events
+[20250510_171007] WARN: no data for cpu_throttled_ratio
+[20250510_171007] WARN: no data for memory_pressure
+[20250510_171007] WARN: no data for correlation_memory_latency
+[20250510_171007] WARN: no data for correlation_cpu_latency
+[20250510_171007] WARN: no data for tenant_latency_comparison
+[20250510_171007] WARN: no data for latency_process_time
+[20250510_171013] WARN: no data for cpu_throttled_time
+[20250510_171013] WARN: no data for memory_oomkill_events
+[20250510_171013] WARN: no data for cpu_throttled_ratio
+[20250510_171013] WARN: no data for memory_pressure
+[20250510_171013] WARN: no data for correlation_memory_latency
+[20250510_171013] WARN: no data for correlation_cpu_latency
+[20250510_171013] WARN: no data for tenant_latency_comparison
+[20250510_171013] WARN: no data for latency_process_time
+[20250510_171019] WARN: no data for cpu_throttled_time
+[20250510_171019] WARN: no data for memory_oomkill_events
+[20250510_171019] WARN: no data for cpu_throttled_ratio
+[20250510_171019] WARN: no data for memory_pressure
+[20250510_171019] WARN: no data for correlation_memory_latency
+[20250510_171019] WARN: no data for correlation_cpu_latency
+[20250510_171019] WARN: no data for tenant_latency_comparison
+[20250510_171019] WARN: no data for latency_process_time
+[20250510_171025] WARN: no data for cpu_throttled_time
+[20250510_171025] WARN: no data for memory_oomkill_events
+[20250510_171025] WARN: no data for cpu_throttled_ratio
+[20250510_171025] WARN: no data for memory_pressure
+[20250510_171025] WARN: no data for correlation_memory_latency
+[20250510_171025] WARN: no data for correlation_cpu_latency
+[20250510_171025] WARN: no data for tenant_latency_comparison
+[20250510_171025] WARN: no data for latency_process_time
+[20250510_171031] WARN: no data for cpu_throttled_time
+[20250510_171031] WARN: no data for memory_oomkill_events
+[20250510_171031] WARN: no data for cpu_throttled_ratio
+[20250510_171031] WARN: no data for memory_pressure
+[20250510_171031] WARN: no data for correlation_memory_latency
+[20250510_171031] WARN: no data for correlation_cpu_latency
+[20250510_171031] WARN: no data for tenant_latency_comparison
+[20250510_171031] WARN: no data for latency_process_time
+[20250510_171036] WARN: no data for cpu_throttled_time
+[20250510_171036] WARN: no data for memory_oomkill_events
+[20250510_171036] WARN: no data for cpu_throttled_ratio
+[20250510_171036] WARN: no data for memory_pressure
+[20250510_171036] WARN: no data for correlation_memory_latency
+[20250510_171036] WARN: no data for correlation_cpu_latency
+[20250510_171036] WARN: no data for tenant_latency_comparison
+[20250510_171036] WARN: no data for latency_process_time
+[20250510_171042] WARN: no data for cpu_throttled_time
+[20250510_171042] WARN: no data for memory_oomkill_events
+[20250510_171042] WARN: no data for cpu_throttled_ratio
+[20250510_171042] WARN: no data for memory_pressure
+[20250510_171042] WARN: no data for correlation_memory_latency
+[20250510_171042] WARN: no data for correlation_cpu_latency
+[20250510_171042] WARN: no data for tenant_latency_comparison
+[20250510_171042] WARN: no data for latency_process_time
+[20250510_171048] WARN: no data for cpu_throttled_time
+[20250510_171048] WARN: no data for memory_oomkill_events
+[20250510_171048] WARN: no data for cpu_throttled_ratio
+[20250510_171048] WARN: no data for memory_pressure
+[20250510_171048] WARN: no data for correlation_memory_latency
+[20250510_171048] WARN: no data for correlation_cpu_latency
+[20250510_171048] WARN: no data for tenant_latency_comparison
+[20250510_171048] WARN: no data for latency_process_time
+[20250510_171054] WARN: no data for cpu_throttled_time
+[20250510_171054] WARN: no data for memory_oomkill_events
+[20250510_171054] WARN: no data for cpu_throttled_ratio
+[20250510_171054] WARN: no data for memory_pressure
+[20250510_171054] WARN: no data for correlation_memory_latency
+[20250510_171054] WARN: no data for correlation_cpu_latency
+[20250510_171054] WARN: no data for tenant_latency_comparison
+[20250510_171054] WARN: no data for latency_process_time
+[20250510_171100] WARN: no data for cpu_throttled_time
+[20250510_171100] WARN: no data for memory_oomkill_events
+[20250510_171100] WARN: no data for cpu_throttled_ratio
+[20250510_171100] WARN: no data for memory_pressure
+[20250510_171100] WARN: no data for correlation_memory_latency
+[20250510_171100] WARN: no data for correlation_cpu_latency
+[20250510_171100] WARN: no data for tenant_latency_comparison
+[20250510_171100] WARN: no data for latency_process_time
+[20250510_171105] WARN: no data for cpu_throttled_time
+[20250510_171105] WARN: no data for memory_oomkill_events
+[20250510_171105] WARN: no data for cpu_throttled_ratio
+[20250510_171105] WARN: no data for memory_pressure
+[20250510_171105] WARN: no data for correlation_memory_latency
+[20250510_171105] WARN: no data for correlation_cpu_latency
+[20250510_171105] WARN: no data for tenant_latency_comparison
+[20250510_171105] WARN: no data for latency_process_time
+[20250510_171111] WARN: no data for cpu_throttled_time
+[20250510_171111] WARN: no data for memory_oomkill_events
+[20250510_171111] WARN: no data for cpu_throttled_ratio
+[20250510_171111] WARN: no data for memory_pressure
+[20250510_171111] WARN: no data for correlation_memory_latency
+[20250510_171111] WARN: no data for correlation_cpu_latency
+[20250510_171111] WARN: no data for tenant_latency_comparison
+[20250510_171111] WARN: no data for latency_process_time
+[20250510_171117] WARN: no data for cpu_throttled_time
+[20250510_171117] WARN: no data for memory_oomkill_events
+[20250510_171117] WARN: no data for cpu_throttled_ratio
+[20250510_171117] WARN: no data for memory_pressure
+[20250510_171117] WARN: no data for correlation_memory_latency
+[20250510_171117] WARN: no data for correlation_cpu_latency
+[20250510_171117] WARN: no data for tenant_latency_comparison
+[20250510_171117] WARN: no data for latency_process_time
+[20250510_171123] WARN: no data for cpu_throttled_time
+[20250510_171123] WARN: no data for memory_oomkill_events
+[20250510_171123] WARN: no data for cpu_throttled_ratio
+[20250510_171123] WARN: no data for memory_pressure
+[20250510_171123] WARN: no data for correlation_memory_latency
+[20250510_171123] WARN: no data for correlation_cpu_latency
+[20250510_171123] WARN: no data for tenant_latency_comparison
+[20250510_171123] WARN: no data for latency_process_time
+[20250510_171129] WARN: no data for cpu_throttled_time
+[20250510_171129] WARN: no data for memory_oomkill_events
+[20250510_171129] WARN: no data for cpu_throttled_ratio
+[20250510_171129] WARN: no data for memory_pressure
+[20250510_171129] WARN: no data for correlation_memory_latency
+[20250510_171129] WARN: no data for correlation_cpu_latency
+[20250510_171129] WARN: no data for tenant_latency_comparison
+[20250510_171129] WARN: no data for latency_process_time
+[20250510_171135] WARN: no data for cpu_throttled_time
+[20250510_171135] WARN: no data for memory_oomkill_events
+[20250510_171135] WARN: no data for cpu_throttled_ratio
+[20250510_171135] WARN: no data for memory_pressure
+[20250510_171135] WARN: no data for correlation_memory_latency
+[20250510_171135] WARN: no data for correlation_cpu_latency
+[20250510_171135] WARN: no data for tenant_latency_comparison
+[20250510_171135] WARN: no data for latency_process_time
+[20250510_171140] WARN: no data for cpu_throttled_time
+[20250510_171140] WARN: no data for memory_oomkill_events
+[20250510_171140] WARN: no data for cpu_throttled_ratio
+[20250510_171140] WARN: no data for memory_pressure
+[20250510_171140] WARN: no data for correlation_memory_latency
+[20250510_171140] WARN: no data for correlation_cpu_latency
+[20250510_171140] WARN: no data for tenant_latency_comparison
+[20250510_171140] WARN: no data for latency_process_time
+[20250510_171146] WARN: no data for cpu_throttled_time
+[20250510_171146] WARN: no data for memory_oomkill_events
+[20250510_171146] WARN: no data for cpu_throttled_ratio
+[20250510_171146] WARN: no data for memory_pressure
+[20250510_171146] WARN: no data for correlation_memory_latency
+[20250510_171146] WARN: no data for correlation_cpu_latency
+[20250510_171146] WARN: no data for tenant_latency_comparison
+[20250510_171146] WARN: no data for latency_process_time
+[20250510_171152] WARN: no data for cpu_throttled_time
+[20250510_171152] WARN: no data for memory_oomkill_events
+[20250510_171152] WARN: no data for cpu_throttled_ratio
+[20250510_171152] WARN: no data for memory_pressure
+[20250510_171152] WARN: no data for correlation_memory_latency
+[20250510_171152] WARN: no data for correlation_cpu_latency
+[20250510_171152] WARN: no data for tenant_latency_comparison
+[20250510_171152] WARN: no data for latency_process_time
+[20250510_171158] WARN: no data for cpu_throttled_time
+[20250510_171158] WARN: no data for memory_oomkill_events
+[20250510_171158] WARN: no data for cpu_throttled_ratio
+[20250510_171158] WARN: no data for memory_pressure
+[20250510_171158] WARN: no data for correlation_memory_latency
+[20250510_171158] WARN: no data for correlation_cpu_latency
+[20250510_171158] WARN: no data for tenant_latency_comparison
+[20250510_171158] WARN: no data for latency_process_time
+[20250510_171204] WARN: no data for cpu_throttled_time
+[20250510_171204] WARN: no data for memory_oomkill_events
+[20250510_171204] WARN: no data for cpu_throttled_ratio
+[20250510_171204] WARN: no data for memory_pressure
+[20250510_171204] WARN: no data for correlation_memory_latency
+[20250510_171204] WARN: no data for correlation_cpu_latency
+[20250510_171204] WARN: no data for tenant_latency_comparison
+[20250510_171204] WARN: no data for latency_process_time
+[20250510_171210] WARN: no data for cpu_throttled_time
+[20250510_171210] WARN: no data for memory_oomkill_events
+[20250510_171210] WARN: no data for cpu_throttled_ratio
+[20250510_171210] WARN: no data for memory_pressure
+[20250510_171210] WARN: no data for correlation_memory_latency
+[20250510_171210] WARN: no data for correlation_cpu_latency
+[20250510_171210] WARN: no data for tenant_latency_comparison
+[20250510_171210] WARN: no data for latency_process_time
+[20250510_171215] WARN: no data for cpu_throttled_time
+[20250510_171215] WARN: no data for memory_oomkill_events
+[20250510_171215] WARN: no data for cpu_throttled_ratio
+[20250510_171215] WARN: no data for memory_pressure
+[20250510_171215] WARN: no data for correlation_memory_latency
+[20250510_171215] WARN: no data for correlation_cpu_latency
+[20250510_171215] WARN: no data for tenant_latency_comparison
+[20250510_171215] WARN: no data for latency_process_time
+[20250510_171221] WARN: no data for cpu_throttled_time
+[20250510_171221] WARN: no data for memory_oomkill_events
+[20250510_171221] WARN: no data for cpu_throttled_ratio
+[20250510_171221] WARN: no data for memory_pressure
+[20250510_171221] WARN: no data for correlation_memory_latency
+[20250510_171221] WARN: no data for correlation_cpu_latency
+[20250510_171221] WARN: no data for tenant_latency_comparison
+[20250510_171221] WARN: no data for latency_process_time
+[20250510_171227] WARN: no data for cpu_throttled_time
+[20250510_171227] WARN: no data for memory_oomkill_events
+[20250510_171227] WARN: no data for cpu_throttled_ratio
+[20250510_171227] WARN: no data for memory_pressure
+[20250510_171227] WARN: no data for correlation_memory_latency
+[2025-05-10 17:12:27] Timeout de fase 2 - Attack atingido. Matando processo 120973
+[2025-05-10 17:12:28] Fase 2 - Attack concluída
+[2025-05-10 17:12:28] Interrompendo coleta de métricas (PID: 120965)...
+[2025-05-10 17:12:28] Coleta de métricas finalizada.
+[2025-05-10 17:12:28] === Fase 3 - Recovery ===
+[2025-05-10 17:12:28] Coleta de métricas iniciada com PID: 185328
+[2025-05-10 17:12:28] Iniciando fase: 3 - Recovery com duração máxima de 30s
+[2025-05-10 17:12:28] Removendo tenant-b (noisy neighbour)...
+[20250510_171228] WARN: no data for cpu_throttled_time
+deployment.apps "iperf" deleted
+deployment.apps "stress-ng" deleted
+[2025-05-10 17:12:28] Aguardando remoção completa do tenant-b...
+[20250510_171228] WARN: no data for memory_oomkill_events
+[20250510_171228] WARN: no data for cpu_throttled_ratio
+[20250510_171228] WARN: no data for memory_pressure
+[20250510_171228] WARN: no data for correlation_memory_latency
+[20250510_171228] WARN: no data for correlation_cpu_latency
+[20250510_171228] WARN: no data for tenant_latency_comparison
+[20250510_171228] WARN: no data for latency_process_time
+[20250510_171233] WARN: no data for cpu_throttled_time
+[20250510_171233] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_171233] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_171233] WARN: no data for resource_dominance_index
+[20250510_171233] WARN: no data for memory_oomkill_events
+[20250510_171233] WARN: no data for cpu_throttled_ratio
+[20250510_171233] WARN: no data for memory_pressure
+[20250510_171233] WARN: no data for correlation_memory_latency
+[20250510_171233] WARN: no data for correlation_cpu_latency
+[20250510_171233] WARN: no data for tenant_latency_comparison
+[20250510_171233] WARN: no data for latency_process_time
+[20250510_171239] WARN: no data for cpu_throttled_time
+[20250510_171239] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_171239] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_171239] WARN: no data for resource_dominance_index
+[20250510_171239] WARN: no data for memory_oomkill_events
+[20250510_171239] WARN: no data for cpu_throttled_ratio
+[20250510_171239] WARN: no data for memory_pressure
+[20250510_171239] WARN: no data for correlation_memory_latency
+[20250510_171239] WARN: no data for correlation_cpu_latency
+[20250510_171239] WARN: no data for tenant_latency_comparison
+[20250510_171239] WARN: no data for latency_process_time
+[20250510_171245] WARN: no data for cpu_throttled_time
+[20250510_171245] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_171245] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_171245] WARN: no data for resource_dominance_index
+[20250510_171245] WARN: no data for memory_oomkill_events
+[20250510_171245] WARN: no data for cpu_throttled_ratio
+[20250510_171245] WARN: no data for memory_pressure
+[20250510_171245] WARN: no data for correlation_memory_latency
+[20250510_171245] WARN: no data for correlation_cpu_latency
+[20250510_171245] WARN: no data for tenant_latency_comparison
+[20250510_171245] WARN: no data for latency_process_time
+[20250510_171251] WARN: no data for cpu_throttled_time
+[20250510_171251] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_171251] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_171251] WARN: no data for resource_dominance_index
+[20250510_171251] WARN: no data for memory_oomkill_events
+[20250510_171251] WARN: no data for cpu_throttled_ratio
+[20250510_171251] WARN: no data for memory_pressure
+[20250510_171251] WARN: no data for correlation_memory_latency
+[20250510_171251] WARN: no data for correlation_cpu_latency
+[20250510_171251] WARN: no data for tenant_latency_comparison
+[20250510_171251] WARN: no data for latency_process_time
+[20250510_171256] WARN: no data for cpu_throttled_time
+[20250510_171256] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_171256] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_171256] WARN: no data for resource_dominance_index
+[20250510_171256] WARN: no data for memory_oomkill_events
+[20250510_171256] WARN: no data for cpu_throttled_ratio
+[20250510_171256] WARN: no data for memory_pressure
+[20250510_171256] WARN: no data for correlation_memory_latency
+[20250510_171256] WARN: no data for correlation_cpu_latency
+[20250510_171256] WARN: no data for tenant_latency_comparison
+[20250510_171256] WARN: no data for latency_process_time
+[2025-05-10 17:12:58] Timeout de fase 3 - Recovery atingido. Matando processo 185336
+[2025-05-10 17:12:58] Fase 3 - Recovery concluída
+[2025-05-10 17:12:58] Interrompendo coleta de métricas (PID: 185328)...
+[2025-05-10 17:12:58] Coleta de métricas finalizada.
+[2025-05-10 17:12:58] Round 1/1 concluído com sucesso!
+[2025-05-10 17:12:58] Limpando todos os tenants após o experimento...
+namespace "tenant-a" deleted
+namespace "tenant-b" deleted
+namespace "tenant-c" deleted
+[2025-05-10 17:13:10] Tenants removidos com sucesso.
+[2025-05-10 17:13:10] ======= EXPERIMENTO CONCLUÍDO =======
+[2025-05-10 17:13:10] Data/hora de início: 2025/05/10 17:01:33
+[2025-05-10 17:13:10] Data/hora de término: 2025/05/10 17:13:10
+[2025-05-10 17:13:10] Duração total: 671 segundos (11 minutos)
+[2025-05-10 17:13:10] Métricas e logs salvos em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/17-01-33/add-metrics-1
+[2025-05-10 17:13:10] Para visualizar os resultados no Grafana:
+[2025-05-10 17:13:10] kubectl -n monitoring port-forward svc/prometheus-grafana 3000:80
+[2025-05-10 17:13:10] Abra seu navegador em http://localhost:3000 (usuário: admin, senha: admin)

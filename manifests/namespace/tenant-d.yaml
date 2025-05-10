@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-d
+  labels:
+    name: tenant-d
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-d-quota
+  namespace: tenant-d
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "1"
+    requests.memory: 2Gi
+    limits.cpu: "2"
+    limits.memory: 4Gi
+    persistentvolumeclaims: "5"
+    requests.storage: "10Gi"

@@ -1,0 +1,72 @@
+# Queries PromQL para análise de latência e jitter em cenários multi-tenant
+# Estas queries podem ser usadas tanto no script run-experiment.sh quanto em dashboards do Grafana
+
+# Métricas básicas do NGINX Ingress Controller
+nginx_metrics:
+  # Conexões por estado (active, reading, writing, waiting)
+  connections_by_state: >
+    sum by (state) (nginx_ingress_controller_nginx_process_connections{namespace="ingress-nginx"})
+  
+  # Taxa de conexões por segundo
+  connections_rate: >
+    sum(rate(nginx_ingress_controller_nginx_process_connections_total{namespace="ingress-nginx"}[1m])) by (state)
+  
+  # Taxa de requisições por segundo
+  requests_rate: >
+    rate(nginx_ingress_controller_nginx_process_requests_total{namespace="ingress-nginx"}[1m])
+
+# Métricas de latência derivadas
+latency_metrics:
+  # Tempo médio de processamento por conexão (proxy de latência)
+  processing_time_per_connection: >
+    rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace="ingress-nginx"}[1m]) / 
+    rate(nginx_ingress_controller_nginx_process_connections_total{namespace="ingress-nginx",state="handled"}[1m])
+  
+  # Relação bytes/requisições (pode indicar complexidade/tamanho das requisições)
+  bytes_per_request: >
+    rate(nginx_ingress_controller_nginx_process_read_bytes_total{namespace="ingress-nginx"}[1m]) / 
+    rate(nginx_ingress_controller_nginx_process_requests_total{namespace="ingress-nginx"}[1m])
+
+# Métricas para calcular jitter e latência entre coletas
+jitter_metrics:
+  # Variação no tempo de processamento do admission controller (proxy para jitter)
+  admission_processing_jitter: >
+    stddev_over_time(nginx_ingress_controller_admission_roundtrip_duration{namespace="ingress-nginx"}[5m])
+  
+  # Desvio padrão da taxa de processamento (representa instabilidade/jitter)
+  processing_rate_jitter: >
+    stddev_over_time(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace="ingress-nginx"}[1m])[5m:1m])
+
+# Métricas correlacionadas para análise de noisy neighbor
+correlation_metrics:
+  # Correlação entre uso de CPU dos noisy tenants e tempo de processamento do nginx
+  cpu_vs_latency: >
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-b"}[1m])) / on() group_left() 
+    (rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace="ingress-nginx"}[1m]) / 
+     rate(nginx_ingress_controller_nginx_process_requests_total{namespace="ingress-nginx"}[1m]))
+  
+  # Correlação entre uso de memória dos noisy tenants e latência
+  memory_vs_latency: >
+    sum(container_memory_working_set_bytes{namespace="tenant-b"}) / on() group_left() 
+    (rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace="ingress-nginx"}[1m]) / 
+     rate(nginx_ingress_controller_nginx_process_requests_total{namespace="ingress-nginx"}[1m]))
+  
+  # Correlação entre tráfego de rede dos noisy tenants e taxa de erros/rejeitos
+  network_vs_errors: >
+    sum(rate(container_network_transmit_bytes_total{namespace="tenant-b"}[1m])) / on() group_left() 
+    (sum(rate(nginx_ingress_controller_nginx_process_connections_total{namespace="ingress-nginx",state="handled"}[1m])) - 
+     sum(rate(nginx_ingress_controller_nginx_process_requests_total{namespace="ingress-nginx"}[1m])))
+
+# Outras métricas úteis para o cenário multi-tenant
+tenant_metrics:
+  # Compara latência (proxy) entre tenant-a (referência) e tenant-c (vítima)
+  tenant_latency_comparison: >
+    avg(rate(container_cpu_usage_seconds_total{namespace="tenant-a"}[1m]) / 
+        rate(container_network_receive_packets_total{namespace="tenant-a"}[1m])) / 
+    avg(rate(container_cpu_usage_seconds_total{namespace="tenant-c"}[1m]) / 
+        rate(container_network_receive_packets_total{namespace="tenant-c"}[1m]))
+  
+  # Jitter na comunicação entre pods (proxy usando taxa de pacotes)
+  inter_pod_jitter: >
+    stddev_over_time((rate(container_network_receive_packets_total{namespace=~"tenant-a|tenant-c"}[1m]) / 
+                      rate(container_network_receive_bytes_total{namespace=~"tenant-a|tenant-c"}[1m]))[5m:1m])

@@ -1,0 +1,317 @@
+[2025-05-10 16:58:01] Namespace 'tenant-a' já existe.
+[2025-05-10 16:58:01] Namespace 'tenant-b' já existe.
+[2025-05-10 16:58:01] Namespace 'tenant-c' já existe.
+[2025-05-10 16:58:01] Namespace 'monitoring' já existe.
+[2025-05-10 16:58:01] Namespace 'ingress-nginx' já existe.
+[2025-05-10 16:58:01] Iniciando experimento: add-metrics-1
+[2025-05-10 16:58:01] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/16-58-01/add-metrics-1/experiment.log
+[2025-05-10 16:58:01] Verificando pré-requisitos...
+[2025-05-10 16:58:01] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/16-58-01/add-metrics-1
+[2025-05-10 16:58:01] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 16:58:05] Criando namespaces...
+NAME              STATUS   AGE
+default           Active   5m36s
+ingress-nginx     Active   3m24s
+kube-node-lease   Active   5m36s
+kube-public       Active   5m36s
+kube-system       Active   5m36s
+metallb-system    Active   3m6s
+monitoring        Active   4m31s
+tenant-a          Active   5m16s
+tenant-b          Active   5m14s
+tenant-c          Active   5m12s
+[2025-05-10 16:58:10] Aplicando resource quotas...
+resourcequota/tenant-a-quota created
+resourcequota/tenant-b-quota created
+resourcequota/tenant-c-quota created
+[2025-05-10 16:58:15] Stack de observabilidade já instalada.
+[2025-05-10 16:58:15] Aguardando inicialização do Prometheus...
+pod/prometheus-prometheus-kube-prometheus-prometheus-0 condition met
+[2025-05-10 16:58:15] Adicionando deployment do blackbox-exporter...
+[2025-05-10 16:58:15] ======= INÍCIO DO EXPERIMENTO: add-metrics-1 =======
+[2025-05-10 16:58:15] Data: 2025/05/10, Hora: 16:58:01
+[2025-05-10 16:58:15] Número de rounds: 1
+[2025-05-10 16:58:15] Duração das fases: Baseline=600s, Ataque=600s, Recuperação=600s
+[2025-05-10 16:58:15] ===== ROUND 1/1 =====
+[2025-05-10 16:58:15] === Fase 1 - Baseline ===
+[2025-05-10 16:58:15] Coleta de métricas iniciada com PID: 96089
+[2025-05-10 16:58:15] Limpando workloads anteriores...
+[20250510_165815] WARN: no data for cpu_throttled_time
+[20250510_165815] WARN: no data for pending_pods
+[20250510_165815] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165815] WARN: no data for network_dropped
+[20250510_165815] WARN: no data for disk_io_total
+[20250510_165815] WARN: no data for memory_usage
+[20250510_165815] WARN: no data for network_efficiency
+[20250510_165815] WARN: no data for network_receive
+[20250510_165815] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165815] WARN: no data for memory_growth_rate
+[20250510_165815] WARN: no data for resource_dominance_index
+[20250510_165815] WARN: no data for memory_oomkill_events
+[20250510_165815] WARN: no data for pod_restarts
+[20250510_165815] WARN: no data for cpu_throttled_ratio
+[20250510_165815] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165815] WARN: no data for memory_pressure
+[20250510_165815] WARN: no data for network_packet_rate
+[20250510_165815] WARN: no data for correlation_memory_latency
+[20250510_165815] WARN: no data for cpu_usage
+[20250510_165815] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165815] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165815] WARN: no data for disk_avg_io_size
+[20250510_165815] WARN: no data for network_total_bandwidth
+[20250510_165815] WARN: no data for network_transmit
+[20250510_165815] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165815] WARN: no data for tenant_jitter
+[20250510_165815] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165815] WARN: no data for correlation_cpu_latency
+[20250510_165815] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165815] WARN: no data for pod_ready_age
+[20250510_165815] WARN: no data for tenant_latency_comparison
+[20250510_165815] WARN: no data for cpu_usage_variability
+[20250510_165815] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165815] WARN: no data for latency_process_time
+[20250510_165815] WARN: no data for pod_readiness_ratio
+[20250510_165815] WARN: no data for network_error_rate
+[20250510_165815] WARN: no data for oom_kills
+[20250510_165815] WARN: no data for disk_throughput_total
+[20250510_165821] WARN: no data for cpu_throttled_time
+[20250510_165821] WARN: no data for pending_pods
+[20250510_165821] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165821] WARN: no data for network_dropped
+[20250510_165821] WARN: no data for disk_io_total
+[20250510_165821] WARN: no data for memory_usage
+[20250510_165821] WARN: no data for network_efficiency
+[20250510_165821] WARN: no data for network_receive
+[20250510_165821] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165821] WARN: no data for memory_growth_rate
+[20250510_165821] WARN: no data for resource_dominance_index
+[20250510_165821] WARN: no data for memory_oomkill_events
+[20250510_165821] WARN: no data for pod_restarts
+[20250510_165821] WARN: no data for cpu_throttled_ratio
+[20250510_165821] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165821] WARN: no data for memory_pressure
+[20250510_165821] WARN: no data for network_packet_rate
+[20250510_165821] WARN: no data for correlation_memory_latency
+[20250510_165821] WARN: no data for cpu_usage
+[20250510_165821] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165821] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165821] WARN: no data for disk_avg_io_size
+[20250510_165821] WARN: no data for network_total_bandwidth
+[20250510_165821] WARN: no data for network_transmit
+[20250510_165821] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165821] WARN: no data for tenant_jitter
+[20250510_165821] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165821] WARN: no data for correlation_cpu_latency
+[20250510_165821] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165821] WARN: no data for pod_ready_age
+[20250510_165821] WARN: no data for tenant_latency_comparison
+[20250510_165821] WARN: no data for cpu_usage_variability
+[20250510_165821] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165821] WARN: no data for latency_process_time
+[20250510_165821] WARN: no data for pod_readiness_ratio
+[20250510_165821] WARN: no data for network_error_rate
+[20250510_165821] WARN: no data for oom_kills
+[20250510_165821] WARN: no data for disk_throughput_total
+[2025-05-10 16:58:26] Iniciando fase: 1 - Baseline com duração máxima de 600s
+[2025-05-10 16:58:26] Implantando tenant-a (referência)...
+deployment.apps/nginx-deployment created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-10 16:58:26] Aguardando inicialização dos serviços do tenant-a...
+[20250510_165827] WARN: no data for cpu_throttled_time
+[20250510_165827] WARN: no data for pending_pods
+[20250510_165827] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165827] WARN: no data for network_dropped
+[20250510_165827] WARN: no data for disk_io_total
+[20250510_165827] WARN: no data for memory_usage
+[20250510_165827] WARN: no data for network_efficiency
+[20250510_165827] WARN: no data for network_receive
+[20250510_165827] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165827] WARN: no data for memory_growth_rate
+[20250510_165827] WARN: no data for resource_dominance_index
+[20250510_165827] WARN: no data for memory_oomkill_events
+[20250510_165827] WARN: no data for pod_restarts
+[20250510_165827] WARN: no data for cpu_throttled_ratio
+[20250510_165827] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165827] WARN: no data for memory_pressure
+[20250510_165827] WARN: no data for network_packet_rate
+[20250510_165827] WARN: no data for correlation_memory_latency
+[20250510_165827] WARN: no data for cpu_usage
+[20250510_165827] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165827] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165827] WARN: no data for disk_avg_io_size
+[20250510_165827] WARN: no data for network_total_bandwidth
+[20250510_165827] WARN: no data for network_transmit
+[20250510_165827] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165827] WARN: no data for tenant_jitter
+[20250510_165827] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165827] WARN: no data for correlation_cpu_latency
+[20250510_165827] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165827] WARN: no data for pod_ready_age
+[20250510_165827] WARN: no data for tenant_latency_comparison
+[20250510_165827] WARN: no data for cpu_usage_variability
+[20250510_165827] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165827] WARN: no data for latency_process_time
+[20250510_165827] WARN: no data for pod_readiness_ratio
+[20250510_165827] WARN: no data for network_error_rate
+[20250510_165827] WARN: no data for oom_kills
+[20250510_165827] WARN: no data for disk_throughput_total
+[20250510_165832] WARN: no data for cpu_throttled_time
+[20250510_165832] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165832] WARN: no data for network_dropped
+[20250510_165832] WARN: no data for disk_io_total
+[20250510_165832] WARN: no data for network_efficiency
+[20250510_165832] WARN: no data for network_receive
+[20250510_165832] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165832] WARN: no data for memory_growth_rate
+[20250510_165832] WARN: no data for resource_dominance_index
+[20250510_165832] WARN: no data for memory_oomkill_events
+[20250510_165832] WARN: no data for pod_restarts
+[20250510_165832] WARN: no data for cpu_throttled_ratio
+[20250510_165832] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165832] WARN: no data for memory_pressure
+[20250510_165832] WARN: no data for network_packet_rate
+[20250510_165832] WARN: no data for correlation_memory_latency
+[20250510_165832] WARN: no data for cpu_usage
+[20250510_165832] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165832] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165832] WARN: no data for disk_avg_io_size
+[20250510_165832] WARN: no data for network_total_bandwidth
+[20250510_165832] WARN: no data for network_transmit
+[20250510_165832] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165832] WARN: no data for tenant_jitter
+[20250510_165832] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165832] WARN: no data for correlation_cpu_latency
+[20250510_165832] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165832] WARN: no data for tenant_latency_comparison
+[20250510_165832] WARN: no data for cpu_usage_variability
+[20250510_165832] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165832] WARN: no data for latency_process_time
+[20250510_165832] WARN: no data for network_error_rate
+[20250510_165832] WARN: no data for oom_kills
+[20250510_165832] WARN: no data for disk_throughput_total
+[20250510_165838] WARN: no data for cpu_throttled_time
+[20250510_165838] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165838] WARN: no data for network_dropped
+[20250510_165838] WARN: no data for disk_io_total
+[20250510_165838] WARN: no data for network_efficiency
+[20250510_165838] WARN: no data for network_receive
+[20250510_165838] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165838] WARN: no data for memory_growth_rate
+[20250510_165838] WARN: no data for resource_dominance_index
+[20250510_165838] WARN: no data for memory_oomkill_events
+[20250510_165838] WARN: no data for cpu_throttled_ratio
+[20250510_165838] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165838] WARN: no data for memory_pressure
+[20250510_165838] WARN: no data for network_packet_rate
+[20250510_165838] WARN: no data for correlation_memory_latency
+[20250510_165838] WARN: no data for cpu_usage
+[20250510_165838] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165838] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165838] WARN: no data for disk_avg_io_size
+[20250510_165838] WARN: no data for network_total_bandwidth
+[20250510_165838] WARN: no data for network_transmit
+[20250510_165838] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165838] WARN: no data for tenant_jitter
+[20250510_165838] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165838] WARN: no data for correlation_cpu_latency
+[20250510_165838] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165838] WARN: no data for tenant_latency_comparison
+[20250510_165838] WARN: no data for cpu_usage_variability
+[20250510_165838] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165838] WARN: no data for latency_process_time
+[20250510_165838] WARN: no data for network_error_rate
+[20250510_165838] WARN: no data for oom_kills
+[20250510_165838] WARN: no data for disk_throughput_total
+deployment.apps/iperf-server condition met
+[2025-05-10 16:58:40] Implantando tenant-c (vítima)...
+deployment.apps/redis-deployment created
+job.batch/redis-benchmark created
+[2025-05-10 16:58:40] Aguardando inicialização dos workloads do tenant-c...
+[20250510_165844] WARN: no data for cpu_throttled_time
+[20250510_165844] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165844] WARN: no data for disk_io_total
+[20250510_165844] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165844] WARN: no data for memory_growth_rate
+[20250510_165844] WARN: no data for resource_dominance_index
+[20250510_165844] WARN: no data for memory_oomkill_events
+[20250510_165844] WARN: no data for cpu_throttled_ratio
+[20250510_165844] WARN: no data for memory_pressure
+[20250510_165844] WARN: no data for correlation_memory_latency
+[20250510_165844] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165844] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165844] WARN: no data for disk_avg_io_size
+[20250510_165844] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165844] WARN: no data for tenant_jitter
+[20250510_165844] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165844] WARN: no data for correlation_cpu_latency
+[20250510_165844] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165844] WARN: no data for tenant_latency_comparison
+[20250510_165844] WARN: no data for cpu_usage_variability
+[20250510_165844] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165844] WARN: no data for latency_process_time
+[20250510_165844] WARN: no data for disk_throughput_total
+[20250510_165850] WARN: no data for cpu_throttled_time
+[20250510_165850] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165850] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165850] WARN: no data for memory_growth_rate
+[20250510_165850] WARN: no data for resource_dominance_index
+[20250510_165850] WARN: no data for memory_oomkill_events
+[20250510_165850] WARN: no data for cpu_throttled_ratio
+[20250510_165850] WARN: no data for memory_pressure
+[20250510_165850] WARN: no data for correlation_memory_latency
+[20250510_165850] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165850] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165850] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165850] WARN: no data for tenant_jitter
+[20250510_165850] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165850] WARN: no data for correlation_cpu_latency
+[20250510_165850] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165850] WARN: no data for tenant_latency_comparison
+[20250510_165850] WARN: no data for cpu_usage_variability
+[20250510_165850] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165850] WARN: no data for latency_process_time

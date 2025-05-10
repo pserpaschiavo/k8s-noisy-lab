@@ -1,0 +1,789 @@
+[2025-05-10 18:39:56] Namespace 'tenant-a' já existe.
+[2025-05-10 18:39:56] Namespace 'tenant-b' já existe.
+[2025-05-10 18:39:56] Namespace 'tenant-c' já existe.
+[2025-05-10 18:39:56] Namespace 'tenant-d' já existe.
+[2025-05-10 18:39:56] Namespace 'monitoring' já existe.
+[2025-05-10 18:39:56] Namespace 'ingress-nginx' já existe.
+[2025-05-10 18:39:56] Iniciando experimento: new-tenant-1
+[2025-05-10 18:39:56] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/18-39-55/new-tenant-1/experiment.log
+[2025-05-10 18:39:56] Verificando pré-requisitos...
+[2025-05-10 18:39:56] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/18-39-55/new-tenant-1
+[2025-05-10 18:39:56] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 18:40:00] Criando namespaces...
+NAME              STATUS   AGE
+default           Active   6m3s
+ingress-nginx     Active   3m7s
+kube-node-lease   Active   6m3s
+kube-public       Active   6m3s
+kube-system       Active   6m3s
+metallb-system    Active   2m52s
+monitoring        Active   4m5s
+tenant-a          Active   5m42s
+tenant-b          Active   5m40s
+tenant-c          Active   5m38s
+tenant-d          Active   4m49s
+[2025-05-10 18:40:05] Aplicando resource quotas...
+resourcequota/tenant-a-quota created
+resourcequota/tenant-b-quota created
+resourcequota/tenant-c-quota created
+[2025-05-10 18:40:10] Stack de observabilidade já instalada.
+[2025-05-10 18:40:10] Aguardando inicialização do Prometheus...
+pod/prometheus-prometheus-kube-prometheus-prometheus-0 condition met
+[2025-05-10 18:40:10] Adicionando deployment do blackbox-exporter...
+[2025-05-10 18:40:10] ======= INÍCIO DO EXPERIMENTO: new-tenant-1 =======
+[2025-05-10 18:40:10] Data: 2025/05/10, Hora: 18:39:55
+[2025-05-10 18:40:10] Número de rounds: 1
+[2025-05-10 18:40:10] Duração das fases: Baseline=30s, Ataque=120s, Recuperação=30s
+[2025-05-10 18:40:10] ===== ROUND 1/1 =====
+[2025-05-10 18:40:10] === Fase 1 - Baseline ===
+[2025-05-10 18:40:10] Coleta de métricas iniciada com PID: 341292
+[2025-05-10 18:40:10] Limpando workloads anteriores...
+[20250510_184010] WARN: no data for cpu_throttled_time
+[20250510_184010] WARN: no data for pending_pods
+[20250510_184010] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184010] WARN: no data for network_dropped
+[20250510_184010] WARN: no data for disk_io_total
+[20250510_184010] WARN: no data for memory_usage
+[20250510_184010] WARN: no data for network_efficiency
+[20250510_184010] WARN: no data for network_receive
+[20250510_184010] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184010] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184010] WARN: no data for memory_growth_rate
+[20250510_184010] WARN: no data for resource_dominance_index
+[20250510_184010] WARN: no data for memory_oomkill_events
+[20250510_184010] WARN: no data for pod_restarts
+[20250510_184010] WARN: no data for cpu_throttled_ratio
+[20250510_184010] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184010] WARN: no data for memory_pressure
+[20250510_184010] WARN: no data for disk_io_tenant_d
+[20250510_184010] WARN: no data for network_packet_rate
+[20250510_184010] WARN: no data for correlation_memory_latency
+[20250510_184010] WARN: no data for postgres_connections
+[20250510_184010] WARN: no data for cpu_usage
+[20250510_184010] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184010] WARN: no data for postgres_transactions
+[20250510_184010] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184010] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184010] WARN: no data for disk_avg_io_size
+[20250510_184010] WARN: no data for network_total_bandwidth
+[20250510_184010] WARN: no data for network_transmit
+[20250510_184010] WARN: no data for postgres_query_time
+[20250510_184010] WARN: no data for postgres_disk_io
+[20250510_184010] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184010] WARN: no data for tenant_jitter
+[20250510_184010] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184010] WARN: no data for correlation_cpu_latency
+[20250510_184010] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184010] WARN: no data for pod_ready_age
+[20250510_184010] WARN: no data for tenant_latency_comparison
+[20250510_184010] WARN: no data for cpu_usage_variability
+[20250510_184010] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184010] WARN: no data for latency_process_time
+[20250510_184010] WARN: no data for pod_readiness_ratio
+[20250510_184010] WARN: no data for network_error_rate
+[20250510_184010] WARN: no data for oom_kills
+[20250510_184010] WARN: no data for disk_throughput_total
+[20250510_184016] WARN: no data for cpu_throttled_time
+[20250510_184016] WARN: no data for pending_pods
+[20250510_184016] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184016] WARN: no data for network_dropped
+[20250510_184016] WARN: no data for disk_io_total
+[20250510_184016] WARN: no data for memory_usage
+[20250510_184016] WARN: no data for network_efficiency
+[20250510_184016] WARN: no data for network_receive
+[20250510_184016] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184016] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184016] WARN: no data for memory_growth_rate
+[20250510_184016] WARN: no data for resource_dominance_index
+[20250510_184016] WARN: no data for memory_oomkill_events
+[20250510_184016] WARN: no data for pod_restarts
+[20250510_184016] WARN: no data for cpu_throttled_ratio
+[20250510_184016] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184016] WARN: no data for memory_pressure
+[20250510_184016] WARN: no data for disk_io_tenant_d
+[20250510_184016] WARN: no data for network_packet_rate
+[20250510_184016] WARN: no data for correlation_memory_latency
+[20250510_184016] WARN: no data for postgres_connections
+[20250510_184016] WARN: no data for cpu_usage
+[20250510_184016] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184016] WARN: no data for postgres_transactions
+[20250510_184016] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184016] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184016] WARN: no data for disk_avg_io_size
+[20250510_184016] WARN: no data for network_total_bandwidth
+[20250510_184016] WARN: no data for network_transmit
+[20250510_184016] WARN: no data for postgres_query_time
+[20250510_184016] WARN: no data for postgres_disk_io
+[20250510_184016] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184016] WARN: no data for tenant_jitter
+[20250510_184016] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184016] WARN: no data for correlation_cpu_latency
+[20250510_184016] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184016] WARN: no data for pod_ready_age
+[20250510_184016] WARN: no data for tenant_latency_comparison
+[20250510_184016] WARN: no data for cpu_usage_variability
+[20250510_184016] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184016] WARN: no data for latency_process_time
+[20250510_184016] WARN: no data for pod_readiness_ratio
+[20250510_184016] WARN: no data for network_error_rate
+[20250510_184016] WARN: no data for oom_kills
+[20250510_184016] WARN: no data for disk_throughput_total
+[2025-05-10 18:40:20] Iniciando fase: 1 - Baseline com duração máxima de 30s
+[2025-05-10 18:40:20] Implantando tenant-a (sensível à rede)...
+deployment.apps/nginx-deployment created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-10 18:40:21] Aguardando inicialização dos serviços do tenant-a...
+[20250510_184022] WARN: no data for cpu_throttled_time
+[20250510_184022] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184022] WARN: no data for network_dropped
+[20250510_184022] WARN: no data for disk_io_total
+[20250510_184022] WARN: no data for memory_usage
+[20250510_184022] WARN: no data for network_efficiency
+[20250510_184022] WARN: no data for network_receive
+[20250510_184022] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184022] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184022] WARN: no data for memory_growth_rate
+[20250510_184022] WARN: no data for resource_dominance_index
+[20250510_184022] WARN: no data for memory_oomkill_events
+[20250510_184022] WARN: no data for pod_restarts
+[20250510_184022] WARN: no data for cpu_throttled_ratio
+[20250510_184022] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184022] WARN: no data for memory_pressure
+[20250510_184022] WARN: no data for disk_io_tenant_d
+[20250510_184022] WARN: no data for network_packet_rate
+[20250510_184022] WARN: no data for correlation_memory_latency
+[20250510_184022] WARN: no data for postgres_connections
+[20250510_184022] WARN: no data for cpu_usage
+[20250510_184022] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184022] WARN: no data for postgres_transactions
+[20250510_184022] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184022] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184022] WARN: no data for disk_avg_io_size
+[20250510_184022] WARN: no data for network_total_bandwidth
+[20250510_184022] WARN: no data for network_transmit
+[20250510_184022] WARN: no data for postgres_query_time
+[20250510_184022] WARN: no data for postgres_disk_io
+[20250510_184022] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184022] WARN: no data for tenant_jitter
+[20250510_184022] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184022] WARN: no data for correlation_cpu_latency
+[20250510_184022] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184022] WARN: no data for tenant_latency_comparison
+[20250510_184022] WARN: no data for cpu_usage_variability
+[20250510_184022] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184022] WARN: no data for latency_process_time
+[20250510_184022] WARN: no data for network_error_rate
+[20250510_184022] WARN: no data for oom_kills
+[20250510_184022] WARN: no data for disk_throughput_total
+[20250510_184027] WARN: no data for cpu_throttled_time
+[20250510_184027] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184027] WARN: no data for network_dropped
+[20250510_184027] WARN: no data for disk_io_total
+[20250510_184027] WARN: no data for memory_usage
+[20250510_184027] WARN: no data for network_efficiency
+[20250510_184027] WARN: no data for network_receive
+[20250510_184027] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184027] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184027] WARN: no data for memory_growth_rate
+[20250510_184027] WARN: no data for resource_dominance_index
+[20250510_184027] WARN: no data for memory_oomkill_events
+[20250510_184027] WARN: no data for cpu_throttled_ratio
+[20250510_184027] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184027] WARN: no data for memory_pressure
+[20250510_184027] WARN: no data for disk_io_tenant_d
+[20250510_184027] WARN: no data for network_packet_rate
+[20250510_184027] WARN: no data for correlation_memory_latency
+[20250510_184027] WARN: no data for postgres_connections
+[20250510_184027] WARN: no data for cpu_usage
+[20250510_184027] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184027] WARN: no data for postgres_transactions
+[20250510_184027] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184027] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184027] WARN: no data for disk_avg_io_size
+[20250510_184027] WARN: no data for network_total_bandwidth
+[20250510_184027] WARN: no data for network_transmit
+[20250510_184027] WARN: no data for postgres_query_time
+[20250510_184027] WARN: no data for postgres_disk_io
+[20250510_184027] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184027] WARN: no data for tenant_jitter
+[20250510_184027] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184027] WARN: no data for correlation_cpu_latency
+[20250510_184027] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184027] WARN: no data for tenant_latency_comparison
+[20250510_184027] WARN: no data for cpu_usage_variability
+[20250510_184027] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184027] WARN: no data for latency_process_time
+[20250510_184027] WARN: no data for network_error_rate
+[20250510_184027] WARN: no data for oom_kills
+[20250510_184027] WARN: no data for disk_throughput_total
+[20250510_184033] WARN: no data for cpu_throttled_time
+[20250510_184033] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184033] WARN: no data for network_dropped
+[20250510_184033] WARN: no data for disk_io_total
+[20250510_184033] WARN: no data for network_efficiency
+[20250510_184033] WARN: no data for network_receive
+[20250510_184033] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184033] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184033] WARN: no data for memory_growth_rate
+[20250510_184033] WARN: no data for resource_dominance_index
+[20250510_184033] WARN: no data for memory_oomkill_events
+[20250510_184033] WARN: no data for cpu_throttled_ratio
+[20250510_184033] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184033] WARN: no data for memory_pressure
+[20250510_184033] WARN: no data for disk_io_tenant_d
+[20250510_184033] WARN: no data for network_packet_rate
+[20250510_184033] WARN: no data for correlation_memory_latency
+deployment.apps/nginx-deployment condition met
+[2025-05-10 18:40:33] Implantando tenant-c (vítima)...
+[20250510_184033] WARN: no data for postgres_connections
+[20250510_184033] WARN: no data for cpu_usage
+[20250510_184033] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184033] WARN: no data for postgres_transactions
+[20250510_184033] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184033] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184033] WARN: no data for disk_avg_io_size
+service/redis created
+deployment.apps/redis-deployment created
+[20250510_184033] WARN: no data for network_total_bandwidth
+job.batch/redis-benchmark created
+[20250510_184033] WARN: no data for network_transmit
+cronjob.batch/continuous-memory-stress created
+[2025-05-10 18:40:34] Implantando tenant-d (CPU e Disco)...
+[20250510_184033] WARN: no data for postgres_query_time
+[20250510_184033] WARN: no data for postgres_disk_io
+[20250510_184033] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184033] WARN: no data for tenant_jitter
+[20250510_184033] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184033] WARN: no data for correlation_cpu_latency
+[20250510_184033] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184033] WARN: no data for tenant_latency_comparison
+[20250510_184033] WARN: no data for cpu_usage_variability
+[20250510_184033] WARN: no data for network_usage_noisy_victim_ratio
+persistentvolumeclaim/postgres-data created
+[20250510_184033] WARN: no data for latency_process_time
+configmap/postgres-config created
+service/postgres created
+deployment.apps/postgres created
+[20250510_184033] WARN: no data for network_error_rate
+job.batch/pgbench-init created
+[20250510_184033] WARN: no data for oom_kills
+cronjob.batch/pgbench-workload created
+[20250510_184033] WARN: no data for disk_throughput_total
+cronjob.batch/cpu-intensive-workload created
+cronjob.batch/disk-intensive-workload created
+cronjob.batch/cpu-intensive-queries created
+cronjob.batch/disk-intensive-queries created
+[2025-05-10 18:40:34] Aguardando inicialização dos workloads do tenant-c e tenant-d...
+[20250510_184039] WARN: no data for cpu_throttled_time
+[20250510_184039] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184039] WARN: no data for network_dropped
+[20250510_184039] WARN: no data for disk_io_total
+[20250510_184039] WARN: no data for network_efficiency
+[20250510_184039] WARN: no data for network_receive
+[20250510_184039] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184039] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184039] WARN: no data for memory_growth_rate
+[20250510_184039] WARN: no data for resource_dominance_index
+[20250510_184039] WARN: no data for memory_oomkill_events
+[20250510_184039] WARN: no data for cpu_throttled_ratio
+[20250510_184039] WARN: no data for cpu_usage_pct_of_limit
+[20250510_184039] WARN: no data for memory_pressure
+[20250510_184039] WARN: no data for disk_io_tenant_d
+[20250510_184039] WARN: no data for network_packet_rate
+[20250510_184039] WARN: no data for correlation_memory_latency
+[20250510_184039] WARN: no data for postgres_connections
+[20250510_184039] WARN: no data for cpu_usage
+[20250510_184039] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184039] WARN: no data for postgres_transactions
+[20250510_184039] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184039] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184039] WARN: no data for disk_avg_io_size
+[20250510_184039] WARN: no data for network_total_bandwidth
+[20250510_184039] WARN: no data for network_transmit
+[20250510_184039] WARN: no data for postgres_query_time
+[20250510_184039] WARN: no data for postgres_disk_io
+[20250510_184039] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184039] WARN: no data for tenant_jitter
+[20250510_184039] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184039] WARN: no data for correlation_cpu_latency
+[20250510_184039] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184039] WARN: no data for tenant_latency_comparison
+[20250510_184039] WARN: no data for cpu_usage_variability
+[20250510_184039] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184039] WARN: no data for latency_process_time
+[20250510_184045] WARN: no data for cpu_throttled_time
+[20250510_184045] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184045] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184045] WARN: no data for cpu_tenant_d_vs_other_ratio
+[20250510_184045] WARN: no data for memory_growth_rate
+[20250510_184045] WARN: no data for resource_dominance_index
+[20250510_184045] WARN: no data for memory_oomkill_events
+[20250510_184045] WARN: no data for cpu_throttled_ratio
+[20250510_184045] WARN: no data for memory_pressure
+[20250510_184045] WARN: no data for disk_io_tenant_d
+[20250510_184045] WARN: no data for correlation_memory_latency
+[20250510_184045] WARN: no data for postgres_connections
+[20250510_184045] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184045] WARN: no data for postgres_transactions
+[20250510_184045] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184045] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184045] WARN: no data for postgres_query_time
+[20250510_184045] WARN: no data for postgres_disk_io
+[20250510_184045] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184045] WARN: no data for tenant_jitter
+[20250510_184045] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184045] WARN: no data for correlation_cpu_latency
+[20250510_184045] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184045] WARN: no data for tenant_latency_comparison
+[20250510_184045] WARN: no data for cpu_usage_variability
+[20250510_184045] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184045] WARN: no data for latency_process_time
+[2025-05-10 18:40:50] Timeout de fase 1 - Baseline atingido. Matando processo 342529
+[2025-05-10 18:40:50] Fase 1 - Baseline concluída
+[2025-05-10 18:40:50] Interrompendo coleta de métricas (PID: 341292)...
+[2025-05-10 18:40:50] Coleta de métricas finalizada.
+[2025-05-10 18:40:50] === Fase 2 - Attack ===
+[2025-05-10 18:40:50] Coleta de métricas iniciada com PID: 346382
+[2025-05-10 18:40:50] Iniciando fase: 2 - Attack com duração máxima de 120s
+[2025-05-10 18:40:50] Implantando tenant-b (atacante noisy neighbor)...
+[20250510_184050] WARN: no data for cpu_throttled_time
+[20250510_184050] WARN: no data for memory_usage_noisy_victim_ratio
+deployment.apps/stress-ng created
+deployment.apps/traffic-generator created
+deployment.apps/traffic-server created
+[20250510_184050] WARN: no data for memory_usage_noisy_network_ratio
+service/traffic-server created
+[2025-05-10 18:40:51] Aguardando inicialização dos serviços do tenant-b...
+[20250510_184050] WARN: no data for memory_growth_rate
+[20250510_184050] WARN: no data for resource_dominance_index
+[20250510_184050] WARN: no data for memory_oomkill_events
+[20250510_184050] WARN: no data for cpu_throttled_ratio
+[20250510_184050] WARN: no data for memory_pressure
+[20250510_184050] WARN: no data for disk_io_tenant_d
+[20250510_184050] WARN: no data for correlation_memory_latency
+[20250510_184050] WARN: no data for postgres_connections
+[20250510_184050] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184050] WARN: no data for postgres_transactions
+[20250510_184050] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184050] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184050] WARN: no data for postgres_query_time
+[20250510_184050] WARN: no data for postgres_disk_io
+[20250510_184050] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184050] WARN: no data for tenant_jitter
+[20250510_184050] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184050] WARN: no data for correlation_cpu_latency
+[20250510_184050] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184050] WARN: no data for tenant_latency_comparison
+[20250510_184050] WARN: no data for cpu_usage_variability
+[20250510_184050] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184050] WARN: no data for latency_process_time
+[20250510_184056] WARN: no data for cpu_throttled_time
+[20250510_184056] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_184056] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_184056] WARN: no data for memory_growth_rate
+[20250510_184056] WARN: no data for resource_dominance_index
+[20250510_184056] WARN: no data for memory_oomkill_events
+[20250510_184056] WARN: no data for cpu_throttled_ratio
+[20250510_184056] WARN: no data for memory_pressure
+[20250510_184056] WARN: no data for disk_io_tenant_d
+[20250510_184056] WARN: no data for correlation_memory_latency
+[20250510_184056] WARN: no data for postgres_connections
+[20250510_184056] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184056] WARN: no data for postgres_transactions
+[20250510_184056] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184056] WARN: no data for disk_tenant_d_vs_other_ratio
+[20250510_184056] WARN: no data for postgres_query_time
+[20250510_184056] WARN: no data for postgres_disk_io
+[20250510_184056] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184056] WARN: no data for tenant_jitter
+[20250510_184056] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184056] WARN: no data for correlation_cpu_latency
+[20250510_184056] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184056] WARN: no data for tenant_latency_comparison
+[20250510_184056] WARN: no data for cpu_usage_variability
+[20250510_184056] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184056] WARN: no data for latency_process_time
+[20250510_184102] WARN: no data for cpu_throttled_time
+[20250510_184102] WARN: no data for resource_dominance_index
+[20250510_184102] WARN: no data for memory_oomkill_events
+[20250510_184102] WARN: no data for cpu_throttled_ratio
+[20250510_184102] WARN: no data for memory_pressure
+[20250510_184102] WARN: no data for correlation_memory_latency
+[20250510_184102] WARN: no data for postgres_connections
+[20250510_184102] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184102] WARN: no data for postgres_transactions
+[20250510_184102] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184102] WARN: no data for postgres_query_time
+[20250510_184102] WARN: no data for postgres_disk_io
+[20250510_184102] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184102] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184102] WARN: no data for correlation_cpu_latency
+[20250510_184102] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184102] WARN: no data for tenant_latency_comparison
+[20250510_184102] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184102] WARN: no data for latency_process_time
+deployment.apps/traffic-generator condition met
+[20250510_184108] WARN: no data for cpu_throttled_time
+[20250510_184108] WARN: no data for resource_dominance_index
+[20250510_184108] WARN: no data for memory_oomkill_events
+[20250510_184108] WARN: no data for cpu_throttled_ratio
+[20250510_184108] WARN: no data for memory_pressure
+[20250510_184108] WARN: no data for correlation_memory_latency
+[20250510_184108] WARN: no data for postgres_connections
+[20250510_184108] WARN: no data for network_usage_noisy_network_ratio
+[20250510_184108] WARN: no data for postgres_transactions
+[20250510_184108] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_184108] WARN: no data for postgres_query_time
+[20250510_184108] WARN: no data for postgres_disk_io
+[20250510_184108] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_184108] WARN: no data for network_packets_noisy_network_ratio
+[20250510_184108] WARN: no data for correlation_cpu_latency
+[20250510_184108] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_184108] WARN: no data for tenant_latency_comparison
+[20250510_184108] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_184108] WARN: no data for latency_process_time
+[20250510_184114] WARN: no data for cpu_throttled_time
+[20250510_184114] WARN: no data for memory_oomkill_events
+[20250510_184114] WARN: no data for cpu_throttled_ratio
+[20250510_184114] WARN: no data for memory_pressure
+[20250510_184114] WARN: no data for correlation_memory_latency
+[20250510_184114] WARN: no data for postgres_connections
+[20250510_184114] WARN: no data for postgres_transactions
+[20250510_184114] WARN: no data for postgres_query_time
+[20250510_184114] WARN: no data for postgres_disk_io
+[20250510_184114] WARN: no data for correlation_cpu_latency
+[20250510_184114] WARN: no data for tenant_latency_comparison
+[20250510_184114] WARN: no data for latency_process_time
+[20250510_184120] WARN: no data for cpu_throttled_time
+[20250510_184120] WARN: no data for memory_oomkill_events
+[20250510_184120] WARN: no data for cpu_throttled_ratio
+[20250510_184120] WARN: no data for memory_pressure
+[20250510_184120] WARN: no data for correlation_memory_latency
+[20250510_184120] WARN: no data for postgres_connections
+[20250510_184120] WARN: no data for postgres_transactions
+[20250510_184120] WARN: no data for postgres_query_time
+[20250510_184120] WARN: no data for postgres_disk_io
+[20250510_184120] WARN: no data for correlation_cpu_latency
+[20250510_184120] WARN: no data for tenant_latency_comparison
+[20250510_184120] WARN: no data for latency_process_time
+deployment.apps/traffic-server condition met
+deployment.apps/stress-ng condition met
+Error from server (NotFound): deployments.apps "iperf-server" not found
+[2025-05-10 18:41:23] Timeout aguardando pelo iperf-server no tenant-b
+[20250510_184126] WARN: no data for cpu_throttled_time
+[20250510_184126] WARN: no data for memory_oomkill_events
+[20250510_184126] WARN: no data for cpu_throttled_ratio
+[20250510_184126] WARN: no data for memory_pressure
+[20250510_184126] WARN: no data for correlation_memory_latency
+[20250510_184126] WARN: no data for postgres_connections
+[20250510_184126] WARN: no data for postgres_transactions
+[20250510_184126] WARN: no data for postgres_query_time
+[20250510_184126] WARN: no data for postgres_disk_io
+[20250510_184126] WARN: no data for correlation_cpu_latency
+[20250510_184126] WARN: no data for tenant_latency_comparison
+[20250510_184126] WARN: no data for latency_process_time
+[20250510_184132] WARN: no data for cpu_throttled_time
+[20250510_184132] WARN: no data for memory_oomkill_events
+[20250510_184132] WARN: no data for cpu_throttled_ratio
+[20250510_184132] WARN: no data for memory_pressure
+[20250510_184132] WARN: no data for correlation_memory_latency
+[20250510_184132] WARN: no data for postgres_connections
+[20250510_184132] WARN: no data for postgres_transactions
+[20250510_184132] WARN: no data for postgres_query_time
+[20250510_184132] WARN: no data for postgres_disk_io
+[20250510_184132] WARN: no data for correlation_cpu_latency
+[20250510_184132] WARN: no data for tenant_latency_comparison
+[20250510_184132] WARN: no data for latency_process_time
+[20250510_184138] WARN: no data for cpu_throttled_time
+[20250510_184138] WARN: no data for memory_oomkill_events
+[20250510_184138] WARN: no data for cpu_throttled_ratio
+[20250510_184138] WARN: no data for memory_pressure
+[20250510_184138] WARN: no data for correlation_memory_latency
+[20250510_184138] WARN: no data for postgres_connections
+[20250510_184138] WARN: no data for postgres_transactions
+[20250510_184138] WARN: no data for postgres_query_time
+[20250510_184138] WARN: no data for postgres_disk_io
+[20250510_184138] WARN: no data for correlation_cpu_latency
+[20250510_184138] WARN: no data for tenant_latency_comparison
+[20250510_184138] WARN: no data for latency_process_time
+[20250510_184144] WARN: no data for cpu_throttled_time
+[20250510_184144] WARN: no data for memory_oomkill_events
+[20250510_184144] WARN: no data for cpu_throttled_ratio
+[20250510_184144] WARN: no data for memory_pressure
+[20250510_184144] WARN: no data for correlation_memory_latency
+[20250510_184144] WARN: no data for postgres_connections
+[20250510_184144] WARN: no data for postgres_transactions
+[20250510_184144] WARN: no data for postgres_query_time
+[20250510_184144] WARN: no data for postgres_disk_io
+[20250510_184144] WARN: no data for correlation_cpu_latency
+[20250510_184144] WARN: no data for tenant_latency_comparison
+[20250510_184144] WARN: no data for latency_process_time
+[20250510_184150] WARN: no data for cpu_throttled_time
+[20250510_184150] WARN: no data for memory_oomkill_events
+[20250510_184150] WARN: no data for cpu_throttled_ratio
+[20250510_184150] WARN: no data for memory_pressure
+[20250510_184150] WARN: no data for correlation_memory_latency
+[20250510_184150] WARN: no data for postgres_connections
+[20250510_184150] WARN: no data for postgres_transactions
+[20250510_184150] WARN: no data for postgres_query_time
+[20250510_184150] WARN: no data for postgres_disk_io
+[20250510_184150] WARN: no data for correlation_cpu_latency
+[20250510_184150] WARN: no data for tenant_latency_comparison
+[20250510_184150] WARN: no data for latency_process_time
+[20250510_184155] WARN: no data for cpu_throttled_time
+[20250510_184155] WARN: no data for memory_oomkill_events
+[20250510_184155] WARN: no data for cpu_throttled_ratio
+[20250510_184155] WARN: no data for memory_pressure
+[20250510_184155] WARN: no data for correlation_memory_latency
+[20250510_184155] WARN: no data for postgres_connections
+[20250510_184155] WARN: no data for postgres_transactions
+[20250510_184155] WARN: no data for postgres_query_time
+[20250510_184155] WARN: no data for postgres_disk_io
+[20250510_184155] WARN: no data for correlation_cpu_latency
+[20250510_184155] WARN: no data for tenant_latency_comparison
+[20250510_184155] WARN: no data for latency_process_time
+[20250510_184201] WARN: no data for cpu_throttled_time
+[20250510_184201] WARN: no data for memory_oomkill_events
+[20250510_184201] WARN: no data for cpu_throttled_ratio
+[20250510_184201] WARN: no data for memory_pressure
+[20250510_184201] WARN: no data for correlation_memory_latency
+[20250510_184201] WARN: no data for postgres_connections
+[20250510_184201] WARN: no data for postgres_transactions
+[20250510_184201] WARN: no data for postgres_query_time
+[20250510_184201] WARN: no data for postgres_disk_io
+[20250510_184201] WARN: no data for correlation_cpu_latency
+[20250510_184201] WARN: no data for tenant_latency_comparison
+[20250510_184201] WARN: no data for latency_process_time
+[20250510_184207] WARN: no data for cpu_throttled_time
+[20250510_184207] WARN: no data for memory_oomkill_events
+[20250510_184207] WARN: no data for cpu_throttled_ratio
+[20250510_184207] WARN: no data for memory_pressure
+[20250510_184207] WARN: no data for correlation_memory_latency
+[20250510_184207] WARN: no data for postgres_connections
+[20250510_184207] WARN: no data for postgres_transactions
+[20250510_184207] WARN: no data for postgres_query_time
+[20250510_184207] WARN: no data for postgres_disk_io
+[20250510_184207] WARN: no data for correlation_cpu_latency
+[20250510_184207] WARN: no data for tenant_latency_comparison
+[20250510_184207] WARN: no data for latency_process_time
+[20250510_184213] WARN: no data for cpu_throttled_time
+[20250510_184213] WARN: no data for memory_oomkill_events
+[20250510_184213] WARN: no data for cpu_throttled_ratio
+[20250510_184213] WARN: no data for memory_pressure
+[20250510_184213] WARN: no data for correlation_memory_latency
+[20250510_184213] WARN: no data for postgres_connections
+[20250510_184213] WARN: no data for postgres_transactions
+[20250510_184213] WARN: no data for postgres_query_time
+[20250510_184213] WARN: no data for postgres_disk_io
+[20250510_184213] WARN: no data for correlation_cpu_latency
+[20250510_184213] WARN: no data for tenant_latency_comparison
+[20250510_184213] WARN: no data for latency_process_time
+[20250510_184219] WARN: no data for cpu_throttled_time
+[20250510_184219] WARN: no data for memory_oomkill_events
+[20250510_184219] WARN: no data for cpu_throttled_ratio
+[20250510_184219] WARN: no data for memory_pressure
+[20250510_184219] WARN: no data for correlation_memory_latency
+[20250510_184219] WARN: no data for postgres_connections
+[20250510_184219] WARN: no data for postgres_transactions
+[20250510_184219] WARN: no data for postgres_query_time
+[20250510_184219] WARN: no data for postgres_disk_io
+[20250510_184219] WARN: no data for correlation_cpu_latency
+[20250510_184219] WARN: no data for tenant_latency_comparison
+[20250510_184219] WARN: no data for latency_process_time
+[20250510_184225] WARN: no data for cpu_throttled_time
+[20250510_184225] WARN: no data for memory_oomkill_events
+[20250510_184225] WARN: no data for cpu_throttled_ratio
+[20250510_184225] WARN: no data for memory_pressure
+[20250510_184225] WARN: no data for correlation_memory_latency
+[20250510_184225] WARN: no data for postgres_connections
+[20250510_184225] WARN: no data for postgres_transactions
+[20250510_184225] WARN: no data for postgres_query_time
+[20250510_184225] WARN: no data for postgres_disk_io
+[20250510_184225] WARN: no data for correlation_cpu_latency
+[20250510_184225] WARN: no data for tenant_latency_comparison
+[20250510_184225] WARN: no data for latency_process_time
+[20250510_184231] WARN: no data for cpu_throttled_time
+[20250510_184231] WARN: no data for memory_oomkill_events
+[20250510_184231] WARN: no data for cpu_throttled_ratio
+[20250510_184231] WARN: no data for memory_pressure
+[20250510_184231] WARN: no data for correlation_memory_latency
+[20250510_184231] WARN: no data for postgres_connections
+[20250510_184231] WARN: no data for postgres_transactions
+[20250510_184231] WARN: no data for postgres_query_time
+[20250510_184231] WARN: no data for postgres_disk_io
+[20250510_184231] WARN: no data for correlation_cpu_latency
+[20250510_184231] WARN: no data for tenant_latency_comparison
+[20250510_184231] WARN: no data for latency_process_time
+[20250510_184237] WARN: no data for cpu_throttled_time
+[20250510_184237] WARN: no data for memory_oomkill_events
+[20250510_184237] WARN: no data for cpu_throttled_ratio
+[20250510_184237] WARN: no data for memory_pressure
+[20250510_184237] WARN: no data for correlation_memory_latency
+[20250510_184237] WARN: no data for postgres_connections
+[20250510_184237] WARN: no data for postgres_transactions
+[20250510_184237] WARN: no data for postgres_query_time
+[20250510_184237] WARN: no data for postgres_disk_io
+[20250510_184237] WARN: no data for correlation_cpu_latency
+[20250510_184237] WARN: no data for tenant_latency_comparison
+[20250510_184237] WARN: no data for latency_process_time
+[20250510_184243] WARN: no data for cpu_throttled_time
+[20250510_184243] WARN: no data for memory_oomkill_events
+[20250510_184243] WARN: no data for cpu_throttled_ratio
+[20250510_184243] WARN: no data for memory_pressure
+[20250510_184243] WARN: no data for correlation_memory_latency
+[20250510_184243] WARN: no data for postgres_connections
+[20250510_184243] WARN: no data for postgres_transactions
+[20250510_184243] WARN: no data for postgres_query_time
+[20250510_184243] WARN: no data for postgres_disk_io
+[20250510_184243] WARN: no data for correlation_cpu_latency
+[20250510_184243] WARN: no data for tenant_latency_comparison
+[20250510_184243] WARN: no data for latency_process_time
+[20250510_184249] WARN: no data for cpu_throttled_time
+[20250510_184249] WARN: no data for memory_oomkill_events
+[20250510_184249] WARN: no data for cpu_throttled_ratio
+[20250510_184249] WARN: no data for memory_pressure
+[20250510_184249] WARN: no data for correlation_memory_latency
+[20250510_184249] WARN: no data for postgres_connections
+[20250510_184249] WARN: no data for postgres_transactions
+[20250510_184249] WARN: no data for postgres_query_time
+[20250510_184249] WARN: no data for postgres_disk_io
+[20250510_184249] WARN: no data for correlation_cpu_latency
+[20250510_184249] WARN: no data for tenant_latency_comparison
+[2025-05-10 18:42:50] Timeout de fase 2 - Attack atingido. Matando processo 346390
+[2025-05-10 18:42:50] Fase 2 - Attack concluída
+[2025-05-10 18:42:50] Interrompendo coleta de métricas (PID: 346382)...
+[2025-05-10 18:42:50] Coleta de métricas finalizada.
+[2025-05-10 18:42:50] === Fase 3 - Recovery ===
+[2025-05-10 18:42:50] Coleta de métricas iniciada com PID: 368476
+[2025-05-10 18:42:50] Iniciando fase: 3 - Recovery com duração máxima de 30s
+[2025-05-10 18:42:50] Removendo tenant-b (atacante)...
+[20250510_184250] WARN: no data for cpu_throttled_time
+deployment.apps "stress-ng" deleted
+deployment.apps "traffic-generator" deleted
+deployment.apps "traffic-server" deleted
+service "traffic-server" deleted
+[2025-05-10 18:42:50] Verificando recuperação do tenant-a, tenant-c e tenant-d...
+[20250510_184250] WARN: no data for memory_oomkill_events
+[20250510_184250] WARN: no data for cpu_throttled_ratio
+[20250510_184250] WARN: no data for memory_pressure
+[20250510_184250] WARN: no data for correlation_memory_latency
+[20250510_184250] WARN: no data for postgres_connections
+[20250510_184250] WARN: no data for postgres_transactions
+[20250510_184250] WARN: no data for postgres_query_time
+[20250510_184250] WARN: no data for postgres_disk_io
+[20250510_184250] WARN: no data for correlation_cpu_latency
+[20250510_184250] WARN: no data for tenant_latency_comparison
+[20250510_184250] WARN: no data for latency_process_time
+[20250510_184256] WARN: no data for cpu_throttled_time
+[20250510_184256] WARN: no data for memory_oomkill_events
+[20250510_184256] WARN: no data for cpu_throttled_ratio
+[20250510_184256] WARN: no data for memory_pressure
+[20250510_184256] WARN: no data for correlation_memory_latency
+[20250510_184256] WARN: no data for postgres_connections
+[20250510_184256] WARN: no data for postgres_transactions
+[20250510_184256] WARN: no data for postgres_query_time
+[20250510_184256] WARN: no data for postgres_disk_io
+[20250510_184256] WARN: no data for correlation_cpu_latency
+[20250510_184256] WARN: no data for tenant_latency_comparison
+[20250510_184256] WARN: no data for latency_process_time
+[20250510_184302] WARN: no data for cpu_throttled_time
+[20250510_184302] WARN: no data for memory_oomkill_events
+[20250510_184302] WARN: no data for cpu_throttled_ratio
+[20250510_184302] WARN: no data for memory_pressure
+[20250510_184302] WARN: no data for correlation_memory_latency
+[20250510_184302] WARN: no data for postgres_connections
+[20250510_184302] WARN: no data for postgres_transactions
+[20250510_184302] WARN: no data for postgres_query_time
+[20250510_184302] WARN: no data for postgres_disk_io
+[20250510_184302] WARN: no data for correlation_cpu_latency
+[20250510_184302] WARN: no data for tenant_latency_comparison
+[20250510_184302] WARN: no data for latency_process_time
+[20250510_184308] WARN: no data for cpu_throttled_time
+[20250510_184308] WARN: no data for memory_oomkill_events
+[20250510_184308] WARN: no data for cpu_throttled_ratio
+[20250510_184308] WARN: no data for memory_pressure
+[20250510_184308] WARN: no data for correlation_memory_latency
+[20250510_184308] WARN: no data for postgres_connections
+[20250510_184308] WARN: no data for postgres_transactions
+[20250510_184308] WARN: no data for postgres_query_time
+[20250510_184308] WARN: no data for postgres_disk_io
+[20250510_184308] WARN: no data for correlation_cpu_latency
+[20250510_184308] WARN: no data for tenant_latency_comparison
+[20250510_184308] WARN: no data for latency_process_time
+[20250510_184314] WARN: no data for cpu_throttled_time
+[20250510_184314] WARN: no data for memory_oomkill_events
+[20250510_184314] WARN: no data for cpu_throttled_ratio
+[20250510_184314] WARN: no data for memory_pressure
+[20250510_184314] WARN: no data for correlation_memory_latency
+[20250510_184314] WARN: no data for postgres_connections
+[20250510_184314] WARN: no data for postgres_transactions
+[20250510_184314] WARN: no data for postgres_query_time
+[20250510_184314] WARN: no data for postgres_disk_io
+[20250510_184314] WARN: no data for correlation_cpu_latency
+[20250510_184314] WARN: no data for tenant_latency_comparison
+[20250510_184314] WARN: no data for latency_process_time
+[20250510_184320] WARN: no data for cpu_throttled_time
+[2025-05-10 18:43:20] Timeout de fase 3 - Recovery atingido. Matando processo 368484
+[2025-05-10 18:43:20] Fase 3 - Recovery concluída
+[2025-05-10 18:43:20] Interrompendo coleta de métricas (PID: 368476)...
+[2025-05-10 18:43:20] Coleta de métricas finalizada.
+[2025-05-10 18:43:20] Round 1/1 concluído com sucesso!
+[2025-05-10 18:43:20] Limpando todos os tenants após o experimento...
+namespace "tenant-a" deleted
+namespace "tenant-b" deleted
+namespace "tenant-c" deleted
+namespace "tenant-d" deleted
+[2025-05-10 18:43:58] Tenants removidos com sucesso.
+[2025-05-10 18:43:58] ======= EXPERIMENTO CONCLUÍDO =======
+[2025-05-10 18:43:58] Data/hora de início: 2025/05/10 18:39:55
+[2025-05-10 18:43:58] Data/hora de término: 2025/05/10 18:43:58
+[2025-05-10 18:43:58] Duração total: 190 segundos (3 minutos)
+[2025-05-10 18:43:58] Métricas e logs salvos em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/18-39-55/new-tenant-1
+[2025-05-10 18:43:58] Para visualizar os resultados no Grafana:
+[2025-05-10 18:43:58] kubectl -n monitoring port-forward svc/prometheus-grafana 3000:80
+[2025-05-10 18:43:58] Abra seu navegador em http://localhost:3000 (usuário: admin, senha: admin)

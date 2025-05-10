@@ -1,0 +1,478 @@
+[2025-05-10 16:59:03] Namespace 'tenant-a' já existe.
+[2025-05-10 16:59:04] Namespace 'tenant-b' já existe.
+[2025-05-10 16:59:04] Namespace 'tenant-c' já existe.
+[2025-05-10 16:59:04] Namespace 'monitoring' já existe.
+[2025-05-10 16:59:04] Namespace 'ingress-nginx' já existe.
+[2025-05-10 16:59:04] Iniciando experimento: add-metrics-1
+[2025-05-10 16:59:04] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/16-59-03/add-metrics-1/experiment.log
+[2025-05-10 16:59:04] Verificando pré-requisitos...
+[2025-05-10 16:59:04] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/16-59-03/add-metrics-1
+[2025-05-10 16:59:04] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 16:59:07] Criando namespaces...
+NAME              STATUS   AGE
+default           Active   6m39s
+ingress-nginx     Active   4m27s
+kube-node-lease   Active   6m39s
+kube-public       Active   6m39s
+kube-system       Active   6m39s
+metallb-system    Active   4m9s
+monitoring        Active   5m34s
+tenant-a          Active   6m19s
+tenant-b          Active   6m17s
+tenant-c          Active   6m15s
+[2025-05-10 16:59:13] Aplicando resource quotas...
+resourcequota/tenant-a-quota unchanged
+resourcequota/tenant-b-quota unchanged
+resourcequota/tenant-c-quota unchanged
+[2025-05-10 16:59:18] Stack de observabilidade já instalada.
+[2025-05-10 16:59:18] Aguardando inicialização do Prometheus...
+pod/prometheus-prometheus-kube-prometheus-prometheus-0 condition met
+[2025-05-10 16:59:18] Adicionando deployment do blackbox-exporter...
+[2025-05-10 16:59:18] ======= INÍCIO DO EXPERIMENTO: add-metrics-1 =======
+[2025-05-10 16:59:18] Data: 2025/05/10, Hora: 16:59:03
+[2025-05-10 16:59:18] Número de rounds: 1
+[2025-05-10 16:59:18] Duração das fases: Baseline=600s, Ataque=30s, Recuperação=30s
+[2025-05-10 16:59:18] ===== ROUND 1/1 =====
+[2025-05-10 16:59:18] === Fase 1 - Baseline ===
+[2025-05-10 16:59:18] Coleta de métricas iniciada com PID: 101618
+[2025-05-10 16:59:18] Limpando workloads anteriores...
+[20250510_165918] WARN: no data for cpu_throttled_time
+deployment.apps "nginx-deployment" deleted
+[20250510_165918] WARN: no data for memory_usage_noisy_victim_ratio
+service "nginx" deleted
+job.batch "nginx-benchmark" deleted
+deployment.apps "iperf-server" deleted
+service "iperf-server" deleted
+[20250510_165918] WARN: no data for memory_usage_noisy_network_ratio
+deployment.apps "redis-deployment" deleted
+job.batch "redis-benchmark" deleted
+[20250510_165918] WARN: no data for resource_dominance_index
+[20250510_165918] WARN: no data for memory_oomkill_events
+[20250510_165918] WARN: no data for cpu_throttled_ratio
+[20250510_165918] WARN: no data for memory_pressure
+[20250510_165918] WARN: no data for correlation_memory_latency
+[20250510_165918] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165918] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165918] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165918] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165918] WARN: no data for correlation_cpu_latency
+[20250510_165918] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165918] WARN: no data for tenant_latency_comparison
+[20250510_165918] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165918] WARN: no data for latency_process_time
+[20250510_165924] WARN: no data for cpu_throttled_time
+[20250510_165924] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165924] WARN: no data for memory_usage
+[20250510_165924] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165924] WARN: no data for resource_dominance_index
+[20250510_165924] WARN: no data for memory_oomkill_events
+[20250510_165924] WARN: no data for cpu_throttled_ratio
+[20250510_165924] WARN: no data for cpu_usage_pct_of_limit
+[20250510_165924] WARN: no data for memory_pressure
+[20250510_165924] WARN: no data for correlation_memory_latency
+[20250510_165924] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165924] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165924] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165924] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165924] WARN: no data for correlation_cpu_latency
+[20250510_165924] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165924] WARN: no data for pod_ready_age
+[20250510_165924] WARN: no data for tenant_latency_comparison
+[20250510_165924] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165924] WARN: no data for latency_process_time
+[20250510_165924] WARN: no data for pod_readiness_ratio
+[2025-05-10 16:59:28] Iniciando fase: 1 - Baseline com duração máxima de 600s
+[2025-05-10 16:59:28] Implantando tenant-a (referência)...
+deployment.apps/nginx-deployment created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-10 16:59:29] Aguardando inicialização dos serviços do tenant-a...
+[20250510_165930] WARN: no data for cpu_throttled_time
+[20250510_165930] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165930] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165930] WARN: no data for resource_dominance_index
+[20250510_165930] WARN: no data for memory_oomkill_events
+[20250510_165930] WARN: no data for cpu_throttled_ratio
+[20250510_165930] WARN: no data for memory_pressure
+[20250510_165930] WARN: no data for correlation_memory_latency
+[20250510_165930] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165930] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165930] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165930] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165930] WARN: no data for correlation_cpu_latency
+[20250510_165930] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165930] WARN: no data for tenant_latency_comparison
+[20250510_165930] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165930] WARN: no data for latency_process_time
+deployment.apps/iperf-server condition met
+[2025-05-10 16:59:32] Implantando tenant-c (vítima)...
+deployment.apps/redis-deployment created
+job.batch/redis-benchmark created
+[2025-05-10 16:59:32] Aguardando inicialização dos workloads do tenant-c...
+[20250510_165935] WARN: no data for cpu_throttled_time
+[20250510_165935] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165935] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165935] WARN: no data for resource_dominance_index
+[20250510_165935] WARN: no data for memory_oomkill_events
+[20250510_165935] WARN: no data for cpu_throttled_ratio
+[20250510_165935] WARN: no data for memory_pressure
+[20250510_165935] WARN: no data for correlation_memory_latency
+[20250510_165935] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165935] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165935] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165935] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165935] WARN: no data for correlation_cpu_latency
+[20250510_165935] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165935] WARN: no data for tenant_latency_comparison
+[20250510_165935] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165935] WARN: no data for latency_process_time
+[20250510_165941] WARN: no data for cpu_throttled_time
+[20250510_165941] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165941] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165941] WARN: no data for resource_dominance_index
+[20250510_165941] WARN: no data for memory_oomkill_events
+[20250510_165941] WARN: no data for cpu_throttled_ratio
+[20250510_165941] WARN: no data for memory_pressure
+[20250510_165941] WARN: no data for correlation_memory_latency
+[20250510_165941] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165941] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165941] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165941] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165941] WARN: no data for correlation_cpu_latency
+[20250510_165941] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165941] WARN: no data for tenant_latency_comparison
+[20250510_165941] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165941] WARN: no data for latency_process_time
+[20250510_165947] WARN: no data for cpu_throttled_time
+[20250510_165947] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165947] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165947] WARN: no data for resource_dominance_index
+[20250510_165947] WARN: no data for memory_oomkill_events
+[20250510_165947] WARN: no data for cpu_throttled_ratio
+[20250510_165947] WARN: no data for memory_pressure
+[20250510_165947] WARN: no data for correlation_memory_latency
+[20250510_165947] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165947] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165947] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165947] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165947] WARN: no data for correlation_cpu_latency
+[20250510_165947] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165947] WARN: no data for tenant_latency_comparison
+[20250510_165947] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165947] WARN: no data for latency_process_time
+[20250510_165953] WARN: no data for cpu_throttled_time
+[20250510_165953] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165953] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165953] WARN: no data for resource_dominance_index
+[20250510_165953] WARN: no data for memory_oomkill_events
+[20250510_165953] WARN: no data for cpu_throttled_ratio
+[20250510_165953] WARN: no data for memory_pressure
+[20250510_165953] WARN: no data for correlation_memory_latency
+[20250510_165953] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165953] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165953] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165953] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165953] WARN: no data for correlation_cpu_latency
+[20250510_165953] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165953] WARN: no data for tenant_latency_comparison
+[20250510_165953] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165953] WARN: no data for latency_process_time
+[20250510_165958] WARN: no data for cpu_throttled_time
+[20250510_165958] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_165958] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_165958] WARN: no data for resource_dominance_index
+[20250510_165958] WARN: no data for memory_oomkill_events
+[20250510_165958] WARN: no data for cpu_throttled_ratio
+[20250510_165958] WARN: no data for memory_pressure
+[20250510_165958] WARN: no data for correlation_memory_latency
+[20250510_165958] WARN: no data for network_usage_noisy_network_ratio
+[20250510_165958] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_165958] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_165958] WARN: no data for network_packets_noisy_network_ratio
+[20250510_165958] WARN: no data for correlation_cpu_latency
+[20250510_165958] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_165958] WARN: no data for tenant_latency_comparison
+[20250510_165958] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_165958] WARN: no data for latency_process_time
+[20250510_170004] WARN: no data for cpu_throttled_time
+[20250510_170004] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170004] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170004] WARN: no data for resource_dominance_index
+[20250510_170004] WARN: no data for memory_oomkill_events
+[20250510_170004] WARN: no data for cpu_throttled_ratio
+[20250510_170004] WARN: no data for memory_pressure
+[20250510_170004] WARN: no data for correlation_memory_latency
+[20250510_170004] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170004] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170004] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170004] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170004] WARN: no data for correlation_cpu_latency
+[20250510_170004] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170004] WARN: no data for tenant_latency_comparison
+[20250510_170004] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170004] WARN: no data for latency_process_time
+[20250510_170010] WARN: no data for cpu_throttled_time
+[20250510_170010] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170010] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170010] WARN: no data for resource_dominance_index
+[20250510_170010] WARN: no data for memory_oomkill_events
+[20250510_170010] WARN: no data for cpu_throttled_ratio
+[20250510_170010] WARN: no data for memory_pressure
+[20250510_170010] WARN: no data for correlation_memory_latency
+[20250510_170010] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170010] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170010] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170010] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170010] WARN: no data for correlation_cpu_latency
+[20250510_170010] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170010] WARN: no data for tenant_latency_comparison
+[20250510_170010] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170010] WARN: no data for latency_process_time
+[20250510_170015] WARN: no data for cpu_throttled_time
+[20250510_170015] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170015] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170015] WARN: no data for resource_dominance_index
+[20250510_170015] WARN: no data for memory_oomkill_events
+[20250510_170015] WARN: no data for cpu_throttled_ratio
+[20250510_170015] WARN: no data for memory_pressure
+[20250510_170015] WARN: no data for correlation_memory_latency
+[20250510_170015] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170015] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170015] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170015] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170015] WARN: no data for correlation_cpu_latency
+[20250510_170015] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170015] WARN: no data for tenant_latency_comparison
+[20250510_170015] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170015] WARN: no data for latency_process_time
+[20250510_170021] WARN: no data for cpu_throttled_time
+[20250510_170021] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170021] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170021] WARN: no data for resource_dominance_index
+[20250510_170021] WARN: no data for memory_oomkill_events
+[20250510_170021] WARN: no data for cpu_throttled_ratio
+[20250510_170021] WARN: no data for memory_pressure
+[20250510_170021] WARN: no data for correlation_memory_latency
+[20250510_170021] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170021] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170021] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170021] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170021] WARN: no data for correlation_cpu_latency
+[20250510_170021] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170021] WARN: no data for tenant_latency_comparison
+[20250510_170021] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170021] WARN: no data for latency_process_time
+[20250510_170027] WARN: no data for cpu_throttled_time
+[20250510_170027] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170027] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170027] WARN: no data for resource_dominance_index
+[20250510_170027] WARN: no data for memory_oomkill_events
+[20250510_170027] WARN: no data for cpu_throttled_ratio
+[20250510_170027] WARN: no data for memory_pressure
+[20250510_170027] WARN: no data for correlation_memory_latency
+[20250510_170027] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170027] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170027] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170027] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170027] WARN: no data for correlation_cpu_latency
+[20250510_170027] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170027] WARN: no data for tenant_latency_comparison
+[20250510_170027] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170027] WARN: no data for latency_process_time
+[20250510_170033] WARN: no data for cpu_throttled_time
+[20250510_170033] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170033] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170033] WARN: no data for resource_dominance_index
+[20250510_170033] WARN: no data for memory_oomkill_events
+[20250510_170033] WARN: no data for cpu_throttled_ratio
+[20250510_170033] WARN: no data for memory_pressure
+[20250510_170033] WARN: no data for correlation_memory_latency
+[20250510_170033] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170033] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170033] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170033] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170033] WARN: no data for correlation_cpu_latency
+[20250510_170033] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170033] WARN: no data for tenant_latency_comparison
+[20250510_170033] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170033] WARN: no data for latency_process_time
+[20250510_170038] WARN: no data for cpu_throttled_time
+[20250510_170038] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170038] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170038] WARN: no data for resource_dominance_index
+[20250510_170038] WARN: no data for memory_oomkill_events
+[20250510_170038] WARN: no data for cpu_throttled_ratio
+[20250510_170038] WARN: no data for memory_pressure
+[20250510_170038] WARN: no data for correlation_memory_latency
+[20250510_170038] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170038] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170038] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170038] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170038] WARN: no data for correlation_cpu_latency
+[20250510_170038] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170038] WARN: no data for tenant_latency_comparison
+[20250510_170038] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170038] WARN: no data for latency_process_time
+[20250510_170044] WARN: no data for cpu_throttled_time
+[20250510_170044] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170044] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170044] WARN: no data for resource_dominance_index
+[20250510_170044] WARN: no data for memory_oomkill_events
+[20250510_170044] WARN: no data for cpu_throttled_ratio
+[20250510_170044] WARN: no data for memory_pressure
+[20250510_170044] WARN: no data for correlation_memory_latency
+[20250510_170044] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170044] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170044] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170044] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170044] WARN: no data for correlation_cpu_latency
+[20250510_170044] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170044] WARN: no data for tenant_latency_comparison
+[20250510_170044] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170044] WARN: no data for latency_process_time
+[20250510_170050] WARN: no data for cpu_throttled_time
+[20250510_170050] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170050] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170050] WARN: no data for resource_dominance_index
+[20250510_170050] WARN: no data for memory_oomkill_events
+[20250510_170050] WARN: no data for cpu_throttled_ratio
+[20250510_170050] WARN: no data for memory_pressure
+[20250510_170050] WARN: no data for correlation_memory_latency
+[20250510_170050] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170050] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170050] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170050] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170050] WARN: no data for correlation_cpu_latency
+[20250510_170050] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170050] WARN: no data for tenant_latency_comparison
+[20250510_170050] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170050] WARN: no data for latency_process_time
+[20250510_170056] WARN: no data for cpu_throttled_time
+[20250510_170056] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170056] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170056] WARN: no data for resource_dominance_index
+[20250510_170056] WARN: no data for memory_oomkill_events
+[20250510_170056] WARN: no data for cpu_throttled_ratio
+[20250510_170056] WARN: no data for memory_pressure
+[20250510_170056] WARN: no data for correlation_memory_latency
+[20250510_170056] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170056] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170056] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170056] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170056] WARN: no data for correlation_cpu_latency
+[20250510_170056] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170056] WARN: no data for tenant_latency_comparison
+[20250510_170056] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170056] WARN: no data for latency_process_time
+[20250510_170101] WARN: no data for cpu_throttled_time
+[20250510_170101] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170101] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170101] WARN: no data for resource_dominance_index
+[20250510_170101] WARN: no data for memory_oomkill_events
+[20250510_170101] WARN: no data for cpu_throttled_ratio
+[20250510_170101] WARN: no data for memory_pressure
+[20250510_170101] WARN: no data for correlation_memory_latency
+[20250510_170101] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170101] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170101] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170101] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170101] WARN: no data for correlation_cpu_latency
+[20250510_170101] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170101] WARN: no data for tenant_latency_comparison
+[20250510_170101] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170101] WARN: no data for latency_process_time
+[20250510_170107] WARN: no data for cpu_throttled_time
+[20250510_170107] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170107] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170107] WARN: no data for resource_dominance_index
+[20250510_170107] WARN: no data for memory_oomkill_events
+[20250510_170107] WARN: no data for cpu_throttled_ratio
+[20250510_170107] WARN: no data for memory_pressure
+[20250510_170107] WARN: no data for correlation_memory_latency
+[20250510_170107] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170107] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170107] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170107] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170107] WARN: no data for correlation_cpu_latency
+[20250510_170107] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170107] WARN: no data for tenant_latency_comparison
+[20250510_170107] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170107] WARN: no data for latency_process_time
+[20250510_170113] WARN: no data for cpu_throttled_time
+[20250510_170113] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170113] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170113] WARN: no data for resource_dominance_index
+[20250510_170113] WARN: no data for memory_oomkill_events
+[20250510_170113] WARN: no data for cpu_throttled_ratio
+[20250510_170113] WARN: no data for memory_pressure
+[20250510_170113] WARN: no data for correlation_memory_latency
+[20250510_170113] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170113] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170113] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170113] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170113] WARN: no data for correlation_cpu_latency
+[20250510_170113] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170113] WARN: no data for tenant_latency_comparison
+[20250510_170113] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170113] WARN: no data for latency_process_time
+[20250510_170119] WARN: no data for cpu_throttled_time
+[20250510_170119] WARN: no data for memory_usage_noisy_victim_ratio
+[20250510_170119] WARN: no data for memory_usage_noisy_network_ratio
+[20250510_170119] WARN: no data for resource_dominance_index
+[20250510_170119] WARN: no data for memory_oomkill_events
+[20250510_170119] WARN: no data for cpu_throttled_ratio
+[20250510_170119] WARN: no data for memory_pressure
+[20250510_170119] WARN: no data for correlation_memory_latency
+[20250510_170119] WARN: no data for network_usage_noisy_network_ratio
+[20250510_170119] WARN: no data for cpu_usage_noisy_victim_ratio
+[20250510_170119] WARN: no data for cpu_usage_noisy_network_ratio
+[20250510_170119] WARN: no data for network_packets_noisy_network_ratio
+[20250510_170119] WARN: no data for correlation_cpu_latency
+[20250510_170119] WARN: no data for network_dropped_noisy_network_ratio
+[20250510_170119] WARN: no data for tenant_latency_comparison
+[20250510_170119] WARN: no data for network_usage_noisy_victim_ratio
+[20250510_170119] WARN: no data for latency_process_time

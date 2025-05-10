@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-generator
+  namespace: tenant-b
+spec:
+  replicas: 3  # Aumentando para 3 réplicas para gerar mais tráfego
+  selector:
+    matchLabels:
+      app: traffic-generator
+  template:
+    metadata:
+      labels:
+        app: traffic-generator
+    spec:
+      containers:
+      - name: traffic-generator
+        image: curlimages/curl:latest
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          echo "Iniciando gerador de tráfego para traffic-server..."
+          
+          # Espera o servidor estar pronto
+          echo "Aguardando o traffic-server inicializar..."
+          until curl -s --head --fail http://traffic-server; do
+            echo "Servidor não está pronto ainda. Aguardando..."
+            sleep 5
+          done
+          
+          echo "Servidor disponível! Iniciando geração de tráfego..."
+          
+          # Loop infinito gerando tráfego de rede
+          while true; do
+            # Baixa arquivos de diferentes tamanhos
+            echo "Baixando arquivo grande (100MB)..."
+            curl -s -o /dev/null http://traffic-server/large/100mb.bin
+            
+            echo "Baixando arquivo médio (10MB) repetidamente..."
+            for i in $(seq 1 5); do
+              curl -s -o /dev/null http://traffic-server/large/10mb.bin &
+            done
+            
+            echo "Gerando tráfego com múltiplas requisições simultâneas..."
+            for i in $(seq 1 20); do
+              curl -s -o /dev/null http://traffic-server/large/1mb.bin &
+            done
+            
+            # Pequena pausa
+            sleep 2
+          done

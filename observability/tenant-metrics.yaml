@@ -1,0 +1,186 @@
+# Métricas gerais avançadas para análise de tenants em cenário de noisy neighbours
+# Estas queries podem ser usadas tanto no script run-experiment.sh quanto em dashboards do Grafana
+
+# Métricas de CPU por tenant
+cpu_metrics:
+  # Uso de CPU por tenant (normalizado para núcleos)
+  usage_by_tenant: >
+    sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # CPU throttling por tenant (quanto o tenant está sendo limitado)
+  throttling_by_tenant: >
+    sum by (namespace) (rate(container_cpu_cfs_throttled_periods_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m])) / 
+    sum by (namespace) (rate(container_cpu_cfs_periods_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Percentual de utilização de CPU em relação ao limite por pod
+  usage_pct_of_limit_by_pod: >
+    sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]) * 100) / 
+    sum by (namespace, pod) (kube_pod_container_resource_limits{resource="cpu", namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Variabilidade de uso de CPU (jitter de consumo)
+  cpu_usage_variability: >
+    stddev_over_time(sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))[5m:])
+
+# Métricas de memória por tenant
+memory_metrics:
+  # Uso de memória por tenant (working set)
+  usage_by_tenant: >
+    sum by (namespace) (container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Uso de memória em relação ao limite (%)
+  usage_pct_of_limit: >
+    sum by (namespace) (container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"}) / 
+    sum by (namespace) (kube_pod_container_resource_limits{resource="memory", namespace=~"tenant-a|tenant-b|tenant-c"}) * 100
+    
+  # Pressão de memória (memory pressure)
+  memory_pressure: >
+    sum by (namespace) (container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"}) / 
+    sum by (namespace) (container_spec_memory_limit_bytes{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Eventos de OOMKilled por namespace
+  oomkill_events: >
+    sum by (namespace) (kube_pod_container_status_last_terminated_reason{namespace=~"tenant-a|tenant-b|tenant-c", reason="OOMKilled"})
+    
+  # Crescimento de memória ao longo do tempo
+  memory_growth_rate: >
+    deriv(sum by (namespace) (container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"})[10m:])
+
+# Métricas de rede por tenant
+network_metrics:
+  # Taxa de recebimento de dados por namespace (bytes/s)
+  receive_bandwidth: >
+    sum by (namespace) (rate(container_network_receive_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Taxa de transmissão de dados por namespace (bytes/s)
+  transmit_bandwidth: >
+    sum by (namespace) (rate(container_network_transmit_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Pacotes recebidos por segundo por namespace
+  receive_packets: >
+    sum by (namespace) (rate(container_network_receive_packets_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Pacotes transmitidos por segundo por namespace
+  transmit_packets: >
+    sum by (namespace) (rate(container_network_transmit_packets_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Pacotes descartados (medida de congestionamento)
+  dropped_packets: >
+    sum by (namespace) (rate(container_network_receive_packets_dropped_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]) + 
+    rate(container_network_transmit_packets_dropped_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Taxa de erros de rede
+  error_rate: >
+    sum by (namespace) (rate(container_network_receive_errors_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]) + 
+    rate(container_network_transmit_errors_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Eficiência da rede (bytes por pacote)
+  network_efficiency: >
+    sum by (namespace) (rate(container_network_transmit_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m])) / 
+    sum by (namespace) (rate(container_network_transmit_packets_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+
+# Métricas de disco por tenant
+disk_metrics:
+  # Uso de disco (se disponível a nível de container)
+  disk_usage_bytes: >
+    sum by (namespace) (container_fs_usage_bytes{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # IOPS de leitura
+  read_iops: >
+    sum by (namespace) (rate(container_fs_reads_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # IOPS de escrita
+  write_iops: >
+    sum by (namespace) (rate(container_fs_writes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Throughput de leitura (bytes/s)
+  read_throughput: >
+    sum by (namespace) (rate(container_fs_reads_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Throughput de escrita (bytes/s)
+  write_throughput: >
+    sum by (namespace) (rate(container_fs_writes_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+    
+  # Tamanho médio das operações de IO
+  avg_io_size: >
+    sum by (namespace) (rate(container_fs_reads_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]) + 
+    rate(container_fs_writes_bytes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m])) /
+    sum by (namespace) (rate(container_fs_reads_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]) + 
+    rate(container_fs_writes_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))
+
+# Métricas combinadas e relações entre tenants
+combined_metrics:
+  # Razão de uso de CPU: tenant-b (barulhento) vs tenant-c (vítima)
+  cpu_usage_noisy_victim_ratio: >
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-c"}[1m]))
+    
+  # Razão de uso de memória: tenant-b (barulhento) vs tenant-c (vítima)
+  memory_usage_noisy_victim_ratio: >
+    sum(container_memory_working_set_bytes{namespace="tenant-b"}) / 
+    sum(container_memory_working_set_bytes{namespace="tenant-c"})
+    
+  # Razão de uso de rede: tenant-b (barulhento) vs tenant-c (vítima)
+  network_usage_noisy_victim_ratio: >
+    sum(rate(container_network_transmit_bytes_total{namespace="tenant-b"}[1m]) + 
+    rate(container_network_receive_bytes_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_network_transmit_bytes_total{namespace="tenant-c"}[1m]) + 
+    rate(container_network_receive_bytes_total{namespace="tenant-c"}[1m]))
+    
+  # NOVAS MÉTRICAS DE RAZÃO PARA TENANT-A (SENSÍVEL À REDE)
+  
+  # Razão de uso de CPU: tenant-b (barulhento) vs tenant-a (sensível à rede)
+  cpu_usage_noisy_network_ratio: >
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-a"}[1m]))
+    
+  # Razão de uso de memória: tenant-b (barulhento) vs tenant-a (sensível à rede)
+  memory_usage_noisy_network_ratio: >
+    sum(container_memory_working_set_bytes{namespace="tenant-b"}) / 
+    sum(container_memory_working_set_bytes{namespace="tenant-a"})
+    
+  # Razão de uso de rede: tenant-b (barulhento) vs tenant-a (sensível à rede)
+  network_usage_noisy_network_ratio: >
+    sum(rate(container_network_transmit_bytes_total{namespace="tenant-b"}[1m]) + 
+    rate(container_network_receive_bytes_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_network_transmit_bytes_total{namespace="tenant-a"}[1m]) + 
+    rate(container_network_receive_bytes_total{namespace="tenant-a"}[1m]))
+    
+  # Razão de pacotes de rede: tenant-b (barulhento) vs tenant-a (sensível à rede)
+  network_packets_noisy_network_ratio: >
+    sum(rate(container_network_transmit_packets_total{namespace="tenant-b"}[1m]) + 
+    rate(container_network_receive_packets_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_network_transmit_packets_total{namespace="tenant-a"}[1m]) + 
+    rate(container_network_receive_packets_total{namespace="tenant-a"}[1m]))
+    
+  # Razão de pacotes descartados: tenant-b (barulhento) vs tenant-a (sensível à rede)
+  network_dropped_noisy_network_ratio: >
+    sum(rate(container_network_receive_packets_dropped_total{namespace="tenant-b"}[1m]) + 
+    rate(container_network_transmit_packets_dropped_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_network_receive_packets_dropped_total{namespace="tenant-a"}[1m]) + 
+    rate(container_network_transmit_packets_dropped_total{namespace="tenant-a"}[1m]) + 1)
+    
+  # Índice de dominância de recursos (quanto o tenant barulhento está dominando os recursos)
+  resource_dominance_index: >
+    (sum(rate(container_cpu_usage_seconds_total{namespace="tenant-b"}[1m])) / 
+    sum(rate(container_cpu_usage_seconds_total{namespace=~"tenant-a|tenant-b|tenant-c"}[1m]))) * 
+    (sum(container_memory_working_set_bytes{namespace="tenant-b"}) / 
+    sum(container_memory_working_set_bytes{namespace=~"tenant-a|tenant-b|tenant-c"}))
+
+# Métricas de saúde do cluster relacionadas aos tenants
+cluster_health_metrics:
+  # Eventos de restart de pods por namespace
+  pod_restarts: >
+    sum by (namespace) (kube_pod_container_status_restarts_total{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Tempo médio entre restarts (MTBR)
+  mean_time_between_restarts: >
+    sum by (namespace) (time() - kube_pod_container_status_last_terminated_finished_at{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Pods prontos vs total de pods
+  pod_readiness_ratio: >
+    sum by (namespace) (kube_pod_status_ready{condition="true",namespace=~"tenant-a|tenant-b|tenant-c"}) / 
+    count by (namespace) (kube_pod_info{namespace=~"tenant-a|tenant-b|tenant-c"})
+    
+  # Pods pendentes (indicador de problemas de scheduling)
+  pending_pods: >
+    sum by (namespace) (kube_pod_status_phase{phase="Pending",namespace=~"tenant-a|tenant-b|tenant-c"})

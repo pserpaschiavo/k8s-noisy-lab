@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-server
+  template:
+    metadata:
+      labels:
+        app: traffic-server
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: large-file
+          mountPath: /usr/share/nginx/html/large
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - |
+                # Criar um arquivo grande para download
+                dd if=/dev/zero of=/usr/share/nginx/html/large/100mb.bin bs=1M count=100
+                dd if=/dev/zero of=/usr/share/nginx/html/large/10mb.bin bs=1M count=10
+                dd if=/dev/zero of=/usr/share/nginx/html/large/1mb.bin bs=1M count=1
+                echo "Arquivo de teste para download" > /usr/share/nginx/html/index.html
+      volumes:
+      - name: large-file
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  selector:
+    app: traffic-server
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  type: ClusterIP
