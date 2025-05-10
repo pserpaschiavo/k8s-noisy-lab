@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-ng
+  namespace: tenant-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stress-ng
+  template:
+    metadata:
+      labels:
+        app: stress-ng
+    spec:
+      containers:
+      - name: stress-ng
+        image: polinux/stress-ng
+        args:
+        - "--cpu"
+        - "2"
+        - "--vm"
+        - "1"
+        - "--vm-bytes"
+        - "1024M"
+        - "--timeout"
+        - "300s"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        livenessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 10

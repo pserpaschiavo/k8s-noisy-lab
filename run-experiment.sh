@@ -186,6 +186,16 @@ declare -A PROM_QUERIES=(
     
     # Disk I/O
     ["disk_io"]="rate(node_disk_io_time_seconds_total[1m])"
+
+    # Nginx Ingress Controller
+    ["nginx_requests_total"]="sum(rate(nginx_ingress_controller_nginx_process_requests_total[1m])) by (namespace)",
+    ["nginx_connections"]="sum(nginx_ingress_controller_nginx_process_connections) by (state)",
+    ["nginx_cpu_usage"]="sum(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total[1m]))",
+    ["nginx_memory_resident"]="sum(nginx_ingress_controller_nginx_process_resident_memory_bytes)",
+    ["nginx_memory_virtual"]="sum(nginx_ingress_controller_nginx_process_virtual_memory_bytes)",
+    ["nginx_read_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_read_bytes_total[1m]))",
+    ["nginx_write_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_write_bytes_total[1m]))",
+    ["nginx_ssl_expire_time"]="min(nginx_ingress_controller_ssl_expire_time_seconds)"
 )
 
 # Função para coletar métricas continuamente a cada 5 segundos
@@ -281,6 +291,13 @@ stop_collecting_metrics() {
         log "$BLUE" "Coleta de métricas finalizada."
     fi
     unset METRICS_PID
+}
+
+# Função para limpar os tenants após o experimento
+cleanup_tenants() {
+    log "$BLUE" "Limpando todos os tenants após o experimento..."
+    kubectl delete namespace tenant-a tenant-b tenant-c --ignore-not-found=true >> "$LOG_FILE" 2>&1 || true
+    log "$GREEN" "Tenants removidos com sucesso."
 }
 
 # Log inicial
@@ -458,12 +475,8 @@ TOTAL_DURATION=$((END_TIMESTAMP - START_TIMESTAMP))
 echo "Fim do experimento: $(date)" >> "${METRICS_DIR}/info.txt"
 echo "Duração total: $TOTAL_DURATION segundos ($(($TOTAL_DURATION / 60)) minutos)" >> "${METRICS_DIR}/info.txt"
 
-
-# Limpar recursos no final (opcional, comentado por padrão)
-# log "$GREEN" "Limpando recursos..."
-# kubectl delete --ignore-not-found=true -f "$BASE_DIR/manifests/tenant-b/" >> "$LOG_FILE" 2>&1 || true
-# kubectl delete --ignore-not-found=true -f "$BASE_DIR/manifests/tenant-c/" >> "$LOG_FILE" 2>&1 || true
-# kubectl delete --ignore-not-found=true -f "$BASE_DIR/manifests/tenant-a/" >> "$LOG_FILE" 2>&1 || true
+# Limpar recursos no final
+cleanup_tenants
 
 # Instruções finais
 log "$GREEN" "======= EXPERIMENTO CONCLUÍDO ======="

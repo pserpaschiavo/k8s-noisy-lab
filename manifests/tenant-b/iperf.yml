@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf
+  namespace: tenant-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf
+  template:
+    metadata:
+      labels:
+        app: iperf
+    spec:
+      containers:
+      - name: iperf
+        image: networkstatic/iperf3
+        args:
+        - "-c"
+        - "iperf-server.tenant-a.svc.cluster.local"
+        - "-t"
+        - "300"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          exec:
+            command:
+            - iperf3
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - iperf3
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 10

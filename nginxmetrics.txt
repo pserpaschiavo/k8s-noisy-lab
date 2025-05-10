@@ -1,0 +1,72 @@
+nginx_ingress_controller_admission_config_size
+gauge
+	The size of the tested configuration
+nginx_ingress_controller_admission_render_duration
+gauge
+	The processing duration of ingresses rendering by the admission controller (float seconds)
+nginx_ingress_controller_admission_render_ingresses
+gauge
+	The length of ingresses rendered by the admission controller
+nginx_ingress_controller_admission_roundtrip_duration
+gauge
+	The complete duration of the admission controller at the time to process a new event (float seconds)
+nginx_ingress_controller_admission_tested_duration
+gauge
+	The processing duration of the admission controller tests (float seconds)
+nginx_ingress_controller_admission_tested_ingresses
+gauge
+	The length of ingresses processed by the admission controller
+nginx_ingress_controller_build_info
+gauge
+	A metric with a constant '1' labeled with information about the build.
+nginx_ingress_controller_config_hash
+gauge
+	Running configuration hash actually running
+nginx_ingress_controller_config_last_reload_successful
+gauge
+	Whether the last configuration reload attempt was successful
+nginx_ingress_controller_config_last_reload_successful_timestamp_seconds
+gauge
+	Timestamp of the last successful configuration reload.
+nginx_ingress_controller_leader_election_status
+gauge
+	Gauge reporting status of the leader election, 0 indicates follower, 1 indicates leader. 'name' is the string used to identify the lease
+nginx_ingress_controller_nginx_process_connections
+gauge
+	current number of client connections with state {active, reading, writing, waiting}
+nginx_ingress_controller_nginx_process_connections_total
+counter
+	total number of connections with state {accepted, handled}
+nginx_ingress_controller_nginx_process_cpu_seconds_total
+counter
+	Cpu usage in seconds
+nginx_ingress_controller_nginx_process_num_procs
+gauge
+	number of processes
+nginx_ingress_controller_nginx_process_oldest_start_time_seconds
+gauge
+	start time in seconds since 1970/01/01
+nginx_ingress_controller_nginx_process_read_bytes_total
+counter
+	number of bytes read
+nginx_ingress_controller_nginx_process_requests_total
+counter
+	total number of client requests
+nginx_ingress_controller_nginx_process_resident_memory_bytes
+gauge
+	number of bytes of memory in use
+nginx_ingress_controller_nginx_process_virtual_memory_bytes
+gauge
+	number of bytes of memory in use
+nginx_ingress_controller_nginx_process_write_bytes_total
+counter
+	number of bytes written
+nginx_ingress_controller_ssl_certificate_info
+gauge
+	Hold all labels associated to a certificate
+nginx_ingress_controller_ssl_expire_time_seconds
+gauge
+	Number of seconds since 1970 to the SSL Certificate expire. An example to check if this certificate will expire in 10 days is: "nginx_ingress_controller_ssl_expire_time_seconds < (time() + (10 * 24 * 3600))"
+nginx_ingress_controller_success
+counter
+	Cumulative number of Ingress controller reload operations

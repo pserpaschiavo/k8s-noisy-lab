@@ -57,3 +57,46 @@ spec:
         - "http://nginx-deployment.tenant-a.svc.cluster.local"
       restartPolicy: Never
   backoffLimit: 4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf-server
+  template:
+    metadata:
+      labels:
+        app: iperf-server
+    spec:
+      containers:
+      - name: iperf-server
+        image: networkstatic/iperf3
+        args:
+        - "-s"
+        ports:
+        - containerPort: 5201
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  selector:
+    app: iperf-server
+  ports:
+  - protocol: TCP
+    port: 5201
+    targetPort: 5201

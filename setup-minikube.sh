@@ -56,19 +56,15 @@ echo -e "${BLUE}Verificando a instalação do Kubernetes...${NO_COLOR}"
 kubectl version
 kubectl get nodes
 
-# Criar namespaces para o experimento
-echo -e "${BLUE}Criando namespaces para o experimento...${NO_COLOR}"
-kubectl create namespace tenant-a
-kubectl create namespace tenant-b
-kubectl create namespace tenant-c
-kubectl create namespace monitoring
+echo -e "${GREEN}Kubernetes instalado com sucesso!${NO_COLOR}"
+# Habilitar addons
+echo -e "${BLUE}Habilitando o Metalb...${NO_COLOR}"
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+sleep 30
+kubectl apply -f manifests/metallb/ip-pool.yaml
+
 
 echo -e "${GREEN}Minikube configurado com sucesso para o experimento noisy-neighbours!${NO_COLOR}"
 echo -e "${YELLOW}Recursos alocados: 4 CPUs, 6GB RAM${NO_COLOR}"
 echo -e "${YELLOW}Namespaces criados: tenant-a, tenant-b, tenant-c, monitoring${NO_COLOR}"
-echo -e "${YELLOW}Addons habilitados: metrics-server, dashboard, ingress${NO_COLOR}"
-echo
-echo -e "${GREEN}Para executar o experimento:${NO_COLOR}"
-echo -e "1. Execute: ${BLUE}bash run-experiment.sh${NO_COLOR}"
-echo -e "2. Para acessar o Grafana: ${BLUE}kubectl -n monitoring port-forward svc/prometheus-grafana 3000:80${NO_COLOR}"
-echo -e "3. Para acessar o dashboard: ${BLUE}minikube dashboard${NO_COLOR}"
+echo -e "${YELLOW}Addons habilitados: metrics-server, dashboard, ingress, metallb${NO_COLOR}"

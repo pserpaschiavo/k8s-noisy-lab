@@ -1,0 +1,152 @@
+> k describe -n tenant-b pod
+Name:             iperf-858966c487-ztmqr
+Namespace:        tenant-b
+Priority:         0
+Service Account:  default
+Node:             noisy-lab/192.168.49.2
+Start Time:       Sat, 10 May 2025 01:54:27 -0300
+Labels:           app=iperf
+                  pod-template-hash=858966c487
+Annotations:      cni.projectcalico.org/containerID: 602abd3e4dcc59d0d7bc3a6ea7058219183bf5318d8f70055a8e57ba5d70de5d
+                  cni.projectcalico.org/podIP: 10.244.224.165/32
+                  cni.projectcalico.org/podIPs: 10.244.224.165/32
+Status:           Running
+IP:               10.244.224.165
+IPs:
+  IP:           10.244.224.165
+Controlled By:  ReplicaSet/iperf-858966c487
+Containers:
+  iperf:
+    Container ID:  containerd://93d653d51dac0cbe79cb3803b2d24a217e853fd03de629c27bd9d5b97a2def75
+    Image:         networkstatic/iperf3
+    Image ID:      docker.io/networkstatic/iperf3@sha256:07dcca91c0e47d82d83d91de8c3d46b840eef4180499456b4fa8d6dadb46b6c8
+    Port:          <none>
+    Host Port:     <none>
+    Args:
+      -c
+      iperf-server.tenant-a.svc.cluster.local
+      -t
+      300
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+      Started:      Sat, 10 May 2025 01:54:32 -0300
+      Finished:     Sat, 10 May 2025 01:54:32 -0300
+    Ready:          False
+    Restart Count:  1
+    Limits:
+      cpu:     500m
+      memory:  256Mi
+    Requests:
+      cpu:        200m
+      memory:     128Mi
+    Liveness:     exec [iperf3 --version] delay=5s timeout=1s period=10s #success=1 #failure=3
+    Readiness:    exec [iperf3 --version] delay=5s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-t9pb4 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-t9pb4:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  14s                default-scheduler  Successfully assigned tenant-b/iperf-858966c487-ztmqr to noisy-lab
+  Normal   Pulled     11s                kubelet            Successfully pulled image "networkstatic/iperf3" in 1.204s (2.397s including waiting). Image size: 31128721 bytes.
+  Normal   Pulling    10s (x2 over 13s)  kubelet            Pulling image "networkstatic/iperf3"
+  Normal   Created    9s (x2 over 11s)   kubelet            Created container: iperf
+  Normal   Started    9s (x2 over 11s)   kubelet            Started container iperf
+  Normal   Pulled     9s                 kubelet            Successfully pulled image "networkstatic/iperf3" in 1.207s (1.207s including waiting). Image size: 31128721 bytes.
+  Warning  BackOff    4s (x3 over 8s)    kubelet            Back-off restarting failed container iperf in pod iperf-858966c487-ztmqr_tenant-b(575a8525-5edf-4815-bd27-ea5cf97f3700)
+
+
+Name:             stress-ng-67769bdcf5-84rwp
+Namespace:        tenant-b
+Priority:         0
+Service Account:  default
+Node:             noisy-lab/192.168.49.2
+Start Time:       Sat, 10 May 2025 01:54:27 -0300
+Labels:           app=stress-ng
+                  pod-template-hash=67769bdcf5
+Annotations:      cni.projectcalico.org/containerID: 778386b28298cbd68fc7e711c142d49b767414d4ef43ae670505d856c76bca7a
+                  cni.projectcalico.org/podIP: 10.244.224.164/32
+                  cni.projectcalico.org/podIPs: 10.244.224.164/32
+Status:           Running
+IP:               10.244.224.164
+IPs:
+  IP:           10.244.224.164
+Controlled By:  ReplicaSet/stress-ng-67769bdcf5
+Containers:
+  stress-ng:
+    Container ID:  containerd://0a30742f4d17010247ccf48db45ce2c04df8c7304456a59e0b63784da8084700
+    Image:         polinux/stress-ng
+    Image ID:      docker.io/polinux/stress-ng@sha256:aa26e8ffd2c0a1192de691a22401a5fd008a940bb8f30dc2a4ddfe72e0dfdc10
+    Port:          <none>
+    Host Port:     <none>
+    Args:
+      --cpu
+      2
+      --vm
+      1
+      --vm-bytes
+      1024M
+      --timeout
+      300s
+    State:          Running
+      Started:      Sat, 10 May 2025 01:54:29 -0300
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:     1
+      memory:  2Gi
+    Requests:
+      cpu:        500m
+      memory:     512Mi
+    Liveness:     exec [stress-ng --version] delay=5s timeout=1s period=10s #success=1 #failure=3
+    Readiness:    exec [stress-ng --version] delay=5s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2p6rl (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-2p6rl:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  14s   default-scheduler  Successfully assigned tenant-b/stress-ng-67769bdcf5-84rwp to noisy-lab
+  Normal  Pulling    13s   kubelet            Pulling image "polinux/stress-ng"
+  Normal  Pulled     12s   kubelet            Successfully pulled image "polinux/stress-ng" in 1.282s (1.282s including waiting). Image size: 76126284 bytes.
+  Normal  Created    12s   kubelet            Created container: stress-ng
+  Normal  Started    12s   kubelet            Started container stress-ng
