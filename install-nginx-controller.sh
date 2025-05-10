@@ -15,7 +15,11 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --set controller.metrics.enabled=true \
   --set controller.serviceMonitor.enabled=true \
   --set controller.serviceMonitor.namespace=monitoring \
-  --set controller.serviceMonitor.additionalLabels.release=kube-prometheus-stack
+  --set controller.serviceMonitor.additionalLabels.release=kube-prometheus-stack \
+  --set controller.config.enable-opentracing=true \
+  --set controller.config.jaeger-collector-host=jaeger-collector.monitoring.svc.cluster.local \
+  --set controller.config.jaeger-sampler-type=const \
+  --set controller.config.jaeger-sampler-param=1
 
 echo -e "${ORANGE}Waiting for NGINX Ingress Controller to be ready...${NO_COLOR}"
 kubectl wait --namespace ingress-nginx   --for=condition=Ready \

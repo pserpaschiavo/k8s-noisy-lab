@@ -27,6 +27,9 @@ show_help() {
     echo
     echo "Opções:"
     echo "  -h, --help                 Mostra esta ajuda"
+    echo
+    echo "Opções:"
+    echo "  -h, --help                 Mostra esta ajuda"
     echo "  -n, --name NOME            Define o nome do experimento (padrão: noisy-neighbours)"
     echo "  -r, --rounds NUM           Define o número de rounds (padrão: 3)"
     echo "  -b, --baseline SEGUNDOS    Define a duração da fase de baseline (padrão: 180s)"
@@ -173,7 +176,16 @@ declare -A PROM_QUERIES=(
     ["oom_kills"]="sum(container_oom_events_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}) by (namespace)"
     
     # Rede
+    ["network_transmit"]="sum(rate(container_network_transmit_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+    ["network_receive"]="sum(rate(container_network_receive_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
     ["network_dropped"]="sum(rate(container_network_receive_packets_dropped_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
+    
+    # Tempo de resposta e jitter
+    ["response_time"]="histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (le, namespace))"
+    ["jitter"]="rate(nginx_ingress_controller_request_duration_seconds_sum{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m]) / rate(nginx_ingress_controller_request_duration_seconds_count{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])"
+    
+    # Disk I/O
+    ["disk_io"]="rate(node_disk_io_time_seconds_total[1m])"
 )
 
 # Função para coletar métricas continuamente a cada 5 segundos
@@ -313,6 +325,31 @@ log "$GREEN" "Aguardando inicialização do Prometheus..."
 kubectl wait --for=condition=Ready -n monitoring pod -l app.kubernetes.io/name=prometheus --timeout=300s >> "$LOG_FILE" 2>&1 || {
     log "$YELLOW" "Não foi possível detectar o deployment do Prometheus. Continuando mesmo assim..."
 }
+
+# Adicionar o deployment do blackbox-exporter
+log "$GREEN" "Adicionando deployment do blackbox-exporter..."
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+    spec:
+      containers:
+      - name: blackbox-exporter
+        image: prom/blackbox-exporter:latest
+        ports:
+        - containerPort: 9115
+EOF
 
 # Início do experimento
 log "$GREEN" "======= INÍCIO DO EXPERIMENTO: ${EXPERIMENT_NAME} ======="

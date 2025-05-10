@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-resource-stress
+  namespace: tenant-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multi-resource-stress
+  template:
+    metadata:
+      labels:
+        app: multi-resource-stress
+    spec:
+      containers:
+      - name: stress-ng
+        image: polinux/stress-ng
+        args:
+        - "--cpu"
+        - "4"
+        - "--vm"
+        - "2"
+        - "--vm-bytes"
+        - "512M"
+        - "--timeout"
+        - "300s"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+      - name: iperf
+        image: networkstatic/iperf3
+        args:
+        - "-c"
+        - "iperf-server.tenant-a.svc.cluster.local"
+        - "-t"
+        - "300"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi

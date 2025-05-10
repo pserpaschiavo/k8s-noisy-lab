@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx-deployment
   namespace: tenant-a
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: nginx
@@ -14,10 +14,17 @@ spec:
         app: nginx
     spec:
       containers:
-        - name: nginx
-          image: nginx:alpine
-          ports:
-            - containerPort: 80
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -31,3 +38,22 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-benchmark
+  namespace: tenant-a
+spec:
+  template:
+    spec:
+      containers:
+      - name: wrk
+        image: williamyeh/wrk
+        args:
+        - "-t4"
+        - "-c100"
+        - "-d60s"
+        - "http://nginx-deployment.tenant-a.svc.cluster.local"
+      restartPolicy: Never
+  backoffLimit: 4

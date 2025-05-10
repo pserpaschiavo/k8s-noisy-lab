@@ -5,10 +5,10 @@ metadata:
   namespace: tenant-a
 spec:
   hard:
-    limits.cpu: "2.5"
+    requests.cpu: "1"
+    requests.memory: "1Gi"
+    limits.cpu: "2"
     limits.memory: "2Gi"
-    requests.cpu: "1.5"
-    requests.memory: "1.5Gi"
 ---
 apiVersion: v1
 kind: ResourceQuota
@@ -17,10 +17,10 @@ metadata:
   namespace: tenant-b
 spec:
   hard:
-    limits.cpu: "2.5"
-    limits.memory: "2Gi"
-    requests.cpu: "1.5"
-    requests.memory: "1.5Gi"
+    requests.cpu: "2"
+    requests.memory: "2Gi"
+    limits.cpu: "4"
+    limits.memory: "4Gi"
 ---
 apiVersion: v1
 kind: ResourceQuota
@@ -29,7 +29,7 @@ metadata:
   namespace: tenant-c
 spec:
   hard:
-    limits.cpu: "1.5"
-    limits.memory: "1Gi"
-    requests.cpu: "0.8"
-    requests.memory: "768Mi"
+    requests.cpu: "1"
+    requests.memory: "1Gi"
+    limits.cpu: "2"
+    limits.memory: "2Gi"
