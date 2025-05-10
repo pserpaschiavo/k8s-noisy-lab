@@ -1,0 +1,123 @@
+[2025-05-10 03:07:55] Iniciando experimento: new-test-nginx-1
+[2025-05-10 03:07:55] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/03-07-55/new-test-nginx-1/experiment.log
+[2025-05-10 03:07:55] Verificando pré-requisitos...
+[2025-05-10 03:07:55] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/03-07-55/new-test-nginx-1
+[2025-05-10 03:07:55] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 03:07:59] Criando namespaces...
+resourcequota/tenant-a-quota created
+resourcequota/tenant-b-quota created
+resourcequota/tenant-c-quota created
+namespace/tenant-a unchanged
+namespace/tenant-b unchanged
+namespace/tenant-c unchanged
+[2025-05-10 03:08:00] Aplicando resource quotas...
+resourcequota/tenant-a-quota unchanged
+resourcequota/tenant-b-quota unchanged
+resourcequota/tenant-c-quota unchanged
+[2025-05-10 03:08:00] Stack de observabilidade já instalada.
+[2025-05-10 03:08:00] Aguardando inicialização do Prometheus...
+pod/prometheus-prometheus-kube-prometheus-prometheus-0 condition met
+[2025-05-10 03:08:00] Adicionando deployment do blackbox-exporter...
+[2025-05-10 03:08:00] ======= INÍCIO DO EXPERIMENTO: new-test-nginx-1 =======
+[2025-05-10 03:08:00] Data: 2025/05/10, Hora: 03:07:55
+[2025-05-10 03:08:00] Número de rounds: 1
+[2025-05-10 03:08:00] Duração das fases: Baseline=30s, Ataque=30s, Recuperação=30s
+[2025-05-10 03:08:00] ===== ROUND 1/1 =====
+[2025-05-10 03:08:00] === Fase 1 - Baseline ===
+[2025-05-10 03:08:00] Coleta de métricas iniciada com PID: 992143
+[2025-05-10 03:08:00] Iniciando coleta de métricas para fase: 1 - Baseline (Round 1)
+[2025-05-10 03:08:00] Limpando workloads anteriores...
+[2025-05-10 03:08:10] Iniciando fase: 1 - Baseline (duração máxima: 30s)
+[2025-05-10 03:08:10] Implantando tenant-a (referência)...
+deployment.apps/nginx-deployment created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-10 03:08:10] Aguardando inicialização dos serviços do tenant-a...
+deployment.apps/iperf-server condition met
+[2025-05-10 03:08:12] Implantando tenant-c (vítima)...
+deployment.apps/redis-deployment created
+job.batch/redis-benchmark created
+[2025-05-10 03:08:13] Aguardando inicialização dos workloads do tenant-c...
+[2025-05-10 03:08:58] Fase 1 - Baseline concluída
+[2025-05-10 03:08:58] Interrompendo coleta de métricas (PID: 992143)...
+[2025-05-10 03:08:58] Coleta de métricas finalizada.
+[2025-05-10 03:08:58] === Fase 2 - Attack ===
+[2025-05-10 03:08:58] Coleta de métricas iniciada com PID: 994578
+[2025-05-10 03:08:58] Iniciando coleta de métricas para fase: 2 - Attack (Round 1)
+[2025-05-10 03:08:58] Iniciando fase: 2 - Attack (duração máxima: 30s)
+[2025-05-10 03:08:58] Implantando tenant-b (noisy neighbour)...
+deployment.apps/iperf created
+deployment.apps/stress-ng created
+[2025-05-10 03:08:58] Aguardando inicialização dos workloads do tenant-b...
+[2025-05-10 03:09:44] Fase 2 - Attack concluída
+[2025-05-10 03:09:44] Interrompendo coleta de métricas (PID: 994578)...
+[2025-05-10 03:09:44] Coleta de métricas finalizada.
+[2025-05-10 03:09:44] === Fase 3 - Recovery ===
+[2025-05-10 03:09:44] Coleta de métricas iniciada com PID: 996850
+[2025-05-10 03:09:44] Iniciando coleta de métricas para fase: 3 - Recovery (Round 1)
+[2025-05-10 03:09:44] Iniciando fase: 3 - Recovery (duração máxima: 30s)
+[2025-05-10 03:09:44] Removendo tenant-b (noisy neighbour)...
+deployment.apps "iperf" deleted
+deployment.apps "stress-ng" deleted
+[2025-05-10 03:09:44] Aguardando remoção completa do tenant-b...
+[2025-05-10 03:10:30] Fase 3 - Recovery concluída
+[2025-05-10 03:10:30] Interrompendo coleta de métricas (PID: 996850)...
+[2025-05-10 03:10:30] Coleta de métricas finalizada.
+[2025-05-10 03:10:30] Round 1/1 concluído com sucesso!
+[2025-05-10 03:10:30] Limpando todos os tenants após o experimento...
+namespace "tenant-a" deleted
+namespace "tenant-b" deleted
+namespace "tenant-c" deleted
+[2025-05-10 03:10:41] Tenants removidos com sucesso.
+[2025-05-10 03:10:41] ======= EXPERIMENTO CONCLUÍDO =======
+[2025-05-10 03:10:41] Data/hora de início: 2025/05/10 03:07:55
+[2025-05-10 03:10:41] Data/hora de término: 2025/05/10 03:10:41
+[2025-05-10 03:10:41] Duração total: 150 segundos (2 minutos)
+[2025-05-10 03:10:41] Métricas e logs salvos em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/03-07-55/new-test-nginx-1
+[2025-05-10 03:10:41] Para visualizar os resultados no Grafana:
+[2025-05-10 03:10:41] kubectl -n monitoring port-forward svc/prometheus-grafana 3000:80
+[2025-05-10 03:10:41] Abra seu navegador em http://localhost:3000 (usuário: admin, senha: admin)

@@ -1,0 +1,54 @@
+[2025-05-10 03:07:03] Iniciando experimento: new-test-nginx-0
+[2025-05-10 03:07:03] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/03-07-03/new-test-nginx-0/experiment.log
+[2025-05-10 03:07:03] Verificando pré-requisitos...
+[2025-05-10 03:07:03] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-10/03-07-03/new-test-nginx-0
+[2025-05-10 03:07:03] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11600[0m cores
+Memória: [0;35m30.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;33mNamespace 'tenant-a' não encontrada - será criada durante a execução[0m
+[0;33mNamespace 'tenant-b' não encontrada - será criada durante a execução[0m
+[0;33mNamespace 'tenant-c' não encontrada - será criada durante a execução[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-10 03:07:07] Criando namespaces...
+namespace/tenant-a created
+namespace/tenant-b created
+namespace/tenant-c created
+Error from server (NotFound): error when creating "/home/phil/Projects/k8s-noisy-lab/manifests/namespace/resource-quotas.yaml": namespaces "tenant-a" not found
+Error from server (NotFound): error when creating "/home/phil/Projects/k8s-noisy-lab/manifests/namespace/resource-quotas.yaml": namespaces "tenant-b" not found
+Error from server (NotFound): error when creating "/home/phil/Projects/k8s-noisy-lab/manifests/namespace/resource-quotas.yaml": namespaces "tenant-c" not found

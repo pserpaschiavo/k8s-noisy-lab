@@ -165,7 +165,7 @@ execute_with_timeout() {
 }
 
 # Queries PromQL para coleta de métricas - versão limpa e otimizada
-declare -A PROM_QUERIES=(
+PROM_QUERIES+=(
     # CPU
     ["cpu_usage"]="sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
     ["cpu_throttled_time"]="sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
@@ -179,22 +179,18 @@ declare -A PROM_QUERIES=(
     ["network_transmit"]="sum(rate(container_network_transmit_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
     ["network_receive"]="sum(rate(container_network_receive_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
     ["network_dropped"]="sum(rate(container_network_receive_packets_dropped_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (namespace)"
-    
-    # Tempo de resposta e jitter
-    ["response_time"]="histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])) by (le, namespace))"
-    ["jitter"]="rate(nginx_ingress_controller_request_duration_seconds_sum{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m]) / rate(nginx_ingress_controller_request_duration_seconds_count{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m])"
-    
+         
     # Disk I/O
     ["disk_io"]="rate(node_disk_io_time_seconds_total[1m])"
 
     # Nginx Ingress Controller
-    ["nginx_requests_total"]="sum(rate(nginx_ingress_controller_nginx_process_requests_total[1m])) by (namespace)",
-    ["nginx_connections"]="sum(nginx_ingress_controller_nginx_process_connections) by (state)",
-    ["nginx_cpu_usage"]="sum(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total[1m]))",
-    ["nginx_memory_resident"]="sum(nginx_ingress_controller_nginx_process_resident_memory_bytes)",
-    ["nginx_memory_virtual"]="sum(nginx_ingress_controller_nginx_process_virtual_memory_bytes)",
-    ["nginx_read_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_read_bytes_total[1m]))",
-    ["nginx_write_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_write_bytes_total[1m]))",
+    ["nginx_requests_total"]="sum(rate(nginx_ingress_controller_nginx_process_requests_total[1m])) by (namespace)"
+    ["nginx_connections"]="sum(nginx_ingress_controller_nginx_process_connections) by (state)"
+    ["nginx_cpu_usage"]="sum(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total[1m]))"
+    ["nginx_memory_resident"]="sum(nginx_ingress_controller_nginx_process_resident_memory_bytes)"
+    ["nginx_memory_virtual"]="sum(nginx_ingress_controller_nginx_process_virtual_memory_bytes)"
+    ["nginx_read_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_read_bytes_total[1m]))"
+    ["nginx_write_bytes"]="sum(rate(nginx_ingress_controller_nginx_process_write_bytes_total[1m]))"
     ["nginx_ssl_expire_time"]="min(nginx_ingress_controller_ssl_expire_time_seconds)"
 )
 
