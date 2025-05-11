@@ -8,66 +8,64 @@ source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/tenant_metrics.sh"
 METRICS_PID=""
 METRICS_LOG_FILE=""
 
-# Função para combinar todas as métricas dos tenants em um único array
-combine_all_metrics() {
-    # Inicializar um array associativo vazio para todas as métricas
-    declare -A ALL_METRICS
+# Definir diretamente as queries PromQL para coleta de métricas (baseado no arquivo de backup)
+declare -A PROM_QUERIES=(
+    # Métricas existentes de recursos
+    ["cpu_usage"]="sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) by (namespace)"
+    ["cpu_throttled_time"]="sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) by (namespace)"
+    ["cpu_throttled_ratio"]="sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
+    ["memory_usage"]="sum(container_memory_working_set_bytes{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}) by (namespace)"
+    ["oom_kills"]="sum(increase(container_oom_events_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[5m])) by (namespace)"
+    ["network_transmit"]="sum(rate(container_network_transmit_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) by (namespace)"
+    ["network_receive"]="sum(rate(container_network_receive_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) by (namespace)"
+    ["network_dropped"]="sum(rate(container_network_receive_packets_dropped_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m])) by (namespace)"
     
-    # Adicionar métricas do tenant-a
-    for metric_name in $(list_tenant_metrics "tenant-a"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-a" "$metric_name")
-    done
+    # Métricas básicas do NGINX Ingress Controller
+    ["nginx_connections"]="sum(nginx_ingress_controller_nginx_process_connections{namespace=~\"ingress-nginx\",state=~\"active|reading|writing|waiting\"}) by (state)"
+    ["nginx_connections_total"]="sum(rate(nginx_ingress_controller_nginx_process_connections_total{namespace=~\"ingress-nginx\"}[1m])) by (state)"
+    ["nginx_cpu_usage"]="rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=~\"ingress-nginx\"}[1m])"
+    ["nginx_memory_usage"]="nginx_ingress_controller_nginx_process_resident_memory_bytes{namespace=~\"ingress-nginx\"}"
+    ["nginx_requests_total"]="rate(nginx_ingress_controller_nginx_process_requests_total{namespace=~\"ingress-nginx\"}[1m])"
+    ["nginx_bytes_read"]="rate(nginx_ingress_controller_nginx_process_read_bytes_total{namespace=~\"ingress-nginx\"}[1m])"
+    ["nginx_bytes_written"]="rate(nginx_ingress_controller_nginx_process_write_bytes_total{namespace=~\"ingress-nginx\"}[1m])"
     
-    # Adicionar métricas do tenant-b
-    for metric_name in $(list_tenant_metrics "tenant-b"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-b" "$metric_name")
-    done
+    # Outras métricas de cluster
+    ["pod_restarts"]="increase(kube_pod_container_status_restarts_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[5m])"
+    ["pod_ready_age"]="time() - kube_pod_status_ready{condition=\"true\",namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}"
     
-    # Adicionar métricas do tenant-c
-    for metric_name in $(list_tenant_metrics "tenant-c"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-c" "$metric_name")
-    done
+    # Métricas de latência 
+    ["latency_process_time"]="rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=~\"ingress-nginx\"}[1m]) / rate(nginx_ingress_controller_nginx_process_connections_total{namespace=~\"ingress-nginx\",state=\"handled\"}[1m])"
+    ["latency_bytes_per_request"]="rate(nginx_ingress_controller_nginx_process_read_bytes_total{namespace=~\"ingress-nginx\"}[1m]) / rate(nginx_ingress_controller_nginx_process_requests_total{namespace=~\"ingress-nginx\"}[1m])"
     
-    # Adicionar métricas do tenant-d
-    for metric_name in $(list_tenant_metrics "tenant-d"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-d" "$metric_name")
-    done
+    # Métricas de jitter
+    ["jitter_admission_process"]="stddev_over_time(nginx_ingress_controller_admission_roundtrip_duration{namespace=\"ingress-nginx\"}[5m])"
+    ["jitter_processing_rate"]="stddev_over_time(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=\"ingress-nginx\"}[1m])[5m:1m])"
     
-    # Adicionar métricas de relação tenant-b vs tenant-a
-    for metric_name in $(list_tenant_metrics "tenant-b-vs-a"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-b-vs-a" "$metric_name")
-    done
+    # Métricas avançadas de CPU, memória e rede
+    ["cpu_usage_variability"]="stddev_over_time(sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))[5m:])"
+    ["memory_pressure"]="sum by (namespace) (container_memory_working_set_bytes{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}) / sum by (namespace) (container_spec_memory_limit_bytes{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"})"
+    ["network_total_bandwidth"]="sum by (namespace) (rate(container_network_receive_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]) + rate(container_network_transmit_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
+    ["network_packet_rate"]="sum by (namespace) (rate(container_network_receive_packets_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]) + rate(container_network_transmit_packets_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
+    ["network_error_rate"]="sum by (namespace) (rate(container_network_receive_errors_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]) + rate(container_network_transmit_errors_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
     
-    # Adicionar métricas de relação tenant-b vs tenant-c
-    for metric_name in $(list_tenant_metrics "tenant-b-vs-c"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-b-vs-c" "$metric_name")
-    done
+    # Métricas de disco
+    ["disk_io_total"]="sum by (namespace) (rate(container_fs_reads_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]) + rate(container_fs_writes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
+    ["disk_throughput_total"]="sum by (namespace) (rate(container_fs_reads_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]) + rate(container_fs_writes_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))"
     
-    # Adicionar métricas de relação tenant-b vs tenant-d
-    for metric_name in $(list_tenant_metrics "tenant-b-vs-d"); do
-        ALL_METRICS["$metric_name"]=$(get_tenant_metric "tenant-b-vs-d" "$metric_name")
-    done
+    # Métricas relacionais entre tenants
+    ["cpu_usage_noisy_victim_ratio"]="sum(rate(container_cpu_usage_seconds_total{namespace=\"tenant-b\"}[1m])) / sum(rate(container_cpu_usage_seconds_total{namespace=\"tenant-c\"}[1m]))"
+    ["memory_usage_noisy_victim_ratio"]="sum(container_memory_working_set_bytes{namespace=\"tenant-b\"}) / sum(container_memory_working_set_bytes{namespace=\"tenant-c\"})"
+    ["network_usage_noisy_victim_ratio"]="sum(rate(container_network_transmit_bytes_total{namespace=\"tenant-b\"}[1m]) + rate(container_network_receive_bytes_total{namespace=\"tenant-b\"}[1m])) / sum(rate(container_network_transmit_bytes_total{namespace=\"tenant-c\"}[1m]) + rate(container_network_receive_bytes_total{namespace=\"tenant-c\"}[1m]))"
+    ["resource_dominance_index"]="(sum(rate(container_cpu_usage_seconds_total{namespace=\"tenant-b\"}[1m])) / sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}[1m]))) * (sum(container_memory_working_set_bytes{namespace=\"tenant-b\"}) / sum(container_memory_working_set_bytes{namespace=~\"tenant-a|tenant-b|tenant-c|tenant-d\"}))"
     
-    # Adicionar métricas adicionais do NGINX ingress controller
-    ALL_METRICS["nginx_connections"]="sum(nginx_ingress_controller_nginx_process_connections{namespace=~\"ingress-nginx\",state=~\"active|reading|writing|waiting\"}) by (state)"
-    ALL_METRICS["nginx_connections_total"]="sum(rate(nginx_ingress_controller_nginx_process_connections_total{namespace=~\"ingress-nginx\"}[1m])) by (state)"
-    ALL_METRICS["nginx_cpu_usage"]="rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=~\"ingress-nginx\"}[1m])"
-    ALL_METRICS["nginx_memory_usage"]="nginx_ingress_controller_nginx_process_resident_memory_bytes{namespace=~\"ingress-nginx\"}"
-    ALL_METRICS["nginx_requests_total"]="rate(nginx_ingress_controller_nginx_process_requests_total{namespace=~\"ingress-nginx\"}[1m])"
-    ALL_METRICS["nginx_bytes_read"]="rate(nginx_ingress_controller_nginx_process_read_bytes_total{namespace=~\"ingress-nginx\"}[1m])"
-    ALL_METRICS["nginx_bytes_written"]="rate(nginx_ingress_controller_nginx_process_write_bytes_total{namespace=~\"ingress-nginx\"}[1m])"
-    
-    # Métricas de latência e jitter
-    ALL_METRICS["latency_process_time"]="rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=~\"ingress-nginx\"}[1m]) / rate(nginx_ingress_controller_nginx_process_connections_total{namespace=~\"ingress-nginx\",state=\"handled\"}[1m])"
-    ALL_METRICS["latency_bytes_per_request"]="rate(nginx_ingress_controller_nginx_process_read_bytes_total{namespace=~\"ingress-nginx\"}[1m]) / rate(nginx_ingress_controller_nginx_process_requests_total{namespace=~\"ingress-nginx\"}[1m])"
-    ALL_METRICS["jitter_admission_process"]="stddev_over_time(nginx_ingress_controller_admission_roundtrip_duration{namespace=\"ingress-nginx\"}[5m])"
-    ALL_METRICS["jitter_processing_rate"]="stddev_over_time(rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{namespace=\"ingress-nginx\"}[1m])[5m:1m])"
-    
-    echo "$(declare -p ALL_METRICS)"
-}
-
-# Criar o array PROM_QUERIES com todas as métricas combinadas
-eval "$(combine_all_metrics)"
+    # Métricas para tenant-d (postgres)
+    ["postgres_disk_io"]="sum(rate(pg_stat_database_blks_read{namespace=\"tenant-d\"}[1m]) + rate(pg_stat_database_blks_written{namespace=\"tenant-d\"}[1m])) by (datname)"
+    ["postgres_connections"]="sum(pg_stat_database_numbackends{namespace=\"tenant-d\"}) by (datname)"
+    ["postgres_transactions"]="sum(rate(pg_stat_database_xact_commit{namespace=\"tenant-d\"}[1m]) + rate(pg_stat_database_xact_rollback{namespace=\"tenant-d\"}[1m])) by (datname)"
+    ["disk_io_tenant_d"]="sum(rate(container_fs_reads_bytes_total{namespace=\"tenant-d\"}[1m]) + rate(container_fs_writes_bytes_total{namespace=\"tenant-d\"}[1m])) by (container)"
+    ["cpu_tenant_d_vs_other_ratio"]="sum(rate(container_cpu_usage_seconds_total{namespace=\"tenant-d\"}[1m])) / sum(rate(container_cpu_usage_seconds_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m]))"
+    ["disk_tenant_d_vs_other_ratio"]="sum(rate(container_fs_reads_bytes_total{namespace=\"tenant-d\"}[1m]) + rate(container_fs_writes_bytes_total{namespace=\"tenant-d\"}[1m])) / sum(rate(container_fs_reads_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m]) + rate(container_fs_writes_bytes_total{namespace=~\"tenant-a|tenant-b|tenant-c\"}[1m]))"
+)
 
 # Função para acessar o Prometheus via kubectl port-forward
 setup_prometheus_access() {
@@ -189,10 +187,7 @@ collect_metrics_continuously() {
     echo "[$(date +%Y%m%d_%H%M%S)] Iniciando coleta de métricas a cada ${interval} segundos" >> "$log_file"
     
     # Listar todas as métricas que serão coletadas
-    echo "[$(date +%Y%m%d_%H%M%S)] Métricas configuradas para coleta:" >> "$log_file"
-    for name in "${!PROM_QUERIES[@]}"; do
-        echo "  - $name: ${PROM_QUERIES[$name]}" >> "$log_file"
-    done
+    echo "[$(date +%Y%m%d_%H%M%S)] Métricas configuradas para coleta: ${#PROM_QUERIES[@]}" >> "$log_file"
     
     # Configurar acesso ao Prometheus
     if ! setup_prometheus_access "$log_file"; then
@@ -205,8 +200,18 @@ collect_metrics_continuously() {
     local successful_collections=0
     local failed_collections=0
     
+    # DEBUG: Verificar se há espaço suficiente no disco
+    df -h >> "$log_file"
+    
+    # DEBUG: Verificar se há permissões de escrita no diretório de métricas
+    echo "[$(date +%Y%m%d_%H%M%S)] DEBUG: Verificando permissões de escrita em $metrics_dir" >> "$log_file"
+    touch "$metrics_dir/test_write.tmp" && rm "$metrics_dir/test_write.tmp" && echo "Escrita permitida" >> "$log_file" || echo "ERRO: Escrita não permitida" >> "$log_file"
+    
+    # DEBUG: Verificar se PROM_QUERIES tem conteúdo
+    echo "[$(date +%Y%m%d_%H%M%S)] DEBUG: Número total de métricas: ${#PROM_QUERIES[@]}" >> "$log_file"
+    
+    # Implementação simples baseada no backup que funcionava
     while true; do
-        local collection_start=$(date +%s)
         local ts=$(date +%Y%m%d_%H%M%S)
         local metrics_collected=0
         local failed_queries=0
@@ -222,9 +227,6 @@ collect_metrics_continuously() {
             local query="${PROM_QUERIES[$name]}"
             local encoded_query=$(printf '%s' "$query" | jq -sRr @uri)
             
-            # Log da consulta completa para diagnóstico
-            echo "[$ts] Executando consulta: $name -> http://localhost:9090/api/v1/query?query=$encoded_query" >> "$log_file"
-            
             # Chamar API Prometheus com mais tempo de timeout
             local resp
             if ! resp=$(curl -s --connect-timeout 10 --max-time 20 "http://localhost:9090/api/v1/query?query=$encoded_query"); then
@@ -238,21 +240,20 @@ collect_metrics_continuously() {
             status=$(echo "$resp" | jq -r '.status // "error"')
             if [ "$status" != "success" ]; then
                 echo "[$ts] ERROR: consulta falhou para $name: $(echo "$resp" | jq -r '.error // "erro desconhecido"')" >> "$log_file"
-                echo "[$ts] Resposta completa: $resp" >> "$log_file"
                 failed_queries=$((failed_queries + 1))
                 continue
             fi
             
-            # Extrai namespace e valor, cada linha CSV: ns,val
+            # Extrai namespace e valor, cada linha CSV: ns,val (implementação simples do backup)
             local csv_lines
-            csv_lines=$(echo "$resp" | jq -r '.data.result[]? | [(.metric.namespace // .metric.pod // .metric.instance // .metric.job // .metric.state // "unknown"), (.value[1] // "")] | @csv')
+            csv_lines=$(echo "$resp" | jq -r '.data.result[]? | [(.metric.namespace // .metric.pod // .metric.instance // .metric.job // .metric.state // .metric.datname // "unknown"), (.value[1] // "")] | @csv')
             
             if [ -z "$csv_lines" ]; then
                 echo "[$ts] WARN: sem dados para $name" >> "$log_file"
                 continue
             fi
             
-            # Grava cada linha em CSV por namespace
+            # Grava cada linha em CSV por namespace (Versão simplificada do backup)
             while IFS=',' read -r ns val; do
                 ns=${ns//\"/}
                 val=${val//\"/}
@@ -267,29 +268,22 @@ collect_metrics_continuously() {
                 mkdir -p "$out_dir"
                 local file="$out_dir/${name}.csv"
                 
-                if [ ! -f "$file" ]; then
+                if [ ! -f "$file" ];then
                     echo "timestamp,value" > "$file"
                 fi
                 
-                # Verificar se o valor é numérico, se não for, usar 0
-                if ! [[ "$val" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-                    echo "[$ts] WARN: valor não numérico para $name: $val, usando 0" >> "$log_file"
-                    val="0"
-                fi
-                
-                echo "$ts,$val" >> "$file"
+                # Versão exatamente igual ao backup
+                echo "\"${ts}\",\"${val}\"" >> "$file"
                 metrics_collected=$((metrics_collected + 1))
             done <<< "$csv_lines"
         done
         
-        # Registrar estatísticas da coleta
-        local collection_end=$(date +%s)
-        local collection_time=$((collection_end - collection_start))
-        
         if [ $metrics_collected -gt 0 ]; then
             successful_collections=$((successful_collections + 1))
+            echo "[$ts] INFO: Coletadas $metrics_collected métricas com sucesso (falhas: $failed_queries, total até agora: sucesso=${successful_collections}, falha=${failed_collections})" >> "$log_file"
         else
             failed_collections=$((failed_collections + 1))
+            echo "[$ts] WARN: Nenhuma métrica coletada neste ciclo (falhas: $failed_queries, total até agora: sucesso=${successful_collections}, falha=${failed_collections})" >> "$log_file"
             
             # Se tivermos falhas consecutivas, tentar reconectar ao Prometheus
             if [ $((failed_collections % 3)) -eq 0 ]; then
@@ -298,15 +292,8 @@ collect_metrics_continuously() {
             fi
         fi
         
-        echo "[$ts] INFO: Coletadas $metrics_collected métricas em $collection_time segundos (falhas: $failed_queries, total até agora: sucesso=${successful_collections}, falha=${failed_collections})" >> "$log_file"
-        
-        # Calcular quanto tempo dormir para manter o intervalo constante
-        local sleep_time=$((interval - collection_time))
-        if [ $sleep_time -lt 1 ]; then
-            sleep_time=1
-        fi
-        
-        sleep $sleep_time
+        # Aguardar intervalo antes da próxima coleta
+        sleep "$interval"
     done
 }
 
