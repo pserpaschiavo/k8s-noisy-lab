@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  replicas: 2  # Aumentando para 2 réplicas para distribuir a carga
+  selector:
+    matchLabels:
+      app: traffic-server
+  template:
+    metadata:
+      labels:
+        app: traffic-server
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: 400m       # Aumentando request de CPU
+            memory: 512Mi   # Aumentando request de memória
+          limits:
+            cpu: 800m       # Aumentando limite de CPU
+            memory: 1Gi     # Aumentando limite de memória
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: large-file
+          mountPath: /usr/share/nginx/html/large
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - |
+                # Criar arquivos grandes para download
+                mkdir -p /usr/share/nginx/html/large
+                dd if=/dev/urandom of=/usr/share/nginx/html/large/100mb.bin bs=1M count=100
+                dd if=/dev/urandom of=/usr/share/nginx/html/large/10mb.bin bs=1M count=10
+                dd if=/dev/urandom of=/usr/share/nginx/html/large/1mb.bin bs=1M count=1
+                
+                # Criar múltiplos arquivos para aumentar a carga do servidor
+                for i in $(seq 1 10); do
+                  dd if=/dev/urandom of="/usr/share/nginx/html/large/file_${i}mb.bin" bs=1M count=$i
+                done
+                
+                echo "Arquivo de teste para download" > /usr/share/nginx/html/index.html
+      volumes:
+      - name: large-file
+        emptyDir: {}
+      - name: nginx-config
+        configMap:
+          name: nginx-traffic-server-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-traffic-server-config
+  namespace: tenant-b
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+        
+        # Configuração para tornar o nginx um servidor agressivo
+        worker_connections 2048;
+        keepalive_timeout 65;
+        
+        # Usar mais recursos do sistema
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        
+        # Requisições de arquivos grandes
+        client_max_body_size 0;
+        client_body_buffer_size 128k;
+        
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+        
+        location /large/ {
+            root   /usr/share/nginx/html;
+            # Sem limites de velocidade para maximizar o uso de rede
+            limit_rate 0;
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  selector:
+    app: traffic-server
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  type: ClusterIP

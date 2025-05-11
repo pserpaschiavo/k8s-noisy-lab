@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-ng
+  namespace: tenant-b
+spec:
+  replicas: 2  # Aumentando para 2 réplicas para gerar mais carga
+  selector:
+    matchLabels:
+      app: stress-ng
+  template:
+    metadata:
+      labels:
+        app: stress-ng
+    spec:
+      containers:
+      - name: stress-ng
+        image: polinux/stress-ng
+        args:
+        - "--cpu"
+        - "4"         # Mais processos de CPU
+        - "--vm"
+        - "2"         # Mais processos de VM
+        - "--vm-bytes"
+        - "1536M"     # Mais memória por processo
+        - "--io"
+        - "2"         # Adiciona carga de I/O
+        - "--timeout"
+        - "300s"
+        - "--metrics-brief" # Saída de métricas mais detalhada
+        resources:
+          requests:
+            cpu: 800m        # Aumentando solicitação de CPU
+            memory: 1Gi      # Aumentando solicitação de memória
+          limits:
+            cpu: 2           # Aumentando limite de CPU
+            memory: 3Gi      # Aumentando limite de memória
+        livenessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 20
+        readinessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 20

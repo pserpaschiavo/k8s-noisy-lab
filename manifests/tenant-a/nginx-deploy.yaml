@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: tenant-a
+spec:
+  replicas: 3  # Aumentando para 3 réplicas para melhor demonstrar o impacto na rede
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+        # Configurando o nginx para ser mais sensível às condições de rede
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: tenant-a
+data:
+  default.conf: |
+    server {
+        listen 80;
+        
+        # Configurações para tornar o nginx mais sensível a condições de rede
+        client_body_timeout 5s;       # Timeout mais curto para uploads
+        client_header_timeout 5s;     # Timeout mais curto para cabeçalhos
+        keepalive_timeout 30s;        # Manter conexões ativas
+        send_timeout 5s;              # Timeout mais curto para envio de resposta
+        
+        # Buffer sizes menores para evidenciar problemas de rede
+        client_body_buffer_size 8k;
+        client_max_body_size 1m;
+        client_header_buffer_size 1k;
+        
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: tenant-a
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-benchmark
+  namespace: tenant-a
+spec:
+  template:
+    spec:
+      containers:
+      - name: wrk
+        image: williamyeh/wrk
+        args:
+        - "-t4"
+        - "-c200"  # Aumentando número de conexões
+        - "-d60s"
+        - "--latency"  # Mostrar latência
+        - "http://nginx-deployment.tenant-a.svc.cluster.local"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+      restartPolicy: Never
+  backoffLimit: 4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf-server
+  template:
+    metadata:
+      labels:
+        app: iperf-server
+    spec:
+      containers:
+      - name: iperf-server
+        image: networkstatic/iperf3
+        args:
+        - "-s"
+        ports:
+        - containerPort: 5201
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf-server
+  namespace: tenant-a
+spec:
+  selector:
+    app: iperf-server
+  ports:
+  - protocol: TCP
+    port: 5201
+    targetPort: 5201

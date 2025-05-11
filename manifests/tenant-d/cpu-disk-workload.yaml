@@ -1,0 +1,392 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: tenant-d
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: tenant-d
+data:
+  postgresql.conf: |
+    shared_buffers = 256MB
+    work_mem = 32MB
+    maintenance_work_mem = 128MB
+    max_connections = 100
+    random_page_cost = 1.5
+    effective_io_concurrency = 200
+    synchronous_commit = off
+    max_worker_processes = 8
+    max_parallel_workers_per_gather = 4
+    max_parallel_workers = 8
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: tenant-d
+  labels:
+    app: postgres
+spec:
+  ports:
+  - port: 5432
+    name: postgres
+  - port: 9187
+    name: metrics
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: tenant-d
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: benchmark
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: password123
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1
+            memory: 1.5Gi
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      - name: postgres-exporter
+        image: prometheuscommunity/postgres-exporter:v0.10.1
+        ports:
+        - containerPort: 9187
+          name: metrics
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "postgresql://postgres:password123@localhost:5432/benchmark?sslmode=disable"
+        - name: PG_EXPORTER_AUTO_DISCOVER_DATABASES
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pgbench-init
+  namespace: tenant-d
+spec:
+  template:
+    spec:
+      containers:
+      - name: pgbench
+        image: postgres:14
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "Esperando o PostgreSQL ficar pronto..."
+          until pg_isready -h postgres -U postgres; do
+            sleep 2
+          done
+          echo "Inicializando pgbench com escala maior..."
+          PGPASSWORD=password123 pgbench -i -s 100 -h postgres -U postgres benchmark
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+      restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pgbench-workload
+  namespace: tenant-d
+spec:
+  schedule: "*/3 * * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: pgbench
+            image: postgres:14
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "Executando carga mista de CPU e I/O intensa..."
+              PGPASSWORD=password123 pgbench -c 20 -j 8 -T 120 -h postgres -U postgres benchmark
+            resources:
+              requests:
+                cpu: 300m
+                memory: 256Mi
+              limits:
+                cpu: 600m
+                memory: 512Mi
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cpu-intensive-workload
+  namespace: tenant-d
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cpu-stress
+            image: postgres:14
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "Executando carga intensiva de CPU..."
+              PGPASSWORD=password123 pgbench -c 8 -j 4 -T 180 -b select-only -h postgres -U postgres benchmark
+            resources:
+              requests:
+                cpu: 400m
+                memory: 256Mi
+              limits:
+                cpu: 800m
+                memory: 512Mi
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disk-intensive-workload
+  namespace: tenant-d
+spec:
+  schedule: "*/7 * * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: disk-stress
+            image: postgres:14
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "Executando carga intensiva de disco..."
+              PGPASSWORD=password123 pgbench -c 8 -j 4 -T 120 -b tpcb-like -h postgres -U postgres benchmark
+            resources:
+              requests:
+                cpu: 300m
+                memory: 256Mi
+              limits:
+                cpu: 600m
+                memory: 512Mi
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cpu-intensive-queries
+  namespace: tenant-d
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Allow
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cpu-intensive-sql
+            image: postgres:14
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "Executando consultas intensivas em CPU..."
+              PGPASSWORD=password123 psql -h postgres -U postgres benchmark << EOF
+              -- Criar tabela temporária com dados aleatórios
+              CREATE TEMP TABLE dados_aleatorios AS 
+              SELECT 
+                generate_series(1, 500000) as id,
+                md5(random()::text) as hash_value,
+                random() * 1000 as num_value,
+                'item_' || trunc(random() * 1000)::text as item_text;
+                
+              -- Criar índices
+              CREATE INDEX ON dados_aleatorios(hash_value);
+              CREATE INDEX ON dados_aleatorios(num_value);
+              
+              -- Executar operações intensivas em CPU (agregações, sorting)
+              SELECT 
+                substring(hash_value, 1, 2),
+                count(*),
+                avg(num_value),
+                stddev(num_value),
+                percentile_cont(0.5) WITHIN GROUP (ORDER BY num_value)
+              FROM dados_aleatorios
+              GROUP BY substring(hash_value, 1, 2)
+              ORDER BY 3 DESC;
+              
+              -- Executar joins custosos
+              WITH dados_subset AS (
+                SELECT * FROM dados_aleatorios WHERE num_value > 500
+              )
+              SELECT 
+                a.id, 
+                a.hash_value,
+                b.hash_value,
+                levenshtein(a.hash_value, b.hash_value)
+              FROM 
+                dados_subset a,
+                dados_subset b
+              WHERE 
+                a.id % 100 = 0 AND 
+                b.id % 100 = 0 AND
+                a.id < b.id
+              ORDER BY 4 DESC
+              LIMIT 1000;
+              
+              -- Limpar
+              DROP TABLE dados_aleatorios;
+              EOF
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                cpu: 400m
+                memory: 512Mi
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disk-intensive-queries
+  namespace: tenant-d
+spec:
+  schedule: "*/3 * * * *"
+  concurrencyPolicy: Allow
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: disk-intensive-sql
+            image: postgres:14
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "Executando operações intensivas de disco..."
+              PGPASSWORD=password123 psql -h postgres -U postgres benchmark << EOF
+              -- Desativar uso de índices para forçar varreduras de tabela
+              SET enable_indexscan = off;
+              SET enable_bitmapscan = off;
+              
+              -- Gerar dados para escrita em disco
+              CREATE TEMP TABLE dados_grandes AS
+              SELECT 
+                generate_series(1, 100000) AS id,
+                md5(random()::text) AS hash_col1,
+                md5(random()::text) AS hash_col2,
+                md5(random()::text) AS hash_col3,
+                md5(random()::text) AS hash_col4,
+                array_agg(md5(random()::text)) OVER (ORDER BY random()) AS big_array_col
+              FROM generate_series(1, 5000);
+              
+              -- Criar tabela permanente para forçar escrita em disco
+              CREATE TABLE IF NOT EXISTS disk_writes (
+                id SERIAL PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT NOW(),
+                data TEXT,
+                hash_value TEXT,
+                number_value NUMERIC
+              );
+              
+              -- Inserir dados (forçar escrita em disco)
+              INSERT INTO disk_writes (data, hash_value, number_value)
+              SELECT 
+                repeat(md5(random()::text), 10) AS data,
+                md5(random()::text) AS hash_value,
+                random() * 10000 AS number_value
+              FROM generate_series(1, 50000);
+              
+              -- Consultas com varreduras sequenciais (forçar leitura do disco)
+              SELECT 
+                count(*),
+                sum(length(data)),
+                avg(number_value)  
+              FROM disk_writes
+              WHERE number_value > random() * 100;
+              
+              -- Rotacionar dados para manter espaço em disco constante
+              DELETE FROM disk_writes 
+              WHERE id IN (
+                SELECT id FROM disk_writes
+                ORDER BY timestamp
+                LIMIT 50000
+              );
+              
+              -- Limpar tabela temporária
+              DROP TABLE dados_grandes;
+              
+              -- Executar VACUUM para forçar mais operações de disco
+              VACUUM FULL disk_writes;
+              EOF
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                cpu: 400m
+                memory: 512Mi
+          restartPolicy: OnFailure

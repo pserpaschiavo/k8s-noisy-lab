@@ -14,6 +14,20 @@ prometheus:
             target_label: kubernetes_pod_name
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
+      - job_name: 'blackbox'
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+        static_configs:
+          - targets:
+            - http://nginx-deployment.tenant-a.svc.cluster.local
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: blackbox-exporter.monitoring.svc.cluster.local:9115
 
     # Limitando recursos para não interferir no experimento
     resources:

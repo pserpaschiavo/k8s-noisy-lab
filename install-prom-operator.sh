@@ -60,13 +60,17 @@ helm upgrade "$KUBE_PROMETHEUS_STACK_NAME" prometheus-community/kube-prometheus-
 printf "\n%bCreating ServiceMonitors for tenants...%b\n" "$GREEN" "$NO_COLOR"
 kubectl apply -f "$DIR/observability/servicemonitors/"
 
-# Create the noisy-neighbours dashboard in Grafana
-printf "\n%bCreating Noisy Neighbours Dashboard for Grafana...%b\n" "$GREEN" "$NO_COLOR"
-kubectl apply -f "$DIR/observability/grafana-dashboards/noisy-neighbours-dashboard.yaml"
-
 # Create PrometheusRules for detecting noisy neighbours
 printf "\n%bCreating PrometheusRules for noisy neighbour detection...%b\n" "$GREEN" "$NO_COLOR"
 kubectl apply -f "$DIR/observability/prometheus-rules/noisy-neighbours-rules.yaml"
 
-printf "\n%bTo open Prometheus UI execute \nkubectl -n %s port-forward svc/%s-kube-prometheus-prometheus 9090\nand open your browser at http://localhost:9090\n\n" "$GREEN" "$KUBE_PROMETHEUS_STACK_NAMESPACE" "$KUBE_PROMETHEUS_STACK_NAME"
-printf "To open Grafana UI execute \nkubectl -n %s port-forward svc/%s-grafana 3000:80\nand open your browser at http://localhost:3000\nusername: admin, password: admin%b\n" "$KUBE_PROMETHEUS_STACK_NAMESPACE" "$KUBE_PROMETHEUS_STACK_NAME" "$NO_COLOR"
+# kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090 &
+# FORWARD_PID=$!
+# wait $FORWARD_PID
+# sleep 5
+# kubectl k port-forward -n monitoring svc/prometheus-grafana 3000:80 &
+# FORWARD_PID=$!
+# wait
+
+printf "\n%bTo open Prometheus UI open your browser at http://localhost:9090\n\n"
+printf "To open Grafana UI open your browser at http://localhost:3000\nusername: admin, password: admin%b\n"
