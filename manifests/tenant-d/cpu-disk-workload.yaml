@@ -124,6 +124,7 @@ metadata:
   name: pgbench-init
   namespace: tenant-d
 spec:
+  ttlSecondsAfterFinished: 60  # Remover o job 60 segundos após ser concluído
   template:
     spec:
       containers:
