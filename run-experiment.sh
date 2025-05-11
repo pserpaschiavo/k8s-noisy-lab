@@ -21,11 +21,205 @@ RECOVERY_DURATION=240   # segundos (4 minutos - aumentado para visualizar recupe
 COLLECT_METRICS=true
 METRICS_INTERVAL=5      # segundos (intervalo entre coletas)
 LIMITED_RESOURCES=false # flag para experimento com recursos limitados
+NON_INTERACTIVE=false   # flag para executar sem interações (sem prompts de confirmação)
 CUSTOM_SCENARIO=""
+
+# Calcular duração total de um round e duração mínima para os workloads
+ROUND_DURATION=$((BASELINE_DURATION + ATTACK_DURATION + RECOVERY_DURATION))
+WORKLOAD_MIN_DURATION=$((ROUND_DURATION * 2))  # Pelo menos o dobro da duração total do round
 
 # Diretório para resultados (criado após parsing de args)
 METRICS_DIR=""
 LOG_FILE=""
+
+# Função para ajustar durações em manifestos
+adjust_manifests_duration() {
+    local baseline_duration=$1
+    local attack_duration=$2
+    local recovery_duration=$3
+    local round_duration=$((baseline_duration + attack_duration + recovery_duration))
+    local min_workload_duration=$((round_duration * 2))
+    
+    log "$GREEN" "Ajustando durações nos manifestos de acordo com as durações das fases..."
+    log "$GREEN" "Duração mínima dos workloads: ${min_workload_duration}s (dobro da duração total do round)"
+    
+    # Ajustar tenant-a (nginx benchmark)
+    if [ -f "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" ]; then
+        # Criar uma versão temporária com durações ajustadas
+        local temp_file=$(mktemp)
+        cat "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" | \
+        sed "s/name: BASELINE_DURATION.*value: \"[0-9]*\"/name: BASELINE_DURATION\n          value: \"$min_workload_duration\"/" > "$temp_file"
+        cp "$temp_file" "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml"
+        rm "$temp_file"
+        log "$GREEN" "  - Ajustada duração do nginx-benchmark para ${min_workload_duration}s"
+    fi
+    
+    # Ajustar tenant-c (continuous-memory-stress)
+    if [ -f "$BASE_DIR/manifests/tenant-c/memory-workload.yaml" ]; then
+        # Modificar a variável de ambiente PHASE_DURATION
+        local temp_file=$(mktemp)
+        cat "$BASE_DIR/manifests/tenant-c/memory-workload.yaml" | \
+        sed "s/name: PHASE_DURATION.*value: \"[0-9]*\"/name: PHASE_DURATION\n          value: \"$min_workload_duration\"/" > "$temp_file"
+        cp "$temp_file" "$BASE_DIR/manifests/tenant-c/memory-workload.yaml"
+        rm "$temp_file"
+        log "$GREEN" "  - Ajustada duração do continuous-memory-stress para ${min_workload_duration}s"
+    fi
+    
+    # Ajustar tenant-d (pgbench workloads)
+    if [ -f "$BASE_DIR/manifests/tenant-d/cpu-disk-workload.yaml" ]; then
+        # Modificar as variáveis de ambiente WORKLOAD_DURATION para todos os jobs contínuos
+        local temp_file=$(mktemp)
+        cat "$BASE_DIR/manifests/tenant-d/cpu-disk-workload.yaml" | \
+        sed "s/name: WORKLOAD_DURATION.*value: \"[0-9]*\"/name: WORKLOAD_DURATION\n          value: \"$min_workload_duration\"/" | \
+        sed "s/value: \"\${BASELINE_DURATION}\"/value: \"$min_workload_duration\"/" > "$temp_file"
+        cp "$temp_file" "$BASE_DIR/manifests/tenant-d/cpu-disk-workload.yaml"
+        rm "$temp_file"
+        log "$GREEN" "  - Ajustada duração dos workloads contínuos do tenant-d para ${min_workload_duration}s"
+    fi
+    
+    # Ajustar tenant-b (stress-ng)
+    if [ -f "$BASE_DIR/manifests/tenant-b/stress-ng.yml" ]; then
+        # O tenant-b só deve durar durante a fase de ataque, não o round inteiro
+        # Entretanto, podemos aumentá-lo um pouco para garantir que não termina cedo demais
+        local extended_attack_duration=$((attack_duration + 60))  # Adiciona 1 minuto extra
+        
+        # Modificar a variável de ambiente ATTACK_DURATION
+        local temp_file=$(mktemp)
+        cat "$BASE_DIR/manifests/tenant-b/stress-ng.yml" | \
+        sed "s/name: ATTACK_DURATION.*value: \"[0-9]*\"/name: ATTACK_DURATION\n          value: \"$extended_attack_duration\"/" > "$temp_file"
+        cp "$temp_file" "$BASE_DIR/manifests/tenant-b/stress-ng.yml"
+        rm "$temp_file"
+        log "$GREEN" "  - Ajustado timeout do stress-ng para ${extended_attack_duration}s"
+    fi
+    
+    log "$GREEN" "Manifestos ajustados com sucesso!"
+}
+
+# Função para verificar e garantir que o Prometheus esteja funcionando
+ensure_prometheus_works() {
+    log "$GREEN" "Verificando o estado do Prometheus..."
+    
+    # Verificar se o namespace de monitoramento existe
+    if ! kubectl get namespace monitoring > /dev/null 2>&1; then
+        log "$YELLOW" "Namespace 'monitoring' não encontrado. Instalando o Prometheus Operator..."
+        bash "$BASE_DIR/install-prom-operator.sh"
+        sleep 10
+    fi
+    
+    # Verificar se os pods do Prometheus estão em execução
+    log "$GREEN" "Verificando pods do Prometheus..."
+    kubectl get pods -n monitoring -l app=prometheus
+    kubectl get pods -n monitoring -l app.kubernetes.io/name=prometheus
+    
+    # Encontrar o serviço do Prometheus
+    log "$GREEN" "Verificando serviços do Prometheus..."
+    kubectl get services -n monitoring | grep -i prom
+    
+    local found_service=0
+    for svc in "prometheus-operated" "prometheus-k8s" "prometheus" "prometheus-server"; do
+        if kubectl get svc -n monitoring $svc > /dev/null 2>&1; then
+            log "$GREEN" "Encontrado serviço do Prometheus: $svc"
+            
+            # Interromper qualquer port-forward existente
+            pkill -f "kubectl.*port-forward.*9090:9090" || true
+            sleep 2
+            
+            # Iniciar port-forward em segundo plano
+            log "$GREEN" "Configurando port-forward para o Prometheus..."
+            kubectl port-forward --namespace monitoring svc/$svc 9090:9090 >> "$LOG_FILE" 2>&1 &
+            local portforward_pid=$!
+            
+            # Verificar se o port-forward está funcionando
+            sleep 5
+            if curl -s --connect-timeout 2 "http://localhost:9090/api/v1/status/config" > /dev/null; then
+                log "$GREEN" "Prometheus está acessível via localhost:9090"
+                found_service=1
+                
+                # Verificar se existem targets configurados
+                local targets_resp=$(curl -s "http://localhost:9090/api/v1/targets")
+                local active_targets=$(echo "$targets_resp" | jq -r '.data.activeTargets | length')
+                log "$GREEN" "Prometheus tem $active_targets targets ativos"
+                
+                # Se não houver alvos, verificar os service monitors
+                if [ "$active_targets" = "0" ]; then
+                    log "$YELLOW" "Nenhum alvo ativo no Prometheus. Verificando Service Monitors..."
+                    kubectl get servicemonitors -A
+                    
+                    # Aplicar service monitors se necessário
+                    log "$YELLOW" "Aplicando Service Monitors do projeto..."
+                    kubectl apply -f "$BASE_DIR/observability/servicemonitors/" >> "$LOG_FILE" 2>&1
+                fi
+                
+                break
+            else
+                log "$RED" "Não foi possível acessar o Prometheus via port-forward"
+                kill $portforward_pid 2>/dev/null || true
+            fi
+        fi
+    done
+    
+    if [ $found_service -eq 0 ]; then
+        log "$RED" "Nenhum serviço do Prometheus encontrado. Reiniciando a instalação do Prometheus Operator..."
+        kubectl delete --ignore-not-found=true -f "$BASE_DIR/observability/prometheus-values.yaml" >> "$LOG_FILE" 2>&1 || true
+        kubectl delete --ignore-not-found=true namespace monitoring >> "$LOG_FILE" 2>&1 || true
+        sleep 10
+        
+        # Recriar namespace e reinstalar o Prometheus
+        kubectl create namespace monitoring >> "$LOG_FILE" 2>&1
+        bash "$BASE_DIR/install-prom-operator.sh" >> "$LOG_FILE" 2>&1
+        sleep 30
+        
+        # Tentar novamente a verificação
+        ensure_prometheus_works
+    fi
+    
+    log "$GREEN" "Verificação do Prometheus concluída"
+}
+
+# Inicializar stack de monitoramento com verificações robustas
+init_monitoring_stack() {
+    local base_dir="$1"
+    local log_file="$2"
+    
+    # Verificar se o namespace de monitoramento já existe
+    if ! kubectl get namespace monitoring > /dev/null 2>&1; then
+        log "$GREEN" "Instalando stack de observabilidade..."
+        bash "$base_dir/install-prom-operator.sh" >> "$log_file" 2>&1
+        sleep 30
+    else
+        log "$GREEN" "Namespace 'monitoring' já existe."
+    fi
+    
+    # Verificar e garantir que o Prometheus esteja funcionando
+    ensure_prometheus_works
+    
+    # Adicionar o deployment do blackbox-exporter se não existir
+    if ! kubectl get deployment -n monitoring blackbox-exporter > /dev/null 2>&1; then
+        log "$GREEN" "Adicionando deployment do blackbox-exporter..."
+        cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+    spec:
+      containers:
+      - name: blackbox-exporter
+        image: prom/blackbox-exporter:latest
+        ports:
+        - containerPort: 9115
+EOF
+    fi
+}
 
 # Função de ajuda
 show_help() {
@@ -41,6 +235,7 @@ show_help() {
     echo "  -i, --interval SEGUNDOS    Define o intervalo de coleta de métricas (padrão: 5s)"
     echo "  --limited-resources        Executa o experimento com configurações para recursos limitados"
     echo "  --no-metrics               Desativa a coleta de métricas"
+    echo "  --non-interactive          Executa o experimento sem pedir confirmações entre fases e rounds"
 }
 
 # Processamento de argumentos
@@ -55,6 +250,7 @@ while [[ $# -gt 0 ]]; do
         -i|--interval) METRICS_INTERVAL="$2"; shift 2 ;;
         --limited-resources) LIMITED_RESOURCES=true; shift ;;
         --no-metrics) COLLECT_METRICS=false; shift ;;  
+        --non-interactive) NON_INTERACTIVE=true; shift ;;
         *) echo "Opção desconhecida: $1"; show_help; exit 1 ;; 
     esac
 done
@@ -132,6 +328,9 @@ kubectl get resourcequotas -A >> "$LOG_FILE" 2>&1
 # Inicializar stack de monitoramento
 init_monitoring_stack "$BASE_DIR" "$LOG_FILE"
 
+# Ajustar durações nos manifestos
+adjust_manifests_duration "$BASELINE_DURATION" "$ATTACK_DURATION" "$RECOVERY_DURATION"
+
 # Início do experimento
 log "$GREEN" "======= INÍCIO DO EXPERIMENTO: ${EXPERIMENT_NAME} ======="
 log "$GREEN" "Data: ${START_DATE//-//}, Hora: ${START_TIME//-/:}"
@@ -170,13 +369,19 @@ echo "Fim do experimento: $(date)" >> "${METRICS_DIR}/info.txt"
 echo "Duração total: $TOTAL_DURATION segundos ($(($TOTAL_DURATION / 60)) minutos)" >> "${METRICS_DIR}/info.txt"
 
 # Limpar recursos no final
-log "$GREEN" "Deseja limpar os recursos dos tenants? [s/N]"
-read -r clean_response
-if [[ "$clean_response" =~ ^[Ss]$ ]]; then
+if [ "$NON_INTERACTIVE" = true ]; then
+    log "$GREEN" "Modo não interativo: limpando automaticamente os recursos dos tenants..."
     cleanup_tenants
     log "$GREEN" "Recursos dos tenants removidos."
 else
-    log "$YELLOW" "Os recursos dos tenants foram mantidos para análise posterior."
+    log "$GREEN" "Deseja limpar os recursos dos tenants? [s/N]"
+    read -r clean_response
+    if [[ "$clean_response" =~ ^[Ss]$ ]]; then
+        cleanup_tenants
+        log "$GREEN" "Recursos dos tenants removidos."
+    else
+        log "$YELLOW" "Os recursos dos tenants foram mantidos para análise posterior."
+    fi
 fi
 
 # Instruções finais

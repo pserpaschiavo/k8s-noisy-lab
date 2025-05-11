@@ -85,12 +85,42 @@ spec:
       containers:
       - name: wrk
         image: williamyeh/wrk
+        command: ["/bin/sh", "-c"]
         args:
-        - "-t4"
-        - "-c200"  # Aumentando número de conexões
-        - "-d60s"
-        - "--latency"  # Mostrar latência
-        - "http://nginx-deployment.tenant-a.svc.cluster.local"
+        - |
+          echo "Iniciando benchmarking do nginx com duração total de ${BASELINE_DURATION} segundos"
+          
+          # Calcular o tempo final de execução
+          END_TIME=$(($(date +%s) + ${BASELINE_DURATION}))
+          
+          # Loop para executar benchmarks em ciclos até atingir o tempo total
+          while [ $(date +%s) -lt $END_TIME ]; do
+            # Calcular tempo restante
+            REMAINING_TIME=$((END_TIME - $(date +%s)))
+            if [ $REMAINING_TIME -le 0 ]; then
+              break
+            fi
+            
+            # Definir duração para este ciclo (máximo 60 segundos)
+            CYCLE_DURATION=60
+            if [ $REMAINING_TIME -lt $CYCLE_DURATION ]; then
+              CYCLE_DURATION=$REMAINING_TIME
+            fi
+            
+            echo "Executando benchmark por $CYCLE_DURATION segundos (tempo restante: $REMAINING_TIME segundos)"
+            wrk -t4 -c200 -d${CYCLE_DURATION}s --latency http://nginx.tenant-a.svc.cluster.local
+            
+            # Pequena pausa entre execuções para não sobrecarregar
+            if [ $(date +%s) -lt $END_TIME ]; then
+              echo "Pausa curta entre ciclos de benchmark..."
+              sleep 5
+            fi
+          done
+          
+          echo "Benchmarking nginx completo - executado por ${BASELINE_DURATION} segundos."
+        env:
+        - name: BASELINE_DURATION
+          value: "240"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 200m
@@ -98,7 +128,7 @@ spec:
           limits:
             cpu: 400m
             memory: 512Mi
-      restartPolicy: Never
+      restartPolicy: OnFailure
   backoffLimit: 4
 ---
 apiVersion: apps/v1

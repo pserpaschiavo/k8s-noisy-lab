@@ -50,7 +50,7 @@ If you're using a cloud provider, these would be suitable instances:
 
 ### Kubernetes Version Compatibility
 
-O laboratório usa por padrão a versão **v1.28.10** do Kubernetes, escolhida por:
+O laboratório usa por padrão a versão **v1.32.0** do Kubernetes, escolhida por:
 - Compatibilidade com versões recentes do kubectl (até v1.33.x)
 - Estabilidade para os recursos utilizados no experimento
 - Suporte para todas as funcionalidades necessárias para demonstrar o efeito "noisy neighbor"

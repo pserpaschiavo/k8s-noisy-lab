@@ -221,9 +221,7 @@ start_minikube() {
         --extra-config=apiserver.enable-admission-plugins=ResourceQuota,LimitRanger \
         --extra-config=kubelet.eviction-hard="memory.available<500Mi,nodefs.available<10%,nodefs.inodesFree<5%" \
         --extra-config=kubelet.cgroup-driver=$DOCKER_CGROUP_DRIVER \
-        --extra-config=kubelet.authorization-mode=Webhook \
-        --extra-config=kubelet.authentication-token-webhook=true \
-        --extra-config=scheduler.bind-utilization-above-watermark=true \
+    
     
     local result=$?
     if [ $result -eq 124 ]; then

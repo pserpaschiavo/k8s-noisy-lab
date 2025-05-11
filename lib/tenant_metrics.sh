@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Importar logger
-source "$(dirname "$0")/logger.sh"
+source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/logger.sh"
 
 # Queries PromQL para métricas específicas do tenant-a (sensível à rede)
 declare -A TENANT_A_METRICS=(

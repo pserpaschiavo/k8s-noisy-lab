@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Importar logger
-source "$(dirname "$0")/logger.sh"
+# Importar logger usando caminho absoluto
+source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/logger.sh"
 
 # Função para garantir namespace existe
 ensure_namespace() {
@@ -79,11 +79,31 @@ wait_for_pods_ready() {
 # Função para verificar se todos os pods em múltiplos namespaces estão prontos
 wait_for_all_tenants_ready() {
     local timeout="$1"
+    local phase="${2:-all}"  # Parâmetro opcional para especificar a fase do experimento (baseline, attack, recovery, all)
     local success=true
     
-    log "$YELLOW" "Verificando se todos os tenants estão prontos..."
+    log "$YELLOW" "Verificando se todos os tenants relevantes para a fase '$phase' estão prontos..."
     
-    for ns in tenant-a tenant-b tenant-c tenant-d; do
+    # Definir quais namespaces verificar com base na fase
+    local namespaces_to_check=()
+    
+    case "$phase" in
+        baseline)
+            namespaces_to_check=("tenant-a" "tenant-c" "tenant-d")
+            ;;
+        attack)
+            namespaces_to_check=("tenant-a" "tenant-b" "tenant-c" "tenant-d")
+            ;;
+        recovery)
+            namespaces_to_check=("tenant-a" "tenant-c" "tenant-d")
+            ;;
+        *)
+            # Valor padrão: verificar todos os namespaces que existem
+            namespaces_to_check=("tenant-a" "tenant-b" "tenant-c" "tenant-d")
+            ;;
+    esac
+    
+    for ns in "${namespaces_to_check[@]}"; do
         if kubectl get namespace "$ns" &> /dev/null; then
             if ! wait_for_pods_ready "$ns" "$timeout"; then
                 success=false
@@ -101,7 +121,7 @@ wait_for_all_tenants_ready() {
     fi
     
     if [ "$success" = true ]; then
-        log "$GREEN" "Todos os tenants estão prontos!"
+        log "$GREEN" "Todos os tenants relevantes para a fase '$phase' estão prontos!"
         return 0
     else
         log "$YELLOW" "Nem todos os tenants estão completamente prontos, verificando se é possível continuar..."

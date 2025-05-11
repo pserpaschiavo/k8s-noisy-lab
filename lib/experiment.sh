@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Importar módulos necessários
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib"
 source "$SCRIPT_DIR/logger.sh"
 source "$SCRIPT_DIR/kubernetes.sh"
 source "$SCRIPT_DIR/metrics.sh"
@@ -29,6 +29,13 @@ continue_prompt() {
     if [ "$next_round" -le "$total_rounds" ]; then
         echo
         log "$YELLOW" "Round $((next_round-1))/$total_rounds concluído."
+        
+        # Se estiver no modo não interativo, continuar automaticamente
+        if [ "$NON_INTERACTIVE" = true ]; then
+            log "$GREEN" "Modo não interativo: continuando automaticamente para o próximo round..."
+            return 0
+        fi
+        
         read -p "Continuar para o round $next_round/$total_rounds? (s/n): " response
         case "$response" in
             [Ss]* ) 
@@ -53,21 +60,27 @@ continue_to_next_phase() {
     
     echo
     log "$YELLOW" "Fase '$current_phase' concluída."
+    
+    # Se estiver no modo não interativo, continuar automaticamente
+    if [ "$NON_INTERACTIVE" = true ]; then
+        log "$GREEN" "Modo não interativo: continuando automaticamente para a próxima fase..."
+        return 0
+    fi
+    
     read -p "Continuar para a fase '$next_phase'? (s/n): " response
     case "$response" in
         [Ss]* ) 
             log "$GREEN" "Continuando para a próxima fase..."
             return 0
-                ;;
-            * ) 
-                log "$RED" "Experimento interrompido pelo usuário durante a transição de fase."
-                cleanup_tenants
-                log "$GREEN" "======= EXPERIMENTO INTERROMPIDO PELO USUÁRIO ======="
-                log "$GREEN" "Métricas e logs parciais salvos em: ${METRICS_DIR}"
-                exit 0
-                ;;
-        esac
-    fi
+            ;;
+        * ) 
+            log "$RED" "Experimento interrompido pelo usuário durante a transição de fase."
+            cleanup_tenants
+            log "$GREEN" "======= EXPERIMENTO INTERROMPIDO PELO USUÁRIO ======="
+            log "$GREEN" "Métricas e logs parciais salvos em: ${METRICS_DIR}"
+            exit 0
+            ;;
+    esac
 }
 
 # Função para executar a fase de baseline
@@ -90,7 +103,7 @@ run_baseline_phase() {
     kubectl apply -f "$base_dir/manifests/tenant-d/" >> "$log_file" 2>&1
     
     log "$GREEN" "Aguardando inicialização de todos os tenants..."
-    wait_for_all_tenants_ready 120 || log "$YELLOW" "Nem todos os tenants ficaram prontos dentro do tempo esperado"
+    wait_for_all_tenants_ready 120 "baseline" || log "$YELLOW" "Nem todos os tenants ficaram prontos dentro do tempo esperado"
     
     sleep "$baseline_duration"
 }
@@ -112,7 +125,7 @@ run_attack_phase() {
     kubectl -n tenant-b wait --for=condition=available deployment/iperf-server --timeout=120s >> "$log_file" 2>&1 || log "$YELLOW" "Timeout aguardando pelo iperf-server no tenant-b"
     
     log "$GREEN" "Verificando todos os tenants após a implantação do atacante..."
-    wait_for_all_tenants_ready 60 || log "$YELLOW" "Possível impacto do ataque - nem todos os tenants estão totalmente prontos"
+    wait_for_all_tenants_ready 60 "attack" || log "$YELLOW" "Possível impacto do ataque - nem todos os tenants estão totalmente prontos"
     
     sleep "$attack_duration"
 }
@@ -128,7 +141,7 @@ run_recovery_phase() {
     kubectl delete -f "$base_dir/manifests/tenant-b/" >> "$log_file" 2>&1 || log "$YELLOW" "Erro ao remover tenant-b"
     
     log "$GREEN" "Verificando recuperação do tenant-a, tenant-c e tenant-d..."
-    wait_for_all_tenants_ready 120 || log "$YELLOW" "Alguns tenants podem não ter se recuperado completamente"
+    wait_for_all_tenants_ready 120 "recovery" || log "$YELLOW" "Alguns tenants podem não ter se recuperado completamente"
     
     sleep "$recovery_duration"
 }
@@ -154,20 +167,24 @@ run_experiment_round() {
     
     log "$YELLOW" "===== ROUND ${round}/${num_rounds} ====="
     
+    # Limpar todos os workloads ao iniciar cada round para começar com um ambiente limpo
+    log "$GREEN" "Limpando workloads para começar o round ${round} com um ambiente limpo..."
+    kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-a/" >> "$log_file" 2>&1 || true
+    kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-b/" >> "$log_file" 2>&1 || true
+    kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-c/" >> "$log_file" 2>&1 || true
+    kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-d/" >> "$log_file" 2>&1 || true
+    
+    log "$GREEN" "Aguardando finalização completa dos recursos anteriores..."
+    # Esperar que todos os pods sejam realmente removidos antes de continuar
+    kubectl wait --for=delete pods --all -n tenant-a --timeout=60s >> "$log_file" 2>&1 || log "$YELLOW" "Timeout aguardando remoção de pods no tenant-a"
+    kubectl wait --for=delete pods --all -n tenant-b --timeout=60s >> "$log_file" 2>&1 || log "$YELLOW" "Timeout aguardando remoção de pods no tenant-b"
+    kubectl wait --for=delete pods --all -n tenant-c --timeout=60s >> "$log_file" 2>&1 || log "$YELLOW" "Timeout aguardando remoção de pods no tenant-c"
+    kubectl wait --for=delete pods --all -n tenant-d --timeout=60s >> "$log_file" 2>&1 || log "$YELLOW" "Timeout aguardando remoção de pods no tenant-d"
+    
     # FASE 1: BASELINE
     log "$BLUE" "=== Fase $phase_1_name ==="
     if [ "$collect_metrics" = true ]; then
         start_collecting_metrics "$phase_1_name" "$round" "$metrics_dir" "$collect_metrics"
-    fi
-    
-    # Limpar quaisquer workloads anteriores se for o primeiro round
-    if [ "$round" -eq 1 ]; then
-        log "$GREEN" "Limpando workloads anteriores..."
-        kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-a/" >> "$log_file" 2>&1 || true
-        kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-b/" >> "$log_file" 2>&1 || true
-        kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-c/" >> "$log_file" 2>&1 || true
-        kubectl delete --ignore-not-found=true -f "$base_dir/manifests/tenant-d/" >> "$log_file" 2>&1 || true
-        sleep 10  # Espera para garantir que tudo foi removido
     fi
     
     # Executar fase de baseline com timeout

@@ -15,19 +15,15 @@ spec:
     spec:
       containers:
       - name: stress-ng
-        image: polinux/stress-ng
+        image: colinianking/stress-ng:latest
+        command: ["/bin/sh", "-c"]
         args:
-        - "--cpu"
-        - "4"         # Mais processos de CPU
-        - "--vm"
-        - "2"         # Mais processos de VM
-        - "--vm-bytes"
-        - "1536M"     # Mais memória por processo
-        - "--io"
-        - "2"         # Adiciona carga de I/O
-        - "--timeout"
-        - "300s"
-        - "--metrics-brief" # Saída de métricas mais detalhada
+        - |
+          echo "Iniciando stress-ng com timeout de ${ATTACK_DURATION} segundos"
+          stress-ng --cpu 4 --vm 2 --vm-bytes 1536M --io 2 --timeout ${ATTACK_DURATION}s --metrics-brief
+        env:
+        - name: ATTACK_DURATION
+          value: "360"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 800m        # Aumentando solicitação de CPU
