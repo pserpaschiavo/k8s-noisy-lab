@@ -118,7 +118,7 @@ spec:
           echo "Workload de memória concluído após $((($(date +%s) - (END_TIME - DURATION_SECONDS)))) segundos."
         env:
         - name: PHASE_DURATION
-          value: "240"  # Será substituído pelo script principal para durar toda a fase
+          value: "10000"  # Será substituído pelo script principal para durar toda a fase
         resources:
           requests:
             cpu: 200m

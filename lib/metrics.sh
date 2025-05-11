@@ -312,6 +312,10 @@ start_collecting_metrics() {
         
         collect_metrics_continuously "$phase" "$round" "$metrics_dir" "$log_file" &
         METRICS_PID=$!
+        
+        # Exportar a variável para o script principal
+        export METRICS_PID
+        
         log "$BLUE" "Coleta de métricas iniciada com PID: $METRICS_PID (log: $log_file)"
     else
         log "$YELLOW" "Coleta de métricas desativada"

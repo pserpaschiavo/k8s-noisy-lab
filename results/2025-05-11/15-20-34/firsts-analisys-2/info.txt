@@ -1,0 +1,4 @@
+Início do experimento: Sun May 11 03:20:57 PM -03 2025
+Número de rounds: 1
+Duração das fases: Baseline=300, Ataque=900, Recuperação=600
+Intervalo de coleta de métricas: 5 segundos

@@ -27,10 +27,90 @@ CUSTOM_SCENARIO=""
 # Calcular duração total de um round e duração mínima para os workloads
 ROUND_DURATION=$((BASELINE_DURATION + ATTACK_DURATION + RECOVERY_DURATION))
 WORKLOAD_MIN_DURATION=$((ROUND_DURATION * 2))  # Pelo menos o dobro da duração total do round
+export WORKLOAD_MIN_DURATION  # Exporta a variável para subprocessos
 
 # Diretório para resultados (criado após parsing de args)
 METRICS_DIR=""
 LOG_FILE=""
+METRICS_PID=""  # Variável para armazenar o PID da coleta de métricas em background
+
+# Função para limpeza de emergência
+emergency_cleanup() {
+    local exit_code=$?
+    local killed_by_signal=$1
+    
+    echo  # Adiciona uma linha em branco após o ^C
+    log "$YELLOW" "===== INTERRUPÇÃO DETECTADA ====="
+    
+    if [ "$killed_by_signal" = "true" ]; then
+        log "$YELLOW" "Experimento interrompido pelo usuário (CTRL+C)"
+    else
+        log "$RED" "Experimento terminado com erro (código: $exit_code)"
+    fi
+    
+    # Registrar o fim prematuro do experimento
+    END_TIMESTAMP=$(date +%s)
+    TOTAL_DURATION=$((END_TIMESTAMP - START_TIMESTAMP))
+    echo "Fim prematuro do experimento: $(date)" >> "${METRICS_DIR}/info.txt"
+    echo "Duração até a interrupção: $TOTAL_DURATION segundos ($(($TOTAL_DURATION / 60)) minutos)" >> "${METRICS_DIR}/info.txt"
+    echo "Interrompido pelo usuário: $killed_by_signal" >> "${METRICS_DIR}/info.txt"
+    
+    log "$YELLOW" "Realizando limpeza de recursos..."
+    
+    # Interromper coleta de métricas em background, se estiver ativa
+    if [ -n "$METRICS_PID" ] && kill -0 $METRICS_PID 2>/dev/null; then
+        log "$YELLOW" "Interrompendo processo de coleta de métricas (PID: $METRICS_PID)"
+        kill $METRICS_PID 2>/dev/null || true
+    fi
+    
+    # Interromper port-forwards em execução
+    log "$YELLOW" "Interrompendo port-forwards em execução..."
+    pkill -f "kubectl.*port-forward" || true
+    
+    # Remover recursos do tenant-b (atacante)
+    log "$YELLOW" "Removendo recursos do tenant-b (atacante)..."
+    kubectl delete --ignore-not-found=true -f "$BASE_DIR/manifests/tenant-b" >> "$LOG_FILE" 2>&1 || true
+    
+    # Perguntar se deseja limpar todos os recursos dos tenants
+    if [ "$NON_INTERACTIVE" = true ]; then
+        log "$YELLOW" "Modo não interativo: limpando automaticamente todos os recursos dos tenants..."
+        cleanup_tenants
+        log "$GREEN" "Recursos dos tenants removidos."
+    else
+        log "$YELLOW" "Deseja limpar todos os recursos dos tenants? [s/N]"
+        read -t 10 -r clean_response || clean_response="n"  # Timeout de 10 segundos, padrão é não limpar
+        if [[ "$clean_response" =~ ^[Ss]$ ]]; then
+            cleanup_tenants
+            log "$GREEN" "Recursos dos tenants removidos."
+        else
+            log "$YELLOW" "Os recursos dos tenants foram mantidos para análise posterior."
+        fi
+    fi
+    
+    log "$YELLOW" "Limpeza de emergência concluída."
+    log "$YELLOW" "Métricas e logs parciais salvos em: ${METRICS_DIR}"
+    log "$YELLOW" "===== FIM DO EXPERIMENTO (INTERROMPIDO) ====="
+    
+    # Certifica-se de que o script termine
+    exit $exit_code
+}
+
+# Configurar trap para capturar CTRL+C e outras interrupções
+setup_signal_handlers() {
+    # SIGINT (CTRL+C)
+    trap 'emergency_cleanup true' INT
+    
+    # SIGTERM (kill)
+    trap 'emergency_cleanup true' TERM
+    
+    # SIGHUP (terminal fechado)
+    trap 'emergency_cleanup true' HUP
+    
+    # EXIT (qualquer saída do script, mas só será executado se os outros traps não forem)
+    trap 'emergency_cleanup false' EXIT
+    
+    log "$GREEN" "Handlers de sinal configurados. Use CTRL+C para interromper o experimento com limpeza segura."
+}
 
 # Função para ajustar durações em manifestos
 adjust_manifests_duration() {
@@ -38,20 +118,25 @@ adjust_manifests_duration() {
     local attack_duration=$2
     local recovery_duration=$3
     local round_duration=$((baseline_duration + attack_duration + recovery_duration))
-    local min_workload_duration=$((round_duration * 2))
+    
+    # Calcular a duração total considerando todos os rounds
+    # Multiplica pelo número de rounds e adiciona alguma margem de segurança (30%)
+    local total_experiment_duration=$((round_duration * NUM_ROUNDS))
+    local min_workload_duration=$((total_experiment_duration * 130 / 100))
     
     log "$GREEN" "Ajustando durações nos manifestos de acordo com as durações das fases..."
-    log "$GREEN" "Duração mínima dos workloads: ${min_workload_duration}s (dobro da duração total do round)"
+    log "$GREEN" "Duração total do experimento (estimada): ${total_experiment_duration}s para $NUM_ROUNDS rounds"
+    log "$GREEN" "Duração mínima dos workloads: ${min_workload_duration}s (inclui margem de segurança de 30%)"
     
     # Ajustar tenant-a (nginx benchmark)
     if [ -f "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" ]; then
         # Criar uma versão temporária com durações ajustadas
         local temp_file=$(mktemp)
         cat "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" | \
-        sed "s/name: BASELINE_DURATION.*value: \"[0-9]*\"/name: BASELINE_DURATION\n          value: \"$min_workload_duration\"/" > "$temp_file"
+        sed "s/name: BASELINE_DURATION.*value: \"[0-9]*\"/name: BASELINE_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" > "$temp_file"
         cp "$temp_file" "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml"
         rm "$temp_file"
-        log "$GREEN" "  - Ajustada duração do nginx-benchmark para ${min_workload_duration}s"
+        log "$GREEN" "  - Ajustada duração do nginx-benchmark para ${WORKLOAD_MIN_DURATION}s"
     fi
     
     # Ajustar tenant-c (continuous-memory-stress)
@@ -59,10 +144,10 @@ adjust_manifests_duration() {
         # Modificar a variável de ambiente PHASE_DURATION
         local temp_file=$(mktemp)
         cat "$BASE_DIR/manifests/tenant-c/memory-workload.yaml" | \
-        sed "s/name: PHASE_DURATION.*value: \"[0-9]*\"/name: PHASE_DURATION\n          value: \"$min_workload_duration\"/" > "$temp_file"
+        sed "s/name: PHASE_DURATION.*value: \"[0-9]*\"/name: PHASE_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" > "$temp_file"
         cp "$temp_file" "$BASE_DIR/manifests/tenant-c/memory-workload.yaml"
         rm "$temp_file"
-        log "$GREEN" "  - Ajustada duração do continuous-memory-stress para ${min_workload_duration}s"
+        log "$GREEN" "  - Ajustada duração do continuous-memory-stress para ${WORKLOAD_MIN_DURATION}s"
     fi
     
     # Ajustar tenant-d (pgbench workloads)
@@ -70,11 +155,13 @@ adjust_manifests_duration() {
         # Modificar as variáveis de ambiente WORKLOAD_DURATION para todos os jobs contínuos
         local temp_file=$(mktemp)
         cat "$BASE_DIR/manifests/tenant-d/cpu-disk-workload.yaml" | \
-        sed "s/name: WORKLOAD_DURATION.*value: \"[0-9]*\"/name: WORKLOAD_DURATION\n          value: \"$min_workload_duration\"/" | \
-        sed "s/value: \"\${BASELINE_DURATION}\"/value: \"$min_workload_duration\"/" > "$temp_file"
+        sed "s/name: WORKLOAD_DURATION.*value: \"[0-9]*\"/name: WORKLOAD_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" | \
+        sed "s/name: CPU_WORKLOAD_DURATION.*value: \"[0-9]*\"/name: CPU_WORKLOAD_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" | \
+        sed "s/name: DISK_WORKLOAD_DURATION.*value: \"[0-9]*\"/name: DISK_WORKLOAD_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" | \
+        sed "s/value: \"\${BASELINE_DURATION}\"/value: \"$WORKLOAD_MIN_DURATION\"/" > "$temp_file"
         cp "$temp_file" "$BASE_DIR/manifests/tenant-d/cpu-disk-workload.yaml"
         rm "$temp_file"
-        log "$GREEN" "  - Ajustada duração dos workloads contínuos do tenant-d para ${min_workload_duration}s"
+        log "$GREEN" "  - Ajustada duração dos workloads contínuos do tenant-d para ${WORKLOAD_MIN_DURATION}s"
     fi
     
     # Ajustar tenant-b (stress-ng)
@@ -93,6 +180,17 @@ adjust_manifests_duration() {
     fi
     
     log "$GREEN" "Manifestos ajustados com sucesso!"
+    
+    # Verificar e ajustar qualquer outra variável de ambiente relacionada à duração no tenant-a
+    if [ -f "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" ]; then
+        local temp_file=$(mktemp)
+        cat "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml" | \
+        sed "s/name: DURATION.*value: \"[0-9]*\"/name: DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" | \
+        sed "s/name: BENCHMARK_DURATION.*value: \"[0-9]*\"/name: BENCHMARK_DURATION\n          value: \"$WORKLOAD_MIN_DURATION\"/" > "$temp_file"
+        cp "$temp_file" "$BASE_DIR/manifests/tenant-a/nginx-deploy.yaml"
+        rm "$temp_file"
+        log "$GREEN" "  - Verificadas configurações adicionais de duração no tenant-a"
+    fi
 }
 
 # Função para verificar e garantir que o Prometheus esteja funcionando
@@ -284,6 +382,9 @@ START_TIME=$(date +%H-%M-%S)
 EXPERIMENT_DIRS=$(init_experiment "$EXPERIMENT_NAME" "$BASE_DIR" "$START_DATE" "$START_TIME")
 METRICS_DIR=$(echo "$EXPERIMENT_DIRS" | head -n 1)
 LOG_FILE=$(echo "$EXPERIMENT_DIRS" | tail -n 1)
+
+# Configurar handlers de sinal
+setup_signal_handlers
 
 # Log inicial
 log "$GREEN" "Iniciando experimento: $EXPERIMENT_NAME"

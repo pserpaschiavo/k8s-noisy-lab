@@ -1,0 +1,267 @@
+[20250511_162254] Iniciando coleta de métricas a cada 5 segundos
+[20250511_162254] Métricas configuradas para coleta: 38
+[20250511_162254] Verificando acesso ao Prometheus...
+[20250511_162254] Prometheus não está acessível via localhost:9090
+[20250511_162255] Listando pods do Prometheus:
+No resources found in monitoring namespace.
+NAME                                                 READY   STATUS    RESTARTS   AGE
+prometheus-prometheus-kube-prometheus-prometheus-0   2/2     Running   0          119m
+[20250511_162256] Listando serviços do Prometheus:
+prometheus-grafana                        ClusterIP   10.106.212.140   <none>        80/TCP                       119m
+prometheus-kube-prometheus-alertmanager   ClusterIP   10.99.137.217    <none>        9093/TCP,8080/TCP            119m
+prometheus-kube-prometheus-operator       ClusterIP   10.105.243.116   <none>        443/TCP                      119m
+prometheus-kube-prometheus-prometheus     ClusterIP   10.111.121.152   <none>        9090/TCP,8080/TCP            119m
+prometheus-kube-state-metrics             ClusterIP   10.99.34.242     <none>        8080/TCP                     119m
+prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     119m
+prometheus-prometheus-node-exporter       ClusterIP   10.105.135.222   <none>        9100/TCP                     119m
+[20250511_162256] Encontrado serviço do Prometheus: prometheus-operated
+[20250511_162256] Iniciando port-forward: kubectl port-forward --namespace monitoring svc/prometheus-operated 9090:9090
+[20250511_162256] Port-forward iniciado com PID: 792909
+[20250511_162256] Aguardando port-forward, tentativa 1/15
+Forwarding from 127.0.0.1:9090 -> 9090
+Forwarding from [::1]:9090 -> 9090
+Handling connection for 9090
+[20250511_162258] Port-forward para o Prometheus configurado com sucesso
+[20250511_162258] Testando consulta ao Prometheus...
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] Alvos do Prometheus: 72 ativos, 317 descartados
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3  465G   28G  434G   7% /
+devtmpfs        4.0M     0  4.0M   0% /dev
+tmpfs            16G   48M   16G   1% /dev/shm
+efivarfs        128K   50K   74K  41% /sys/firmware/efi/efivars
+tmpfs           6.3G  2.3M  6.3G   1% /run
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+tmpfs            16G  5.1M   16G   1% /tmp
+/dev/nvme0n1p3  465G   28G  434G   7% /home
+/dev/nvme0n1p2  974M  463M  444M  52% /boot
+/dev/nvme0n1p1  599M   53M  547M   9% /boot/efi
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-resolved.service
+tmpfs           3.2G  192K  3.2G   1% /run/user/1000
+[20250511_162258] DEBUG: Verificando permissões de escrita em /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/16-16-31/firsts-analisys-5
+Escrita permitida
+[20250511_162258] DEBUG: Número total de métricas: 38
+[20250511_162258] Verificando pods em todos os namespaces:
+NAMESPACE        NAME                                                     READY   STATUS        RESTARTS   AGE
+ingress-nginx    ingress-nginx-controller-77ff9b8cfc-pxppq                1/1     Running       0          117m
+kube-system      calico-kube-controllers-5745477d4d-x72lp                 1/1     Running       0          120m
+kube-system      calico-node-lpsv9                                        1/1     Running       0          120m
+kube-system      coredns-668d6bf9bc-n7rts                                 1/1     Running       0          120m
+kube-system      etcd-minikube                                            1/1     Running       0          120m
+kube-system      kube-apiserver-minikube                                  1/1     Running       0          120m
+kube-system      kube-controller-manager-minikube                         1/1     Running       0          120m
+kube-system      kube-proxy-h4mr6                                         1/1     Running       0          120m
+kube-system      kube-scheduler-minikube                                  1/1     Running       0          120m
+kube-system      metrics-server-7fbb699795-4l2vd                          1/1     Running       0          120m
+kube-system      storage-provisioner                                      1/1     Running       0          120m
+metallb-system   controller-bb5f47665-9rcc4                               1/1     Running       0          115m
+metallb-system   speaker-7662w                                            1/1     Running       0          115m
+monitoring       alertmanager-prometheus-kube-prometheus-alertmanager-0   2/2     Running       0          119m
+monitoring       blackbox-exporter-849545489b-wtt89                       1/1     Running       0          113m
+monitoring       prometheus-grafana-779f94ccc5-5lk4r                      3/3     Running       0          119m
+monitoring       prometheus-kube-prometheus-operator-58dbc8bb4f-ctfhn     1/1     Running       0          119m
+monitoring       prometheus-kube-state-metrics-5bc7f89f46-svw6t           1/1     Running       0          119m
+monitoring       prometheus-prometheus-kube-prometheus-prometheus-0       2/2     Running       0          119m
+monitoring       prometheus-prometheus-node-exporter-xrbld                1/1     Running       0          119m
+tenant-a         iperf-server-d79fbdf6c-bm845                             1/1     Running       0          6m4s
+tenant-a         nginx-benchmark-pknft                                    1/1     Running       0          6m4s
+tenant-a         nginx-deployment-56fc57d4-bs74x                          1/1     Running       0          6m4s
+tenant-a         nginx-deployment-56fc57d4-xq746                          1/1     Running       0          6m4s
+tenant-a         nginx-deployment-56fc57d4-zshw2                          1/1     Running       0          6m4s
+tenant-b         stress-ng-6764fc7965-jqcrm                               1/1     Terminating   0          64s
+tenant-b         stress-ng-6764fc7965-mhkz6                               1/1     Terminating   0          64s
+tenant-b         traffic-generator-85fb77744d-9mtdc                       1/1     Terminating   0          64s
+tenant-b         traffic-generator-85fb77744d-kj9rk                       1/1     Terminating   0          64s
+tenant-b         traffic-generator-85fb77744d-q6jwr                       1/1     Terminating   0          64s
+tenant-c         memory-monitor-cfd7584c6-5dnkg                           1/1     Running       0          6m2s
+tenant-c         redis-deployment-6f5c56db8b-8ssrc                        1/1     Running       0          6m2s
+tenant-d         cpu-intensive-continuous-5jpt8                           1/1     Running       0          6m2s
+tenant-d         disk-intensive-continuous-ll4dd                          1/1     Running       0          3m59s
+tenant-d         pgbench-continuous-workload-vmvwd                        1/1     Running       0          6m2s
+tenant-d         pgbench-init-6wcc6                                       0/1     Completed     0          6m2s
+tenant-d         postgres-5dc855c4cc-vsrkz                                2/2     Running       0          6m2s
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para cpu_throttled_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para cpu_throttled_ratio
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para memory_pressure
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para postgres_connections
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para postgres_transactions
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para postgres_disk_io
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] WARN: sem dados para latency_process_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162258] INFO: Coletadas 152 métricas com sucesso (falhas: 0, total até agora: sucesso=1, falha=0)
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para cpu_throttled_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para cpu_throttled_ratio
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para memory_pressure
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para postgres_connections
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para postgres_transactions
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para postgres_disk_io
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] WARN: sem dados para latency_process_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162306] INFO: Coletadas 152 métricas com sucesso (falhas: 0, total até agora: sucesso=2, falha=0)
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para cpu_throttled_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para cpu_throttled_ratio
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para memory_pressure
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para postgres_connections
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para postgres_transactions
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para postgres_disk_io
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] WARN: sem dados para latency_process_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162314] INFO: Coletadas 152 métricas com sucesso (falhas: 0, total até agora: sucesso=3, falha=0)
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para cpu_throttled_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para cpu_throttled_ratio
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para memory_pressure
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para postgres_connections
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para postgres_transactions
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para postgres_disk_io
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] WARN: sem dados para latency_process_time
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+Handling connection for 9090
+[20250511_162322] INFO: Coletadas 152 métricas com sucesso (falhas: 0, total até agora: sucesso=4, falha=0)

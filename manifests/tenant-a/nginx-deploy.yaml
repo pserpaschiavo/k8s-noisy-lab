@@ -120,7 +120,7 @@ spec:
           echo "Benchmarking nginx completo - executado por ${BASELINE_DURATION} segundos."
         env:
         - name: BASELINE_DURATION
-          value: "240"  # Será substituído pelo script principal
+          value: "10000"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 200m

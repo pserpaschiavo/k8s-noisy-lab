@@ -196,7 +196,7 @@ spec:
           echo "Workload contínuo concluído após $TOTAL_DURATION segundos."
         env:
         - name: WORKLOAD_DURATION
-          value: "180"
+          value: "10000"
         resources:
           requests:
             cpu: 300m
@@ -257,7 +257,7 @@ spec:
           echo "Workload de CPU contínuo concluído após $TOTAL_DURATION segundos."
         env:
         - name: WORKLOAD_DURATION
-          value: "240"  # Será substituído pelo script principal
+          value: "10000"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 400m
@@ -319,7 +319,7 @@ spec:
           echo "Workload de disco contínuo concluído após $TOTAL_DURATION segundos."
         env:
         - name: WORKLOAD_DURATION
-          value: "240"  # Será substituído pelo script principal
+          value: "10000"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 300m
@@ -438,7 +438,7 @@ EOF
           echo "Workload de consultas complexas concluído após $TOTAL_DURATION segundos."
         env:
         - name: WORKLOAD_DURATION
-          value: "240"  # Será substituído pelo script principal
+          value: "10000"  # Será substituído pelo script principal
         resources:
           requests:
             cpu: 250m

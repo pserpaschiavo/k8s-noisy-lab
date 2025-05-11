@@ -1,0 +1,222 @@
+[2025-05-11 15:20:34] Iniciando experimento: firsts-analisys-2
+[2025-05-11 15:20:34] Log sendo salvo em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/15-20-34/firsts-analisys-2/experiment.log
+[2025-05-11 15:20:35] Verificando pré-requisitos...
+[2025-05-11 15:20:35] Métricas serão salvas em: /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/15-20-34/firsts-analisys-2
+[2025-05-11 15:20:35] Intervalo de coleta: 5 segundos
+[2025-05-11 15:20:35] Validando recursos do cluster...
+[0;35m==========================================[0m
+[0;35m     VERIFICAÇÃO PRÉ-EXPERIMENTO         [0m
+[0;35m==========================================[0m
+[0;35mVerificando conectividade com o cluster...[0m
+[0;32m✓ Conexão com o cluster estabelecida com sucesso[0m
+[0;35mVerificando estado dos nós do cluster...[0m
+[0;32m✓ O cluster possui 1 nós disponíveis[0m
+[0;35mVerificando recursos disponíveis no cluster...[0m
+CPU: [0;35m11[0m cores
+Memória: [0;35m28.73[0m GB
+[0;32m✓ Recursos do cluster são suficientes para o experimento[0m
+[0;35mVerificando namespaces necessárias...[0m
+[0;32m✓ Namespace 'tenant-a' encontrada[0m
+[0;32m✓ Namespace 'tenant-b' encontrada[0m
+[0;32m✓ Namespace 'tenant-c' encontrada[0m
+[0;32m✓ Namespace 'monitoring' encontrada[0m
+[0;35mVerificando disponibilidade do Prometheus...[0m
+[0;32m✓ Prometheus está rodando e pronto[0m
+[0;35mVerificando disponibilidade das métricas essenciais...[0m
+[0;32m✓ Métrica 'container_cpu_usage_seconds_total' disponível[0m
+[0;32m✓ Métrica 'container_memory_working_set_bytes' disponível[0m
+[0;32m✓ Métrica 'container_network_receive_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_network_transmit_bytes_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_throttled_periods_total' disponível[0m
+[0;32m✓ Métrica 'container_cpu_cfs_periods_total' disponível[0m
+[0;35mVerificando permissões necessárias...[0m
+[0;35mVerificando CRDs do Prometheus Operator...[0m
+[0;32m✓ CRD 'servicemonitors.monitoring.coreos.com' encontrada[0m
+[0;32m✓ CRD 'prometheusrules.monitoring.coreos.com' encontrada[0m
+[0;35m==========================================[0m
+[0;32m✓ Cluster validado com sucesso para o experimento[0m
+[0;35m==========================================[0m
+
+Informações adicionais:
+- O experimento utiliza métricas da cAdvisor integradas ao kubelet
+- As queries do Prometheus usam principalmente métricas rate() com 1m de janela
+- Os workloads são distribuídos em 3 tenants para simular o cenário de noisy neighbour
+
+Recomendações finais:
+- Certifique-se de ter pelo menos 15-20% de recursos livres além dos solicitados
+- Se estiver usando Minikube, use a opção '--driver=docker' para melhor desempenho
+- Verifique se não há outros processos consumindo recursos significativos nos nós
+[2025-05-11 15:20:38] Criando namespaces...
+[2025-05-11 15:20:38] Namespace 'tenant-a' já existe.
+[2025-05-11 15:20:38] Namespace 'tenant-b' já existe.
+[2025-05-11 15:20:39] Namespace 'tenant-c' já existe.
+[2025-05-11 15:20:39] Namespace 'tenant-d' já existe.
+[2025-05-11 15:20:39] Namespace 'monitoring' já existe.
+[2025-05-11 15:20:39] Namespace 'ingress-nginx' já existe.
+NAME              STATUS   AGE
+default           Active   58m
+ingress-nginx     Active   58m
+kube-node-lease   Active   58m
+kube-public       Active   58m
+kube-system       Active   58m
+metallb-system    Active   53m
+monitoring        Active   58m
+tenant-a          Active   58m
+tenant-b          Active   58m
+tenant-c          Active   58m
+tenant-d          Active   58m
+[2025-05-11 15:20:44] Aplicando resource quotas...
+resourcequota/tenant-a-quota configured
+resourcequota/tenant-b-quota unchanged
+resourcequota/tenant-c-quota configured
+resourcequota/tenant-d-quota unchanged
+[2025-05-11 15:20:49] Verificando quotas de recursos...
+NAMESPACE   NAME             AGE   REQUEST                                                 LIMIT
+tenant-a    tenant-a-quota   51m   requests.cpu: 800m/1500m, requests.memory: 1Gi/2Gi      limits.cpu: 1600m/3, limits.memory: 2Gi/4Gi
+tenant-b    tenant-b-quota   51m   requests.cpu: 2500m/3, requests.memory: 2816Mi/4Gi      limits.cpu: 5800m/6, limits.memory: 7680Mi/8Gi
+tenant-c    tenant-c-quota   51m   requests.cpu: 350m/1500m, requests.memory: 1088Mi/3Gi   limits.cpu: 600m/3, limits.memory: 1664Mi/6Gi
+tenant-d    tenant-d-quota   51m   requests.cpu: 600m/2, requests.memory: 1152Mi/2Gi       limits.cpu: 1200m/4, limits.memory: 1792Mi/4Gi
+[2025-05-11 15:20:49] Namespace 'monitoring' já existe.
+[2025-05-11 15:20:49] Verificando o estado do Prometheus...
+[2025-05-11 15:20:49] Verificando pods do Prometheus...
+[2025-05-11 15:20:49] Verificando serviços do Prometheus...
+[2025-05-11 15:20:50] Encontrado serviço do Prometheus: prometheus-operated
+[2025-05-11 15:20:52] Configurando port-forward para o Prometheus...
+Unable to listen on port 9090: Listeners failed to create with the following errors: [unable to create listener: Error listen tcp4 127.0.0.1:9090: bind: address already in use unable to create listener: Error listen tcp6 [::1]:9090: bind: address already in use]
+error: unable to listen on any of the requested ports: [{9090 9090}]
+[2025-05-11 15:20:57] Prometheus está acessível via localhost:9090
+[2025-05-11 15:20:57] Prometheus tem 73 targets ativos
+[2025-05-11 15:20:57] Verificação do Prometheus concluída
+[2025-05-11 15:20:57] Ajustando durações nos manifestos de acordo com as durações das fases...
+[2025-05-11 15:20:57] Duração total do experimento (estimada): 1800s para 1 rounds
+[2025-05-11 15:20:57] Duração mínima dos workloads: 2340s (inclui margem de segurança de 30%)
+[2025-05-11 15:20:57]   - Ajustada duração do nginx-benchmark para 2340s
+[2025-05-11 15:20:57]   - Ajustada duração do continuous-memory-stress para 2340s
+[2025-05-11 15:20:57]   - Ajustada duração dos workloads contínuos do tenant-d para 2340s
+[2025-05-11 15:20:57]   - Ajustado timeout do stress-ng para 960s
+[2025-05-11 15:20:57] Manifestos ajustados com sucesso!
+[2025-05-11 15:20:57]   - Verificadas configurações adicionais de duração no tenant-a
+[2025-05-11 15:20:57] ======= INÍCIO DO EXPERIMENTO: firsts-analisys-2 =======
+[2025-05-11 15:20:57] Data: 2025/05/11, Hora: 15:20:34
+[2025-05-11 15:20:57] Número de rounds: 1
+[2025-05-11 15:20:57] Duração das fases: Baseline=300s, Ataque=900s, Recuperação=600s
+[2025-05-11 15:20:57] Intervalo de coleta de métricas: 5s
+[2025-05-11 15:20:57] ===== ROUND 1/1 =====
+[2025-05-11 15:20:57] Limpando workloads para começar o round 1 com um ambiente limpo...
+deployment.apps "nginx-deployment" deleted
+configmap "nginx-config" deleted
+service "nginx" deleted
+job.batch "nginx-benchmark" deleted
+deployment.apps "iperf-server" deleted
+service "iperf-server" deleted
+deployment.apps "stress-ng" deleted
+deployment.apps "traffic-generator" deleted
+deployment.apps "traffic-server" deleted
+configmap "nginx-traffic-server-config" deleted
+service "traffic-server" deleted
+service "redis" deleted
+deployment.apps "redis-deployment" deleted
+job.batch "continuous-memory-stress" deleted
+deployment.apps "memory-monitor" deleted
+persistentvolumeclaim "postgres-data" deleted
+configmap "postgres-config" deleted
+service "postgres" deleted
+deployment.apps "postgres" deleted
+job.batch "pgbench-init" deleted
+job.batch "pgbench-continuous-workload" deleted
+job.batch "cpu-intensive-continuous" deleted
+job.batch "disk-intensive-continuous" deleted
+error: error parsing /home/phil/Projects/k8s-noisy-lab/manifests/tenant-d/cpu-disk-workload.yaml: error converting YAML to JSON: yaml: line 94: could not find expected ':'
+[2025-05-11 15:20:58] Aguardando finalização completa dos recursos anteriores...
+pod/iperf-server-d79fbdf6c-jsdtl condition met
+pod/nginx-deployment-56fc57d4-75bcl condition met
+pod/nginx-deployment-56fc57d4-gn54r condition met
+pod/nginx-deployment-56fc57d4-tdcfm condition met
+pod/stress-ng-6764fc7965-hwzsz condition met
+pod/stress-ng-6764fc7965-nfg44 condition met
+pod/traffic-generator-85fb77744d-dxvqk condition met
+pod/traffic-generator-85fb77744d-m5v4c condition met
+pod/traffic-generator-85fb77744d-nsrnx condition met
+[2025-05-11 15:21:29] === Fase 1 - Baseline ===
+[2025-05-11 15:21:29] Coletando métricas a cada 5 segundos...
+[2025-05-11 15:21:29] Coleta de métricas iniciada com PID: 440448 (log: /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/15-20-34/firsts-analisys-2/round-1/1 - Baseline/logs/metrics_collection.log)
+[2025-05-11 15:21:29] Iniciando fase: 1 - Baseline com duração máxima de 300s
+[2025-05-11 15:21:29] Implantando tenant-a (sensível à rede)...
+[2025-05-11 15:21:29] Prometheus já está acessível via localhost:9090
+deployment.apps/nginx-deployment created
+configmap/nginx-config created
+service/nginx created
+job.batch/nginx-benchmark created
+deployment.apps/iperf-server created
+service/iperf-server created
+[2025-05-11 15:21:29] Aguardando inicialização dos serviços do tenant-a...
+deployment.apps/nginx-deployment condition met
+[2025-05-11 15:21:31] Implantando tenant-c (vítima)...
+service/redis created
+deployment.apps/redis-deployment created
+job.batch/continuous-memory-stress created
+deployment.apps/memory-monitor created
+[2025-05-11 15:21:31] Implantando tenant-d (CPU e Disco)...
+persistentvolumeclaim/postgres-data created
+configmap/postgres-config created
+service/postgres created
+deployment.apps/postgres created
+job.batch/pgbench-init created
+job.batch/pgbench-continuous-workload created
+job.batch/cpu-intensive-continuous created
+job.batch/disk-intensive-continuous created
+error: error parsing /home/phil/Projects/k8s-noisy-lab/manifests/tenant-d/cpu-disk-workload.yaml: error converting YAML to JSON: yaml: line 94: could not find expected ':'
+[2025-05-11 15:26:29] Fase 1 - Baseline concluída
+[2025-05-11 15:26:29] Interrompendo coleta de métricas (PID: 440448)...
+[2025-05-11 15:26:29] Coleta de métricas finalizada.
+[2025-05-11 15:26:29] Fase '1 - Baseline' concluída.
+[2025-05-11 15:26:29] Modo não interativo: continuando automaticamente para a próxima fase...
+[2025-05-11 15:26:29] === Fase 2 - Attack ===
+[2025-05-11 15:26:29] Coletando métricas a cada 5 segundos...
+[2025-05-11 15:26:29] Coleta de métricas iniciada com PID: 497322 (log: /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/15-20-34/firsts-analisys-2/round-1/2 - Attack/logs/metrics_collection.log)
+[2025-05-11 15:26:29] Iniciando fase: 2 - Attack com duração máxima de 900s
+[2025-05-11 15:26:29] Implantando tenant-b (atacante noisy neighbor)...
+[2025-05-11 15:26:29] Prometheus já está acessível via localhost:9090
+deployment.apps/stress-ng created
+deployment.apps/traffic-generator created
+deployment.apps/traffic-server created
+configmap/nginx-traffic-server-config created
+service/traffic-server created
+[2025-05-11 15:26:30] Aguardando inicialização dos serviços do tenant-b...
+deployment.apps/traffic-generator condition met
+[2025-05-11 15:28:21] Timeout aguardando pelo traffic-server no tenant-b
+deployment.apps/stress-ng condition met
+Error from server (NotFound): deployments.apps "iperf-server" not found
+[2025-05-11 15:28:21] Timeout aguardando pelo iperf-server no tenant-b
+[2025-05-11 15:28:21] Verificando todos os tenants após a implantação do atacante...
+[2025-05-11 15:28:21] Verificando se todos os tenants relevantes para a fase 'attack' estão prontos...
+[2025-05-11 15:28:21] Aguardando pods no namespace tenant-a ficarem prontos (timeout: 60s)...
+[2025-05-11 15:28:21] Todos os pods no namespace tenant-a estão prontos!
+[2025-05-11 15:28:22] Aguardando pods no namespace tenant-b ficarem prontos (timeout: 60s)...
+[2025-05-11 15:28:22] Todos os pods no namespace tenant-b estão prontos!
+[2025-05-11 15:28:22] Aguardando pods no namespace tenant-c ficarem prontos (timeout: 60s)...
+[2025-05-11 15:28:22] Todos os pods no namespace tenant-c estão prontos!
+[2025-05-11 15:28:22] Aguardando pods no namespace tenant-d ficarem prontos (timeout: 60s)...
+[2025-05-11 15:28:23] Status dos pods em tenant-d:
+[2025-05-11 15:28:23] Detalhes dos pods com problemas:
+[2025-05-11 15:28:28] Aguardando pods no namespace tenant-d... (5/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:28:34] Aguardando pods no namespace tenant-d... (10/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:28:39] Status dos pods em tenant-d:
+[2025-05-11 15:28:39] Detalhes dos pods com problemas:
+[2025-05-11 15:28:44] Aguardando pods no namespace tenant-d... (20/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:28:50] Aguardando pods no namespace tenant-d... (25/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:28:55] Status dos pods em tenant-d:
+[2025-05-11 15:28:55] Detalhes dos pods com problemas:
+[2025-05-11 15:29:01] Aguardando pods no namespace tenant-d... (35/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:29:06] Aguardando pods no namespace tenant-d... (40/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:29:11] Status dos pods em tenant-d:
+[2025-05-11 15:29:11] Detalhes dos pods com problemas:
+[2025-05-11 15:29:17] Aguardando pods no namespace tenant-d... (50/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:29:22] Aguardando pods no namespace tenant-d... (55/60s) - 4 pods ainda não prontos, 0 não em execução
+[2025-05-11 15:29:27] Timeout aguardando pods no namespace tenant-d
+[2025-05-11 15:29:27] Status atual dos pods:
+[2025-05-11 15:29:27] Problemas detectados no namespace tenant-d
+[2025-05-11 15:29:27] Aguardando pods no namespace ingress-nginx ficarem prontos (timeout: 60s)...
+[2025-05-11 15:29:28] Todos os pods no namespace ingress-nginx estão prontos!
+[2025-05-11 15:29:28] Nem todos os tenants estão completamente prontos, verificando se é possível continuar...
+[2025-05-11 15:29:28] Os pods críticos estão funcionando. Continuando, mas os resultados podem ser afetados.

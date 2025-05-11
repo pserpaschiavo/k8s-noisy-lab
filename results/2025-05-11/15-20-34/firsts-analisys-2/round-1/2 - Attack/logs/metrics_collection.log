@@ -1,0 +1,240 @@
+[20250511_152629] Iniciando coleta de métricas a cada 5 segundos
+[20250511_152629] Métricas configuradas para coleta: 38
+[20250511_152629] Verificando acesso ao Prometheus...
+[20250511_152629] Prometheus já está acessível via localhost:9090
+[20250511_152629] Testando consulta ao Prometheus...
+[20250511_152629] Alvos do Prometheus: 68 ativos, 317 descartados
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3  465G   28G  434G   6% /
+devtmpfs        4.0M     0  4.0M   0% /dev
+tmpfs            16G   36M   16G   1% /dev/shm
+efivarfs        128K   50K   74K  41% /sys/firmware/efi/efivars
+tmpfs           6.3G  2.3M  6.3G   1% /run
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+tmpfs            16G  5.1M   16G   1% /tmp
+/dev/nvme0n1p3  465G   28G  434G   6% /home
+/dev/nvme0n1p2  974M  463M  444M  52% /boot
+/dev/nvme0n1p1  599M   53M  547M   9% /boot/efi
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-resolved.service
+tmpfs           3.2G  180K  3.2G   1% /run/user/1000
+[20250511_152629] DEBUG: Verificando permissões de escrita em /home/phil/Projects/k8s-noisy-lab/results/2025-05-11/15-20-34/firsts-analisys-2
+Escrita permitida
+[20250511_152629] DEBUG: Número total de métricas: 38
+[20250511_152629] Verificando pods em todos os namespaces:
+NAMESPACE        NAME                                                     READY   STATUS              RESTARTS   AGE
+ingress-nginx    ingress-nginx-controller-77ff9b8cfc-pxppq                1/1     Running             0          61m
+kube-system      calico-kube-controllers-5745477d4d-x72lp                 1/1     Running             0          64m
+kube-system      calico-node-lpsv9                                        1/1     Running             0          64m
+kube-system      coredns-668d6bf9bc-n7rts                                 1/1     Running             0          64m
+kube-system      etcd-minikube                                            1/1     Running             0          64m
+kube-system      kube-apiserver-minikube                                  1/1     Running             0          64m
+kube-system      kube-controller-manager-minikube                         1/1     Running             0          64m
+kube-system      kube-proxy-h4mr6                                         1/1     Running             0          64m
+kube-system      kube-scheduler-minikube                                  1/1     Running             0          64m
+kube-system      metrics-server-7fbb699795-4l2vd                          1/1     Running             0          64m
+kube-system      storage-provisioner                                      1/1     Running             0          64m
+metallb-system   controller-bb5f47665-9rcc4                               1/1     Running             0          59m
+metallb-system   speaker-7662w                                            1/1     Running             0          59m
+monitoring       alertmanager-prometheus-kube-prometheus-alertmanager-0   2/2     Running             0          62m
+monitoring       blackbox-exporter-849545489b-wtt89                       1/1     Running             0          57m
+monitoring       prometheus-grafana-779f94ccc5-5lk4r                      3/3     Running             0          63m
+monitoring       prometheus-kube-prometheus-operator-58dbc8bb4f-ctfhn     1/1     Running             0          63m
+monitoring       prometheus-kube-state-metrics-5bc7f89f46-svw6t           1/1     Running             0          63m
+monitoring       prometheus-prometheus-kube-prometheus-prometheus-0       2/2     Running             0          62m
+monitoring       prometheus-prometheus-node-exporter-xrbld                1/1     Running             0          63m
+tenant-a         iperf-server-d79fbdf6c-fct9p                             1/1     Running             0          5m
+tenant-a         nginx-benchmark-5nsvs                                    1/1     Running             0          5m
+tenant-a         nginx-deployment-56fc57d4-2m225                          1/1     Running             0          5m
+tenant-a         nginx-deployment-56fc57d4-s2zxg                          1/1     Running             0          5m
+tenant-a         nginx-deployment-56fc57d4-sl9hw                          1/1     Running             0          5m
+tenant-b         stress-ng-6764fc7965-8lprs                               0/1     ContainerCreating   0          0s
+tenant-b         stress-ng-6764fc7965-x7hhr                               0/1     Pending             0          0s
+tenant-b         traffic-generator-85fb77744d-l7cp9                       0/1     Pending             0          0s
+tenant-b         traffic-generator-85fb77744d-pppb8                       0/1     Pending             0          0s
+tenant-b         traffic-generator-85fb77744d-zxswr                       0/1     Pending             0          0s
+tenant-c         continuous-memory-stress-jbd2q                           1/1     Running             0          4m58s
+tenant-c         memory-monitor-cfd7584c6-6gfvj                           1/1     Running             0          4m58s
+tenant-c         redis-deployment-6f5c56db8b-4nkm5                        1/1     Running             0          4m58s
+tenant-d         cpu-intensive-continuous-8sw5f                           0/1     Completed           0          4m58s
+tenant-d         disk-intensive-continuous-sq6p6                          1/1     Running             0          2m55s
+tenant-d         pgbench-continuous-workload-z5jjp                        0/1     Completed           0          4m58s
+tenant-d         pgbench-init-vcbsv                                       0/1     Completed           0          4m58s
+tenant-d         postgres-5dc855c4cc-wrgxm                                2/2     Running             0          4m58s
+[20250511_152629] WARN: sem dados para cpu_throttled_time
+[20250511_152629] WARN: sem dados para memory_usage_noisy_victim_ratio
+[20250511_152629] WARN: sem dados para resource_dominance_index
+[20250511_152629] WARN: sem dados para cpu_throttled_ratio
+[20250511_152629] WARN: sem dados para memory_pressure
+[20250511_152629] WARN: sem dados para postgres_connections
+[20250511_152629] WARN: sem dados para postgres_transactions
+[20250511_152629] WARN: sem dados para cpu_usage_noisy_victim_ratio
+[20250511_152629] WARN: sem dados para postgres_disk_io
+[20250511_152629] WARN: sem dados para network_usage_noisy_victim_ratio
+[20250511_152629] WARN: sem dados para latency_process_time
+[20250511_152629] INFO: Coletadas 124 métricas com sucesso (falhas: 0, total até agora: sucesso=1, falha=0)
+[20250511_152636] WARN: sem dados para cpu_throttled_time
+[20250511_152636] WARN: sem dados para resource_dominance_index
+[20250511_152636] WARN: sem dados para cpu_throttled_ratio
+[20250511_152636] WARN: sem dados para memory_pressure
+[20250511_152636] WARN: sem dados para postgres_connections
+[20250511_152636] WARN: sem dados para postgres_transactions
+[20250511_152636] WARN: sem dados para cpu_usage_noisy_victim_ratio
+[20250511_152636] WARN: sem dados para postgres_disk_io
+[20250511_152636] WARN: sem dados para network_usage_noisy_victim_ratio
+[20250511_152636] WARN: sem dados para latency_process_time
+[20250511_152636] INFO: Coletadas 141 métricas com sucesso (falhas: 0, total até agora: sucesso=2, falha=0)
+[20250511_152643] WARN: sem dados para cpu_throttled_time
+[20250511_152643] WARN: sem dados para resource_dominance_index
+[20250511_152643] WARN: sem dados para cpu_throttled_ratio
+[20250511_152643] WARN: sem dados para memory_pressure
+[20250511_152643] WARN: sem dados para postgres_connections
+[20250511_152643] WARN: sem dados para postgres_transactions
+[20250511_152643] WARN: sem dados para cpu_usage_noisy_victim_ratio
+[20250511_152643] WARN: sem dados para postgres_disk_io
+[20250511_152643] WARN: sem dados para network_usage_noisy_victim_ratio
+[20250511_152643] WARN: sem dados para latency_process_time
+[20250511_152643] INFO: Coletadas 142 métricas com sucesso (falhas: 0, total até agora: sucesso=3, falha=0)
+[20250511_152650] WARN: sem dados para cpu_throttled_time
+[20250511_152650] WARN: sem dados para cpu_throttled_ratio
+[20250511_152650] WARN: sem dados para memory_pressure
+[20250511_152650] WARN: sem dados para postgres_connections
+[20250511_152650] WARN: sem dados para postgres_transactions
+[20250511_152650] WARN: sem dados para postgres_disk_io
+[20250511_152650] WARN: sem dados para latency_process_time
+[20250511_152650] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=4, falha=0)
+[20250511_152657] WARN: sem dados para cpu_throttled_time
+[20250511_152657] WARN: sem dados para cpu_throttled_ratio
+[20250511_152657] WARN: sem dados para memory_pressure
+[20250511_152657] WARN: sem dados para postgres_connections
+[20250511_152657] WARN: sem dados para postgres_transactions
+[20250511_152657] WARN: sem dados para postgres_disk_io
+[20250511_152657] WARN: sem dados para latency_process_time
+[20250511_152657] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=5, falha=0)
+[20250511_152705] WARN: sem dados para cpu_throttled_time
+[20250511_152705] WARN: sem dados para cpu_throttled_ratio
+[20250511_152705] WARN: sem dados para memory_pressure
+[20250511_152705] WARN: sem dados para postgres_connections
+[20250511_152705] WARN: sem dados para postgres_transactions
+[20250511_152705] WARN: sem dados para postgres_disk_io
+[20250511_152705] WARN: sem dados para latency_process_time
+[20250511_152705] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=6, falha=0)
+[20250511_152713] WARN: sem dados para cpu_throttled_time
+[20250511_152713] WARN: sem dados para cpu_throttled_ratio
+[20250511_152713] WARN: sem dados para memory_pressure
+[20250511_152713] WARN: sem dados para postgres_connections
+[20250511_152713] WARN: sem dados para postgres_transactions
+[20250511_152713] WARN: sem dados para postgres_disk_io
+[20250511_152713] WARN: sem dados para latency_process_time
+[20250511_152713] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=7, falha=0)
+[20250511_152720] WARN: sem dados para cpu_throttled_time
+[20250511_152720] WARN: sem dados para cpu_throttled_ratio
+[20250511_152720] WARN: sem dados para memory_pressure
+[20250511_152720] WARN: sem dados para postgres_connections
+[20250511_152720] WARN: sem dados para postgres_transactions
+[20250511_152720] WARN: sem dados para postgres_disk_io
+[20250511_152720] WARN: sem dados para latency_process_time
+[20250511_152720] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=8, falha=0)
+[20250511_152727] WARN: sem dados para cpu_throttled_time
+[20250511_152727] WARN: sem dados para cpu_throttled_ratio
+[20250511_152727] WARN: sem dados para memory_pressure
+[20250511_152727] WARN: sem dados para postgres_connections
+[20250511_152727] WARN: sem dados para postgres_transactions
+[20250511_152727] WARN: sem dados para postgres_disk_io
+[20250511_152727] WARN: sem dados para latency_process_time
+[20250511_152727] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=9, falha=0)
+[20250511_152734] WARN: sem dados para cpu_throttled_time
+[20250511_152734] WARN: sem dados para cpu_throttled_ratio
+[20250511_152734] WARN: sem dados para memory_pressure
+[20250511_152734] WARN: sem dados para postgres_connections
+[20250511_152734] WARN: sem dados para postgres_transactions
+[20250511_152734] WARN: sem dados para postgres_disk_io
+[20250511_152734] WARN: sem dados para latency_process_time
+[20250511_152734] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=10, falha=0)
+[20250511_152742] Verificando pods em todos os namespaces:
+NAMESPACE        NAME                                                     READY   STATUS      RESTARTS   AGE
+ingress-nginx    ingress-nginx-controller-77ff9b8cfc-pxppq                1/1     Running     0          62m
+kube-system      calico-kube-controllers-5745477d4d-x72lp                 1/1     Running     0          65m
+kube-system      calico-node-lpsv9                                        1/1     Running     0          65m
+kube-system      coredns-668d6bf9bc-n7rts                                 1/1     Running     0          65m
+kube-system      etcd-minikube                                            1/1     Running     0          65m
+kube-system      kube-apiserver-minikube                                  1/1     Running     0          65m
+kube-system      kube-controller-manager-minikube                         1/1     Running     0          65m
+kube-system      kube-proxy-h4mr6                                         1/1     Running     0          65m
+kube-system      kube-scheduler-minikube                                  1/1     Running     0          65m
+kube-system      metrics-server-7fbb699795-4l2vd                          1/1     Running     0          65m
+kube-system      storage-provisioner                                      1/1     Running     0          65m
+metallb-system   controller-bb5f47665-9rcc4                               1/1     Running     0          60m
+metallb-system   speaker-7662w                                            1/1     Running     0          60m
+monitoring       alertmanager-prometheus-kube-prometheus-alertmanager-0   2/2     Running     0          64m
+monitoring       blackbox-exporter-849545489b-wtt89                       1/1     Running     0          58m
+monitoring       prometheus-grafana-779f94ccc5-5lk4r                      3/3     Running     0          64m
+monitoring       prometheus-kube-prometheus-operator-58dbc8bb4f-ctfhn     1/1     Running     0          64m
+monitoring       prometheus-kube-state-metrics-5bc7f89f46-svw6t           1/1     Running     0          64m
+monitoring       prometheus-prometheus-kube-prometheus-prometheus-0       2/2     Running     0          64m
+monitoring       prometheus-prometheus-node-exporter-xrbld                1/1     Running     0          64m
+tenant-a         iperf-server-d79fbdf6c-fct9p                             1/1     Running     0          6m13s
+tenant-a         nginx-benchmark-5nsvs                                    1/1     Running     0          6m13s
+tenant-a         nginx-deployment-56fc57d4-2m225                          1/1     Running     0          6m13s
+tenant-a         nginx-deployment-56fc57d4-s2zxg                          1/1     Running     0          6m13s
+tenant-a         nginx-deployment-56fc57d4-sl9hw                          1/1     Running     0          6m13s
+tenant-b         stress-ng-6764fc7965-8lprs                               1/1     Running     0          73s
+tenant-b         stress-ng-6764fc7965-x7hhr                               1/1     Running     0          73s
+tenant-b         traffic-generator-85fb77744d-l7cp9                       1/1     Running     0          73s
+tenant-b         traffic-generator-85fb77744d-pppb8                       1/1     Running     0          73s
+tenant-b         traffic-generator-85fb77744d-zxswr                       1/1     Running     0          73s
+tenant-c         continuous-memory-stress-jbd2q                           1/1     Running     0          6m11s
+tenant-c         memory-monitor-cfd7584c6-6gfvj                           1/1     Running     0          6m11s
+tenant-c         redis-deployment-6f5c56db8b-4nkm5                        1/1     Running     0          6m11s
+tenant-d         cpu-intensive-continuous-8sw5f                           0/1     Completed   0          6m11s
+tenant-d         disk-intensive-continuous-sq6p6                          0/1     Completed   0          4m8s
+tenant-d         pgbench-continuous-workload-z5jjp                        0/1     Completed   0          6m11s
+tenant-d         pgbench-init-vcbsv                                       0/1     Completed   0          6m11s
+tenant-d         postgres-5dc855c4cc-wrgxm                                2/2     Running     0          6m11s
+[20250511_152742] WARN: sem dados para cpu_throttled_time
+[20250511_152742] WARN: sem dados para cpu_throttled_ratio
+[20250511_152742] WARN: sem dados para memory_pressure
+[20250511_152742] WARN: sem dados para postgres_connections
+[20250511_152742] WARN: sem dados para postgres_transactions
+[20250511_152742] WARN: sem dados para postgres_disk_io
+[20250511_152742] WARN: sem dados para latency_process_time
+[20250511_152742] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=11, falha=0)
+[20250511_152748] WARN: sem dados para cpu_throttled_time
+[20250511_152748] WARN: sem dados para cpu_throttled_ratio
+[20250511_152748] WARN: sem dados para memory_pressure
+[20250511_152748] WARN: sem dados para postgres_connections
+[20250511_152748] WARN: sem dados para postgres_transactions
+[20250511_152748] WARN: sem dados para postgres_disk_io
+[20250511_152748] WARN: sem dados para latency_process_time
+[20250511_152748] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=12, falha=0)
+[20250511_152755] WARN: sem dados para cpu_throttled_time
+[20250511_152755] WARN: sem dados para cpu_throttled_ratio
+[20250511_152755] WARN: sem dados para memory_pressure
+[20250511_152755] WARN: sem dados para postgres_connections
+[20250511_152755] WARN: sem dados para postgres_transactions
+[20250511_152755] WARN: sem dados para postgres_disk_io
+[20250511_152755] WARN: sem dados para latency_process_time
+[20250511_152755] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=13, falha=0)
+[20250511_152802] WARN: sem dados para cpu_throttled_time
+[20250511_152802] WARN: sem dados para cpu_throttled_ratio
+[20250511_152802] WARN: sem dados para memory_pressure
+[20250511_152802] WARN: sem dados para postgres_connections
+[20250511_152802] WARN: sem dados para postgres_transactions
+[20250511_152802] WARN: sem dados para postgres_disk_io
+[20250511_152802] WARN: sem dados para latency_process_time
+[20250511_152802] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=14, falha=0)
+[20250511_152809] WARN: sem dados para cpu_throttled_time
+[20250511_152809] WARN: sem dados para cpu_throttled_ratio
+[20250511_152809] WARN: sem dados para memory_pressure
+[20250511_152809] WARN: sem dados para postgres_connections
+[20250511_152809] WARN: sem dados para postgres_transactions
+[20250511_152809] WARN: sem dados para postgres_disk_io
+[20250511_152809] WARN: sem dados para latency_process_time
+[20250511_152809] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=15, falha=0)
+[20250511_152816] WARN: sem dados para cpu_throttled_time
+[20250511_152816] WARN: sem dados para cpu_throttled_ratio
+[20250511_152816] WARN: sem dados para memory_pressure
+[20250511_152816] WARN: sem dados para postgres_connections
+[20250511_152816] WARN: sem dados para postgres_transactions
+[20250511_152816] WARN: sem dados para postgres_disk_io
+[20250511_152816] WARN: sem dados para latency_process_time
+[20250511_152816] INFO: Coletadas 154 métricas com sucesso (falhas: 0, total até agora: sucesso=16, falha=0)
