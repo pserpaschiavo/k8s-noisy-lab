@@ -4,7 +4,7 @@ metadata:
   name: stress-ng
   namespace: tenant-b
 spec:
-  replicas: 1
+  replicas: 2  # Aumentando para 2 réplicas para gerar mais carga
   selector:
     matchLabels:
       app: stress-ng
@@ -18,31 +18,34 @@ spec:
         image: polinux/stress-ng
         args:
         - "--cpu"
-        - "2"
+        - "4"         # Mais processos de CPU
         - "--vm"
-        - "1"
+        - "2"         # Mais processos de VM
         - "--vm-bytes"
-        - "1024M"
+        - "1536M"     # Mais memória por processo
+        - "--io"
+        - "2"         # Adiciona carga de I/O
         - "--timeout"
         - "300s"
+        - "--metrics-brief" # Saída de métricas mais detalhada
         resources:
           requests:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 800m        # Aumentando solicitação de CPU
+            memory: 1Gi      # Aumentando solicitação de memória
           limits:
-            cpu: 1
-            memory: 2Gi
+            cpu: 2           # Aumentando limite de CPU
+            memory: 3Gi      # Aumentando limite de memória
         livenessProbe:
           exec:
             command:
             - stress-ng
             - --version
           initialDelaySeconds: 5
-          periodSeconds: 10
+          periodSeconds: 20
         readinessProbe:
           exec:
             command:
             - stress-ng
             - --version
           initialDelaySeconds: 5
-          periodSeconds: 10
+          periodSeconds: 20

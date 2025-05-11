@@ -33,16 +33,18 @@ spec:
         command: ["redis-server"]
         args:
         - "--maxmemory"
-        - "900mb"
+        - "1200mb"  # Aumentando para usar mais memória
         - "--maxmemory-policy"
         - "allkeys-lru"
+        - "--save"
+        - "60 1000"  # Salvar a cada 60 segundos se houver 1000 chaves alteradas
         resources:
           requests:
-            cpu: 200m
-            memory: 512Mi
+            cpu: 300m       # Aumentando request de CPU
+            memory: 1Gi     # Aumentando request de memória
           limits:
-            cpu: 400m
-            memory: 1Gi
+            cpu: 500m       # Mantendo limite de CPU moderado
+            memory: 1.5Gi   # Aumentando limite de memória
 ---
 apiVersion: batch/v1
 kind: Job
@@ -62,14 +64,21 @@ spec:
         - "-p"
         - "6379"
         - "-c"
-        - "50"
+        - "100"           # Aumentando para 100 conexões simultâneas
         - "-n"
-        - "100000"
+        - "200000"        # Aumentando número de operações
         - "-d"
-        - "8192"  # usar payloads maiores para aumentar uso de memória
+        - "16384"         # Usando payloads maiores (16KB)
         - "-t"
-        - "set,lpush,sadd,zadd"  # foco em operações que consomem memória
+        - "set,lpush,sadd,zadd,hset"  # Mais tipos de operações que consomem memória
         - "--csv"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
       restartPolicy: Never
   backoffLimit: 4
 ---
@@ -79,7 +88,7 @@ metadata:
   name: continuous-memory-stress
   namespace: tenant-c
 spec:
-  schedule: "*/2 * * * *"  # A cada 2 minutos
+  schedule: "*/1 * * * *"  # A cada minuto (mais frequente)
   concurrencyPolicy: Allow
   jobTemplate:
     spec:
@@ -91,18 +100,84 @@ spec:
             command: ["/bin/sh", "-c"]
             args:
             - |
-              # Executar benchmark contínuo durante o experimento
+              # Executar benchmark contínuo com operações mais intensivas de memória
               for i in $(seq 1 60); do
+                # Usar diferentes tipos de operações com keys e valores grandes
+                redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 config set save "" || true
+                
+                # Configurar para usar mais memória
+                redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 config set maxmemory-policy allkeys-lru || true
+                
+                # Inserir muito mais dados para forçar o uso do limite de memória
+                echo "Inserindo dados grandes - rodada $i"
                 redis-benchmark -h redis.tenant-c.svc.cluster.local -p 6379 \
-                  -c 30 -n 50000 -d 4096 -t set,lpush -q || true
-                sleep 5
+                  -c 50 -n 100000 -d 8192 -t set -q || true
+                
+                # Inserir estruturas de dados complexas que usam mais memória
+                echo "Inserindo estruturas de dados complexas - rodada $i"
+                redis-benchmark -h redis.tenant-c.svc.cluster.local -p 6379 \
+                  -c 30 -n 50000 -d 4096 -t hset,lpush,zadd -q || true
+                
+                # Criar estruturas de dados aninhadas que usam mais memória
+                echo "Criando hashes complexos - rodada $i"
+                for j in $(seq 1 1000); do
+                  redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 \
+                    hset "user:$j" name "user$j" email "user$j@example.com" age "$j" \
+                    created "$(date)" data "$(dd if=/dev/urandom bs=512 count=1 | base64)" || true
+                  
+                  # Inserir listas grandes que consomem muita memória
+                  if [ $((j % 20)) -eq 0 ]; then
+                    for k in $(seq 1 100); do
+                      redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 \
+                        lpush "list:$j" "$(dd if=/dev/urandom bs=256 count=1 | base64)" || true
+                    done
+                  fi
+                done
+                
+                sleep 2
               done
             resources:
               requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
                 cpu: 200m
                 memory: 256Mi
+              limits:
+                cpu: 400m
+                memory: 512Mi
           restartPolicy: Never
       backoffLimit: 0
+---
+# Adicionando um monitor de memória para visualizar o impacto no Redis
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-monitor
+  namespace: tenant-c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memory-monitor
+  template:
+    metadata:
+      labels:
+        app: memory-monitor
+    spec:
+      containers:
+      - name: memory-monitor
+        image: redis:6.2
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          while true; do
+            echo "$(date) - Coletando estatísticas de memória do Redis..."
+            redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 info memory || echo "Falha ao conectar ao Redis"
+            redis-cli -h redis.tenant-c.svc.cluster.local -p 6379 info stats || echo "Falha ao coletar estatísticas"
+            sleep 10
+          done
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
