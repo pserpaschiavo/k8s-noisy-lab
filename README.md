@@ -48,6 +48,20 @@ If you're using a cloud provider, these would be suitable instances:
 - **GCP**: n2-standard-4 (4 vCPU, 16 GB RAM)
 - **Azure**: Standard_D4s_v3 (4 vCPU, 16 GB RAM)
 
+### Kubernetes Version Compatibility
+
+O laboratório usa por padrão a versão **v1.28.10** do Kubernetes, escolhida por:
+- Compatibilidade com versões recentes do kubectl (até v1.33.x)
+- Estabilidade para os recursos utilizados no experimento
+- Suporte para todas as funcionalidades necessárias para demonstrar o efeito "noisy neighbor"
+
+Você pode especificar uma versão diferente do Kubernetes usando o parâmetro `--k8s-version`:
+```bash
+./setup-minikube.sh --k8s-version v1.29.2
+```
+
+**Nota sobre compatibilidade**: O script `setup-minikube.sh` faz verificações automáticas de compatibilidade entre sua versão do kubectl e a versão do Kubernetes selecionada, alertando sobre possíveis problemas.
+
 ---
 
 ## Tools and Resources

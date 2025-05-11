@@ -14,6 +14,8 @@ CPUS=8
 MEMORY=16g
 DISK_SIZE=40g
 LIMITED_RESOURCES=false
+# Atualizando a versão do Kubernetes para ser mais compatível com kubectl 1.33.0
+K8S_VERSION="v1.28.10"
 
 # Função para imprimir mensagens
 print_message() {
@@ -31,6 +33,7 @@ show_help() {
     print_message "$BLUE" "  --cpus NUM             Define o número de CPUs (padrão: 8)"
     print_message "$BLUE" "  --memory SIZE          Define a quantidade de memória (padrão: 16g)"
     print_message "$BLUE" "  --disk SIZE            Define o tamanho do disco (padrão: 40g)"
+    print_message "$BLUE" "  --k8s-version VERSION  Define a versão do Kubernetes (padrão: ${K8S_VERSION})"
 }
 
 # Processamento de argumentos
@@ -54,6 +57,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --disk)
             DISK_SIZE="$2"
+            shift 2
+            ;;
+        --k8s-version)
+            K8S_VERSION="$2"
             shift 2
             ;;
         *)
@@ -92,6 +99,28 @@ check_prerequisites() {
         exit 1
     fi
     
+    # Verificar a versão do kubectl e exibir alerta se estiver muito distante da versão do cluster
+    kubectl_version=$(kubectl version --client -o json | grep -oP '(?<="gitVersion": ")[^"]*' || kubectl version --client --short | awk '{print $3}')
+    print_message "$GREEN" "Versão do kubectl detectada: $kubectl_version"
+    print_message "$GREEN" "Versão do Kubernetes a ser usada: $K8S_VERSION"
+    
+    # Extrair apenas os números de versão para comparação simples
+    k8s_major=$(echo $K8S_VERSION | cut -d. -f1 | tr -d 'v')
+    k8s_minor=$(echo $K8S_VERSION | cut -d. -f2)
+    kubectl_major=$(echo $kubectl_version | cut -d. -f1 | tr -d 'v')
+    kubectl_minor=$(echo $kubectl_version | cut -d. -f2)
+    
+    if [[ "$kubectl_major" != "$k8s_major" ]] || [[ $(($kubectl_minor - $k8s_minor)) -gt 1 ]]; then
+        print_message "$YELLOW" "AVISO: A diferença de versão entre kubectl ($kubectl_version) e o cluster ($K8S_VERSION) pode causar incompatibilidades."
+        print_message "$YELLOW" "Considere usar uma versão do Kubernetes mais próxima da sua versão do kubectl."
+        print_message "$YELLOW" "Para usar uma versão específica: $0 --k8s-version vX.Y.Z"
+        read -p "Deseja continuar mesmo assim? (s/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Ss]$ ]]; then
+            exit 1
+        fi
+    fi
+    
     print_message "$GREEN" "Todos os pré-requisitos estão instalados."
 }
 
@@ -113,14 +142,14 @@ start_minikube() {
     fi
     
     # Iniciar o cluster com recursos adequados para o experimento de "noisy neighbors"
-    print_message "$GREEN" "Iniciando novo cluster Minikube com $CPUS CPUs e $MEMORY de RAM..."
+    print_message "$GREEN" "Iniciando novo cluster Minikube com $CPUS CPUs, $MEMORY de RAM e versão Kubernetes $K8S_VERSION..."
     
     minikube start \
         --driver=docker \
         --cpus=$CPUS \
         --memory=$MEMORY \
         --disk-size=$DISK_SIZE \
-        --kubernetes-version=v1.24.0 \
+        --kubernetes-version=$K8S_VERSION \
         --feature-gates="StartupProbe=true" \
         --extra-config=kubelet.eviction-hard="memory.available<500Mi,nodefs.available<10%,nodefs.inodesFree<5%" \
         --extra-config=scheduler.bind-utilization-above-watermark=true
@@ -140,8 +169,6 @@ enable_addons() {
     print_message "$BLUE" "Habilitando addons necessários..."
     
     minikube addons enable metrics-server
-    minikube addons enable dashboard
-    minikube addons enable ingress
     minikube addons enable storage-provisioner
     
     print_message "$GREEN" "Addons habilitados com sucesso!"
@@ -213,6 +240,7 @@ show_instructions() {
     echo "   Acesse: http://localhost:3000 (usuário: admin, senha: admin)"
     
     print_message "$GREEN" "Seu ambiente de laboratório para estudar o efeito 'noisy neighbors' está configurado!"
+    print_message "$GREEN" "Versão do Kubernetes em uso: $K8S_VERSION"
 }
 
 # Função principal
