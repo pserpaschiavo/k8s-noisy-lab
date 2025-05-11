@@ -15,7 +15,9 @@ MEMORY=16g
 DISK_SIZE=40g
 LIMITED_RESOURCES=false
 # Atualizando a versão do Kubernetes para ser mais compatível com kubectl 1.33.0
-K8S_VERSION="v1.28.10"
+K8S_VERSION="v1.32.0"  # Versão mais compatível com kubectl 1.33.0
+MINIKUBE_TIMEOUT=600  # Timeout em segundos (10 minutos)
+FORCE_DELETE=false    # Flag para forçar exclusão do cluster existente
 
 # Função para imprimir mensagens
 print_message() {
@@ -34,6 +36,8 @@ show_help() {
     print_message "$BLUE" "  --memory SIZE          Define a quantidade de memória (padrão: 16g)"
     print_message "$BLUE" "  --disk SIZE            Define o tamanho do disco (padrão: 40g)"
     print_message "$BLUE" "  --k8s-version VERSION  Define a versão do Kubernetes (padrão: ${K8S_VERSION})"
+    print_message "$BLUE" "  --timeout SECONDS      Define o timeout para inicialização do Minikube (padrão: ${MINIKUBE_TIMEOUT}s)"
+    print_message "$BLUE" "  -f, --force            Força a exclusão do cluster existente antes de criar um novo"
 }
 
 # Processamento de argumentos
@@ -45,6 +49,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -l|--limited)
             LIMITED_RESOURCES=true
+            shift
+            ;;
+        -f|--force)
+            FORCE_DELETE=true
             shift
             ;;
         --cpus)
@@ -61,6 +69,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --k8s-version)
             K8S_VERSION="$2"
+            shift 2
+            ;;
+        --timeout)
+            MINIKUBE_TIMEOUT="$2"
             shift 2
             ;;
         *)
@@ -99,26 +111,49 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Verificar a versão do kubectl e exibir alerta se estiver muito distante da versão do cluster
-    kubectl_version=$(kubectl version --client -o json | grep -oP '(?<="gitVersion": ")[^"]*' || kubectl version --client --short | awk '{print $3}')
+    # Verificar a versão do kubectl e sugerir versão apropriada do Kubernetes
+    kubectl_version=$(kubectl version --client -o json 2>/dev/null | grep -oP '(?<="gitVersion": ")[^"]*' || kubectl version --client --short 2>/dev/null | awk '{print $3}')
     print_message "$GREEN" "Versão do kubectl detectada: $kubectl_version"
-    print_message "$GREEN" "Versão do Kubernetes a ser usada: $K8S_VERSION"
     
     # Extrair apenas os números de versão para comparação simples
-    k8s_major=$(echo $K8S_VERSION | cut -d. -f1 | tr -d 'v')
-    k8s_minor=$(echo $K8S_VERSION | cut -d. -f2)
     kubectl_major=$(echo $kubectl_version | cut -d. -f1 | tr -d 'v')
     kubectl_minor=$(echo $kubectl_version | cut -d. -f2)
     
-    if [[ "$kubectl_major" != "$k8s_major" ]] || [[ $(($kubectl_minor - $k8s_minor)) -gt 1 ]]; then
-        print_message "$YELLOW" "AVISO: A diferença de versão entre kubectl ($kubectl_version) e o cluster ($K8S_VERSION) pode causar incompatibilidades."
-        print_message "$YELLOW" "Considere usar uma versão do Kubernetes mais próxima da sua versão do kubectl."
-        print_message "$YELLOW" "Para usar uma versão específica: $0 --k8s-version vX.Y.Z"
-        read -p "Deseja continuar mesmo assim? (s/n) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Ss]$ ]]; then
-            exit 1
+    # Sugerir versão do Kubernetes com base no kubectl
+    if [[ $kubectl_major -eq 1 ]]; then
+        if [[ $kubectl_minor -eq 33 ]]; then
+            # Para kubectl 1.33.x, recomendamos K8s 1.32.x para melhor compatibilidade
+            SUGGESTED_K8S="v1.32.0"
+        elif [[ $kubectl_minor -eq 32 ]]; then
+            SUGGESTED_K8S="v1.28.10"
+        elif [[ $kubectl_minor -eq 31 ]]; then
+            SUGGESTED_K8S="v1.27.4"
+        elif [[ $kubectl_minor -eq 30 ]]; then
+            SUGGESTED_K8S="v1.26.7"
         fi
+    fi
+    
+    # Se foi detectada uma versão recomendada e não foi explicitamente definida pelo usuário
+    if [[ -n "$SUGGESTED_K8S" ]]; then
+        if [[ "$K8S_VERSION" != "$SUGGESTED_K8S" ]]; then
+            print_message "$YELLOW" "Versão sugerida do Kubernetes para kubectl $kubectl_version: $SUGGESTED_K8S"
+            print_message "$YELLOW" "Você está usando: $K8S_VERSION"
+            read -p "Deseja usar a versão recomendada $SUGGESTED_K8S? (s/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Ss]$ ]]; then
+                K8S_VERSION=$SUGGESTED_K8S
+                print_message "$GREEN" "Usando versão do Kubernetes: $K8S_VERSION"
+            fi
+        fi
+    fi
+    
+    print_message "$GREEN" "Versão do Kubernetes a ser usada: $K8S_VERSION"
+    
+    # Verificar se Docker está funcionando
+    if ! docker info &>/dev/null; then
+        print_message "$RED" "Docker não está em execução ou o usuário atual não tem permissões."
+        print_message "$YELLOW" "Verifique se o Docker está instalado e em execução, ou execute este script como root/sudo."
+        exit 1
     fi
     
     print_message "$GREEN" "Todos os pré-requisitos estão instalados."
@@ -129,36 +164,117 @@ start_minikube() {
     print_message "$BLUE" "Iniciando cluster Minikube..."
     
     # Verificar se o minikube já está em execução
-    if minikube status | grep -q "Running"; then
-        print_message "$YELLOW" "Minikube já está em execução. Deseja reiniciar? (s/n)"
-        read -r answer
-        if [[ "$answer" =~ ^[Ss]$ ]]; then
-            print_message "$YELLOW" "Excluindo cluster Minikube existente..."
+    if minikube status &>/dev/null; then
+        if [ "$FORCE_DELETE" = true ]; then
+            print_message "$YELLOW" "Excluindo cluster Minikube existente (modo forçado)..."
             minikube delete
         else
-            print_message "$YELLOW" "Mantendo o cluster existente. Verifique se os recursos estão adequados para o experimento."
-            return 0
+            print_message "$YELLOW" "Minikube já está em execução. Deseja reiniciar? (s/n)"
+            read -r answer
+            if [[ "$answer" =~ ^[Ss]$ ]]; then
+                print_message "$YELLOW" "Excluindo cluster Minikube existente..."
+                minikube delete
+            else
+                print_message "$YELLOW" "Mantendo o cluster existente. Verifique se os recursos estão adequados para o experimento."
+                return 0
+            fi
         fi
     fi
     
     # Iniciar o cluster com recursos adequados para o experimento de "noisy neighbors"
     print_message "$GREEN" "Iniciando novo cluster Minikube com $CPUS CPUs, $MEMORY de RAM e versão Kubernetes $K8S_VERSION..."
     
-    minikube start \
-        --driver=docker \
+    # Adicionar variável de ambiente para aumentar o timeout do Docker
+    export DOCKER_LAUNCH_TIMEOUT=600
+
+    # Usar timeout para evitar ficar preso indefinidamente
+    print_message "$YELLOW" "Configurado timeout de $MINIKUBE_TIMEOUT segundos para inicialização..."
+    
+    # Verificar qual driver é mais apropriado
+    DRIVER="docker"
+    print_message "$GREEN" "Usando driver: $DRIVER"
+    
+    # Determinar o cgroup driver do Docker
+    DOCKER_CGROUP_DRIVER=$(docker info 2>/dev/null | grep "Cgroup Driver" | awk '{print $3}')
+    print_message "$GREEN" "Docker Cgroup Driver detectado: $DOCKER_CGROUP_DRIVER"
+    
+    # Garantir que não haverá um downgrade tentando iniciar
+    minikube delete >/dev/null 2>&1 || true
+    sleep 2
+    
+    # Comando de inicialização do minikube com timeout
+    print_message "$YELLOW" "Iniciando Minikube com configurações otimizadas..."
+
+    timeout $MINIKUBE_TIMEOUT minikube start \
+        --driver=$DRIVER \
         --cpus=$CPUS \
         --memory=$MEMORY \
         --disk-size=$DISK_SIZE \
         --kubernetes-version=$K8S_VERSION \
-        --feature-gates="StartupProbe=true" \
+        --cni=calico \
+        --driver=docker \
+        --container-runtime=containerd \
+        --bootstrapper=kubeadm \
+        --extra-config=kubelet.cpu-manager-policy=static \
+        --extra-config=kubelet.housekeeping-interval=5s \
+        --extra-config=kubelet.system-reserved=cpu=1,memory=2Gi \
+        --extra-config=apiserver.enable-admission-plugins=ResourceQuota,LimitRanger \
         --extra-config=kubelet.eviction-hard="memory.available<500Mi,nodefs.available<10%,nodefs.inodesFree<5%" \
-        --extra-config=scheduler.bind-utilization-above-watermark=true
-
-    # Verificar se o minikube iniciou com sucesso
-    if [ $? -ne 0 ]; then
-        print_message "$RED" "Falha ao iniciar o Minikube. Tente ajustar os recursos conforme disponível em seu sistema."
-        print_message "$YELLOW" "Você pode tentar com menos recursos: ./setup-minikube.sh --limited"
-        exit 1
+        --extra-config=kubelet.cgroup-driver=$DOCKER_CGROUP_DRIVER \
+        --extra-config=kubelet.authorization-mode=Webhook \
+        --extra-config=kubelet.authentication-token-webhook=true \
+        --extra-config=scheduler.bind-utilization-above-watermark=true \
+    
+    local result=$?
+    if [ $result -eq 124 ]; then
+        print_message "$RED" "Timeout atingido após $MINIKUBE_TIMEOUT segundos. O Minikube está demorando muito para iniciar."
+        print_message "$YELLOW" "Tentando abordagem alternativa..."
+        
+        # Tentar com mais memória e menos recursos
+        print_message "$YELLOW" "Tentando com configuração mais leve..."
+        minikube delete >/dev/null 2>&1 || true
+        sleep 2
+        
+        minikube start \
+            --driver=$DRIVER \
+            --cpus=4 \
+            --memory=8g \
+            --disk-size=$DISK_SIZE \
+            --kubernetes-version=$K8S_VERSION
+            
+        if [ $? -ne 0 ]; then
+            print_message "$RED" "Tentativa com configurações reduzidas também falhou."
+            print_message "$YELLOW" "Tente manualmente com: minikube start --kubernetes-version=$K8S_VERSION"
+            exit 1
+        else
+            print_message "$GREEN" "Minikube iniciado com configurações reduzidas."
+        fi
+    elif [ $result -ne 0 ]; then
+        print_message "$RED" "Falha ao iniciar o Minikube. Código de erro: $result"
+        print_message "$YELLOW" "Tentando com versão alternativa do Kubernetes..."
+        
+        # Tentar com outra versão mais antiga como fallback
+        local FALLBACK_VERSION="v1.25.0"
+        print_message "$YELLOW" "Tentando com versão de fallback do Kubernetes: $FALLBACK_VERSION"
+        
+        minikube delete >/dev/null 2>&1 || true
+        sleep 2
+        
+        minikube start \
+            --driver=$DRIVER \
+            --cpus=$CPUS \
+            --memory=$MEMORY \
+            --disk-size=$DISK_SIZE \
+            --kubernetes-version=$FALLBACK_VERSION
+            
+        if [ $? -ne 0 ]; then
+            print_message "$RED" "Todas as tentativas falharam. Tente manualmente com:"
+            print_message "$YELLOW" "minikube start --kubernetes-version=$FALLBACK_VERSION"
+            exit 1
+        else
+            print_message "$GREEN" "Minikube iniciado com versão alternativa do Kubernetes: $FALLBACK_VERSION"
+            K8S_VERSION=$FALLBACK_VERSION
+        fi
     fi
     
     print_message "$GREEN" "Cluster Minikube iniciado com sucesso!"
@@ -168,8 +284,8 @@ start_minikube() {
 enable_addons() {
     print_message "$BLUE" "Habilitando addons necessários..."
     
-    minikube addons enable metrics-server
-    minikube addons enable storage-provisioner
+    minikube addons enable metrics-server || true
+    minikube addons enable storage-provisioner || true
     
     print_message "$GREEN" "Addons habilitados com sucesso!"
 }
