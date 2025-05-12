@@ -107,6 +107,13 @@ Você pode especificar uma versão diferente do Kubernetes usando o parâmetro `
 - **Characteristics**: Sensitive to CPU throttling and disk I/O performance.
 - **Metrics Focus**: Query execution time, transaction throughput, I/O latency.
 
+### Análise de Dados (Pipeline)
+- **Processamento Automático**: Pipeline em Python para análise recursiva de métricas de experimentos.
+- **Análise Estatística**: Cálculos de estatísticas descritivas, correlações e testes de estacionariedade.
+- **Visualizações**: Geração automática de gráficos de séries temporais, distribuições e correlações.
+- **Comparação de Fases**: Análise comparativa entre baseline, ataque e recuperação.
+- **Categorização**: Organização de métricas por categorias (tenants, componentes, etc.).
+
 ---
 
 ## Repository Structure
@@ -117,6 +124,13 @@ Você pode especificar uma versão diferente do Kubernetes usando o parâmetro `
 ├── install-prom-operator.sh        # Installs Prometheus and Grafana
 ├── run-experiment.sh               # Main script to orchestrate the experiment
 ├── setup-minikube.sh               # Sets up the Minikube cluster
+├── analysis_pipeline/              # Pipeline de análise de dados
+│   ├── correlation_analysis.py     # Análise de correlação entre métricas
+│   ├── data_loader.py              # Carregamento recursivo de métricas
+│   ├── main.py                     # Ponto de entrada principal do pipeline
+│   ├── stats_summary.py            # Análise estatística das métricas
+│   ├── visualizations.py           # Geração de visualizações
+│   └── README.md                   # Documentação específica do pipeline
 ├── lib/                            # Helper libraries for the experiment
 │   ├── experiment.sh               # Experiment orchestration functions
 │   ├── kubernetes.sh               # Kubernetes interaction functions
@@ -240,6 +254,48 @@ Open your browser at [http://localhost:3000](http://localhost:3000) (username: `
 kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090
 ```
 Open your browser at [http://localhost:9090](http://localhost:9090).
+
+### 6. Análise de Dados
+
+Após coletar os resultados do experimento, você pode analisá-los usando o pipeline de análise:
+
+1. **Configure as variáveis do experimento**:
+   
+   Edite o arquivo `analysis_pipeline/main.py` para apontar para seu experimento:
+   ```python
+   EXPERIMENT_NAME = "YYYY-MM-DD/HH-MM-SS/default-experiment-1"
+   ROUND = "round-1"
+   PHASES = ["1 - Baseline", "2 - Attack", "3 - Recovery"]
+   ```
+
+2. **Execute o pipeline de análise**:
+   ```bash
+   cd analysis_pipeline
+   python main.py
+   ```
+
+3. **Visualize os resultados**:
+   
+   Os resultados serão organizados na pasta `plots/` com a seguinte estrutura:
+   ```
+   plots/
+   ├── 1_-_Baseline/
+   │   ├── correlacao_pearson.png
+   │   ├── serie_temporal_*.png
+   │   └── ...
+   ├── 2_-_Attack/
+   ├── 3_-_Recovery/
+   └── comparacao_fases/
+       └── boxplot_*.png
+   ```
+
+O pipeline fornece:
+- Análise estatística completa de métricas por tenant e componente
+- Correlações entre diferentes métricas (identificando relações causa-efeito)
+- Gráficos comparativos entre fases do experimento
+- Identificação automática de métricas com variação significativa durante ataques
+
+Para mais detalhes sobre a análise de dados, consulte a [documentação do pipeline](analysis_pipeline/README.md).
 
 ---
 
