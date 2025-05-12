@@ -1,0 +1,6 @@
+lag,tenant-b:cpu_usage:value -> tenant-c:network_packet_rate:value p-value,tenant-b:cpu_usage:value -> tenant-c:network_packet_rate:value significant,tenant-c:network_packet_rate:value -> tenant-b:cpu_usage:value p-value,tenant-c:network_packet_rate:value -> tenant-b:cpu_usage:value significant
+1,0.08366984011162124,False,1.0971243474701584e-15,True
+2,0.03786632071691804,True,1.3947868663874872e-14,True
+3,0.045924152871355935,True,1.3006139164688585e-17,True
+4,0.019580699906606987,True,5.207890410723147e-17,True
+5,0.12016349826947365,False,4.658110995281293e-17,True

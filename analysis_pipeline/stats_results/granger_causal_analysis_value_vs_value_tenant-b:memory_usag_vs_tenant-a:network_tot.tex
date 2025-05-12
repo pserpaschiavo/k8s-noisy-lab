@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Teste de Causalidade de Granger entre tenant-b:memory_usage:value e tenant-a:network_total_bandwidth:value (causal_analysis/value_vs_value)}
+\label{tab:granger_causal_analysis_value_vs_value_tenant-b:memory_usag_tenant-a:network_tot}
+\begin{tabular}{rrrrr}
+\toprule
+lag & tenant-b:memory_usage:value -> tenant-a:network_total_bandwidth:value p-value & tenant-b:memory_usage:value -> tenant-a:network_total_bandwidth:value significant & tenant-a:network_total_bandwidth:value -> tenant-b:memory_usage:value p-value & tenant-a:network_total_bandwidth:value -> tenant-b:memory_usage:value significant \\
+\midrule
+1 & 0.0551 & False & 0.7246 & False \\
+2 & 0.0319 & True & 0.6138 & False \\
+3 & 0.0182 & True & 0.7034 & False \\
+4 & 0.0140 & True & 0.1230 & False \\
+5 & 0.0249 & True & 0.0253 & True \\
+\bottomrule
+\end{tabular}
+\end{table}

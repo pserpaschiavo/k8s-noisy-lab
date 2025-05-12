@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Teste de Causalidade de Granger entre tenant-b:network_transmit:value e tenant-c:network_packet_rate:value (causal_analysis/value_vs_value)}
+\label{tab:granger_causal_analysis_value_vs_value_tenant-b:network_tra_tenant-c:network_pac}
+\begin{tabular}{rrrrr}
+\toprule
+lag & tenant-b:network_transmit:value -> tenant-c:network_packet_rate:value p-value & tenant-b:network_transmit:value -> tenant-c:network_packet_rate:value significant & tenant-c:network_packet_rate:value -> tenant-b:network_transmit:value p-value & tenant-c:network_packet_rate:value -> tenant-b:network_transmit:value significant \\
+\midrule
+1 & 0.3671 & False & 0.6123 & False \\
+2 & 0.3053 & False & 0.4011 & False \\
+3 & 0.2429 & False & 0.0003 & True \\
+4 & 0.2860 & False & 0.0011 & True \\
+5 & 0.8284 & False & 0.0020 & True \\
+\bottomrule
+\end{tabular}
+\end{table}

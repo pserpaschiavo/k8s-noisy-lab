@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Teste de Causalidade de Granger entre tenant-b:memory_usage:value e tenant-d:disk_throughput_total:value (causal_analysis/value_vs_value)}
+\label{tab:granger_causal_analysis_value_vs_value_tenant-b:memory_usag_tenant-d:disk_throug}
+\begin{tabular}{rrrrr}
+\toprule
+lag & tenant-b:memory_usage:value -> tenant-d:disk_throughput_total:value p-value & tenant-b:memory_usage:value -> tenant-d:disk_throughput_total:value significant & tenant-d:disk_throughput_total:value -> tenant-b:memory_usage:value p-value & tenant-d:disk_throughput_total:value -> tenant-b:memory_usage:value significant \\
+\midrule
+1 & 0.0126 & True & 0.0803 & False \\
+2 & 0.2438 & False & 0.2517 & False \\
+3 & 0.1744 & False & 0.0291 & True \\
+4 & 0.0047 & True & 0.0095 & True \\
+5 & 0.0027 & True & 0.0065 & True \\
+\bottomrule
+\end{tabular}
+\end{table}

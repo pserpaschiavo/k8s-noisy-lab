@@ -411,7 +411,8 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
                           as métricas mais comuns entre os tenants.
         max_metrics: Número máximo de métricas para comparar se metrics_to_compare não for especificado
     """
-    print(f"\nGerando gráficos comparativos entre tenants...")
+    print(f"\n>>> ANÁLISE COMPARATIVA ENTRE TENANTS\n")
+    print(f"Gerando gráficos comparativos entre tenants...")
     
     # Cria diretório para os gráficos comparativos
     plots_dir = os.path.join("plots", "comparacao_tenants")
@@ -433,34 +434,8 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
         common_metrics = None
         tenant_sources = {}
         
-        # Procura coluna de timestamp
-        time_col = find_timestamp_column(df)
-        print(f"  Coluna de timestamp identificada: {time_col if time_col else 'Nenhuma'}")
-        
-        # Converte timestamps para períodos numerados se disponíveis
-        period_data = None
-        period_map = {}
-        is_period_data = False
-        
-        if time_col and time_col in df.columns:
-            try:
-                # Converte para datetime se necessário
-                if pd.api.types.is_numeric_dtype(df[time_col]):
-                    time_data = pd.to_datetime(df[time_col], unit='s')
-                else:
-                    time_data = pd.to_datetime(df[time_col])
-                
-                # Converte timestamps para períodos numerados
-                period_data, period_map = convert_timestamps_to_periods(time_data)
-                is_period_data = True
-                x_label = "Período de coleta"
-            except Exception as e:
-                print(f"  Erro ao converter timestamps para períodos: {str(e)}")
-                is_period_data = False
-                x_label = "Índice (ordem sequencial de coleta)"
-        else:
-            is_period_data = False
-            x_label = "Índice (ordem sequencial de coleta)"
+        # Ignoramos completamente a coluna de timestamp e usamos apenas índices sequenciais
+        x_label = "Índice (ordem sequencial de coleta)"
         
         # Coleta todas as fontes e métricas por tenant
         for tenant in tenant_categories:
@@ -469,9 +444,10 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
             
             # Obtém todas as métricas numéricas para este tenant
             numeric_cols = tenant_df.select_dtypes(include=[np.number]).columns.tolist()
-            # Exclui colunas de metadados
+            # Exclui colunas de metadados e colunas que podem ser timestamps
+            time_col = find_timestamp_column(tenant_df)
             tenant_metrics = set([col for col in numeric_cols 
-                              if col not in ['__source__', '__category__', '__path__']])
+                              if col not in ['__source__', '__category__', '__path__', time_col]])
             
             # Atualiza o conjunto de métricas comuns
             if common_metrics is None:
@@ -484,28 +460,23 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
             print(f"    Nenhuma métrica comum encontrada entre os tenants")
             continue
             
-        # Se houver muitas métricas comuns e não foram especificadas quais comparar,
-        # escolher as mais relevantes
-        if metrics_to_compare is None:
-            if len(common_metrics) > max_metrics:
-                # Seleciona um subconjunto de métricas mais interessantes
-                common_metrics = sorted(list(common_metrics))[:max_metrics]
-                print(f"    Comparando {max_metrics} métricas mais comuns (de {len(common_metrics)} disponíveis)")
-            else:
-                common_metrics = sorted(list(common_metrics))
-                print(f"    Comparando {len(common_metrics)} métricas comuns")
+        # Usar todas as métricas comuns encontradas, ignorando metrics_to_compare
+        # Esta é a principal mudança: sempre usar métricas comuns disponíveis
+        if len(common_metrics) > max_metrics:
+            # Seleciona um subconjunto de métricas mais interessantes
+            common_metrics = sorted(list(common_metrics))[:max_metrics]
+            print(f"    Comparando {len(common_metrics)} métricas mais comuns")
         else:
-            # Usa as métricas específicas solicitadas que existem nos dados
-            common_metrics = [m for m in metrics_to_compare if m in common_metrics]
-            if not common_metrics:
-                print(f"    Nenhuma das métricas solicitadas está disponível entre os tenants")
-                continue
-            print(f"    Comparando {len(common_metrics)} métricas solicitadas")
+            common_metrics = sorted(list(common_metrics))
+            print(f"    Comparando {len(common_metrics)} métricas comuns")
+        
+        # Se não houver métricas comuns após filtragem, pular
+        if not common_metrics:
+            print(f"    Nenhuma métrica disponível entre os tenants após filtragem")
+            continue
         
         # Encontrar fontes comuns entre tenants para cada métrica
         for metric in common_metrics:
-            print(f"    Comparando métrica: {metric}")
-            
             # Para cada métrica, encontrar as fontes que a contêm em cada tenant
             metric_sources = {}
             for tenant in tenant_categories:
@@ -521,7 +492,6 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
             
             # Se não houver fontes suficientes para esta métrica, pular
             if len(metric_sources) < 2:
-                print(f"      Insuficientes fontes para a métrica {metric}")
                 continue
             
             # Cria um gráfico para esta métrica comparando os tenants
@@ -534,30 +504,10 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
                                     (df['__source__'] == source)]
                     
                     if metric in tenant_src_df.columns and len(tenant_src_df[metric]) > 0:
-                        # Se houver dados de período, usar eles para o eixo x
-                        if is_period_data and time_col in tenant_src_df.columns:
-                            try:
-                                # Converter para períodos específicos deste tenant/source
-                                if pd.api.types.is_numeric_dtype(tenant_src_df[time_col]):
-                                    tenant_time = pd.to_datetime(tenant_src_df[time_col], unit='s')
-                                else:
-                                    tenant_time = pd.to_datetime(tenant_src_df[time_col])
-                                    
-                                tenant_periods, _ = convert_timestamps_to_periods(tenant_time)
-                                ax.plot(tenant_periods, tenant_src_df[metric],
-                                       label=f"{tenant} ({source})", alpha=0.8, marker='o', 
-                                       markersize=3, linewidth=1.5)
-                            except Exception as e:
-                                # Fallback para índices
-                                print(f"      Erro ao processar períodos para {tenant}/{source}: {str(e)}")
-                                ax.plot(range(len(tenant_src_df)), tenant_src_df[metric], 
-                                       label=f"{tenant} ({source})", alpha=0.8, marker='o', 
-                                       markersize=3, linewidth=1.5)
-                        else:
-                            # Caso contrário, usar índice
-                            ax.plot(range(len(tenant_src_df)), tenant_src_df[metric], 
-                                   label=f"{tenant} ({source})", alpha=0.8, marker='o', 
-                                   markersize=3, linewidth=1.5)
+                        # Usar apenas índices sequenciais, ignorando completamente timestamps
+                        ax.plot(range(len(tenant_src_df)), tenant_src_df[metric], 
+                               label=f"{tenant} ({source})", alpha=0.8, marker='o', 
+                               markersize=3, linewidth=1.5)
             
             ax.set_title(f"Comparação de {metric} entre tenants ({phase})")
             ax.set_xlabel(x_label)
@@ -567,26 +517,6 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
             
             # Configura os ticks do eixo X para valores inteiros
             ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-            
-            # Adiciona anotação sobre o intervalo se tivermos dados de período
-            if is_period_data and len(period_map) >= 2:
-                timestamps = list(period_map.values())
-                if len(timestamps) >= 2:
-                    total_seconds = (timestamps[-1] - timestamps[0]).total_seconds()
-                    avg_interval = total_seconds / (len(timestamps) - 1)
-                    
-                    # Formata o intervalo de forma amigável
-                    if avg_interval < 1:
-                        interval_text = f"{avg_interval*1000:.1f} ms"
-                    elif avg_interval < 60:
-                        interval_text = f"{avg_interval:.1f} segundos"
-                    elif avg_interval < 3600:
-                        interval_text = f"{avg_interval/60:.1f} minutos"
-                    else:
-                        interval_text = f"{avg_interval/3600:.1f} horas"
-                        
-                    plt.figtext(0.5, 0.01, f"Intervalo médio entre períodos: {interval_text}", 
-                              ha="center", fontsize=9, style='italic')
             
             # Salva o gráfico
             clean_phase = phase.replace(" ", "_").replace("/", "_")
@@ -648,4 +578,123 @@ def plot_tenant_comparison(all_data, metrics_to_compare=None, max_metrics=10):
                 plt.grid(True, alpha=0.3, axis='y')
                 plt.tight_layout()
                 plt.savefig(f"{plots_dir}/media_{clean_phase}_{clean_metric}.png", dpi=120)
+                plt.close()
+
+
+def plot_metrics_by_phase(all_data):
+    """
+    Cria gráficos comparativos por métrica em cada fase, mostrando todos os tenants.
+    Por exemplo: um gráfico para cpu_usage na fase "2 - Attack" com todos os tenants.
+    
+    Args:
+        all_data: Dicionário onde as chaves são as fases e os valores são DataFrames com os dados
+    """
+    print(f"\n>>> GRÁFICOS COMPARATIVOS POR MÉTRICA EM CADA FASE\n")
+    
+    # Cria diretório para os gráficos por métrica
+    plots_dir = os.path.join("plots", "comparacao_por_metrica")
+    os.makedirs(plots_dir, exist_ok=True)
+    
+    for phase, df in all_data.items():
+        # Obtém as categorias que são tenants
+        tenant_categories = [cat for cat in df['__category__'].unique() 
+                           if cat.startswith('tenant-')]
+        
+        if len(tenant_categories) <= 1:
+            print(f"  Fase {phase}: Insuficientes tenants para comparação ({len(tenant_categories)} encontrados)")
+            continue
+            
+        print(f"  Fase {phase}: Analisando métricas com {len(tenant_categories)} tenants: {', '.join(tenant_categories)}")
+        
+        # Encontrar todas as métricas disponíveis para qualquer tenant nesta fase
+        all_metrics = set()
+        for tenant in tenant_categories:
+            tenant_df = df[df['__category__'] == tenant]
+            numeric_cols = tenant_df.select_dtypes(include=[np.number]).columns.tolist()
+            time_col = find_timestamp_column(tenant_df)
+            tenant_metrics = set([col for col in numeric_cols 
+                               if col not in ['__source__', '__category__', '__path__', time_col]])
+            all_metrics.update(tenant_metrics)
+        
+        # Se não houver métricas, pular
+        if not all_metrics:
+            print(f"    Nenhuma métrica encontrada para os tenants nesta fase")
+            continue
+        
+        # Para cada métrica, criar um gráfico comparando todos os tenants
+        for metric in sorted(all_metrics):
+            # Verificar quais tenants têm essa métrica
+            tenants_with_metric = {}
+            for tenant in tenant_categories:
+                tenant_df = df[df['__category__'] == tenant]
+                sources_with_metric = []
+                for source in tenant_df['__source__'].unique():
+                    src_df = tenant_df[tenant_df['__source__'] == source]
+                    if metric in src_df.columns and not src_df[metric].isna().all():
+                        sources_with_metric.append(source)
+                if sources_with_metric:
+                    tenants_with_metric[tenant] = sources_with_metric
+            
+            # Se menos de 2 tenants têm a métrica, pular
+            if len(tenants_with_metric) < 2:
+                continue
+            
+            print(f"    Gerando gráfico para métrica '{metric}' com {len(tenants_with_metric)} tenants")
+            
+            # Criar gráfico para esta métrica
+            fig, ax = plt.subplots(figsize=(14, 7))
+            
+            # Para cada tenant com a métrica, plotar a linha
+            for tenant, sources in tenants_with_metric.items():
+                for source in sources:
+                    data = df[(df['__category__'] == tenant) & (df['__source__'] == source)]
+                    if metric in data.columns and len(data[metric]) > 0:
+                        # Usar índices sequenciais para todos os tenants
+                        ax.plot(range(len(data)), data[metric], 
+                               label=f"{tenant} ({source})", 
+                               alpha=0.8, marker='o', markersize=3, linewidth=1.5)
+            
+            # Configurar o gráfico
+            ax.set_title(f"{phase} - {metric} - Comparação entre tenants")
+            ax.set_xlabel("Índice (ordem sequencial de coleta)")
+            ax.set_ylabel(metric)
+            ax.grid(True, alpha=0.3)
+            ax.legend(loc='best')
+            
+            # Configura os ticks do eixo X para valores inteiros
+            ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            
+            # Salvar o gráfico
+            clean_phase = phase.replace(" ", "_").replace("/", "_")
+            clean_metric = metric.replace(" ", "_").replace("/", "_")[:30]  # Limitar tamanho
+            plt.tight_layout()
+            plt.savefig(f"{plots_dir}/{clean_phase}_{clean_metric}.png", dpi=120)
+            plt.close(fig)
+            
+            # Adicionar gráfico de barras com médias para comparação direta
+            plt.figure(figsize=(12, 6))
+            
+            bar_labels = []
+            bar_values = []
+            bar_std = []
+            
+            for tenant, sources in tenants_with_metric.items():
+                for source in sources:
+                    data = df[(df['__category__'] == tenant) & (df['__source__'] == source)]
+                    if metric in data.columns and len(data[metric]) > 0:
+                        values = data[metric].dropna()
+                        if len(values) > 0:
+                            bar_labels.append(f"{tenant} ({source})")
+                            bar_values.append(values.mean())
+                            bar_std.append(values.std())
+            
+            if bar_values:
+                y_pos = np.arange(len(bar_labels))
+                plt.bar(y_pos, bar_values, yerr=bar_std, alpha=0.7, capsize=5)
+                plt.xticks(y_pos, bar_labels, rotation=45, ha='right')
+                plt.title(f"{phase} - {metric} - Média por tenant")
+                plt.ylabel(f"{metric} (média ± desvio padrão)")
+                plt.grid(True, alpha=0.3, axis='y')
+                plt.tight_layout()
+                plt.savefig(f"{plots_dir}/{clean_phase}_{clean_metric}_media.png", dpi=120)
                 plt.close()

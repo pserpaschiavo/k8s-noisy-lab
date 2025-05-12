@@ -1,0 +1,6 @@
+lag,tenant-b:memory_usage:value -> tenant-d:disk_io_total:value p-value,tenant-b:memory_usage:value -> tenant-d:disk_io_total:value significant,tenant-d:disk_io_total:value -> tenant-b:memory_usage:value p-value,tenant-d:disk_io_total:value -> tenant-b:memory_usage:value significant
+1,0.09489299960132476,False,0.40194377475042675,False
+2,0.6462683172333322,False,0.82582308602995,False
+3,0.32289545981671797,False,0.11760755426754373,False
+4,0.036964731315951495,True,0.035375624069636936,True
+5,0.027766034644449048,True,0.017160749446131437,True

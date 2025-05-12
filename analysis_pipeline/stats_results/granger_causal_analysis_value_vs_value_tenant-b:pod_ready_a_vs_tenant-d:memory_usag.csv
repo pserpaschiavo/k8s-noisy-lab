@@ -1,0 +1,6 @@
+lag,tenant-b:pod_ready_age:value -> tenant-d:memory_usage:value p-value,tenant-b:pod_ready_age:value -> tenant-d:memory_usage:value significant,tenant-d:memory_usage:value -> tenant-b:pod_ready_age:value p-value,tenant-d:memory_usage:value -> tenant-b:pod_ready_age:value significant
+1,0.35115102750426097,False,0.994963344393639,False
+2,4.94887579751872e-29,True,0.1390558874689491,False
+3,1.0,False,0.43829942436124536,False
+4,1.0,False,0.09087183838314619,False
+5,6.204177291417297e-199,True,0.1403716549076818,False

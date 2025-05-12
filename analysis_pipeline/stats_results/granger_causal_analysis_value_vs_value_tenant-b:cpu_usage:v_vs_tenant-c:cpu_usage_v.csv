@@ -1,0 +1,6 @@
+lag,tenant-b:cpu_usage:value -> tenant-c:cpu_usage_variability:value p-value,tenant-b:cpu_usage:value -> tenant-c:cpu_usage_variability:value significant,tenant-c:cpu_usage_variability:value -> tenant-b:cpu_usage:value p-value,tenant-c:cpu_usage_variability:value -> tenant-b:cpu_usage:value significant
+1,0.21845857451310535,False,0.8082663710590253,False
+2,0.45271662239237576,False,0.26689450768701445,False
+3,0.6438555377068029,False,0.3598226230279247,False
+4,0.7916470149517034,False,0.13761821690468534,False
+5,0.8043244320146143,False,0.20952964432336382,False

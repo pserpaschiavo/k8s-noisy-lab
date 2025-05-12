@@ -1,0 +1,6 @@
+lag,tenant-b:network_packet_rate:value -> tenant-d:memory_usage:value p-value,tenant-b:network_packet_rate:value -> tenant-d:memory_usage:value significant,tenant-d:memory_usage:value -> tenant-b:network_packet_rate:value p-value,tenant-d:memory_usage:value -> tenant-b:network_packet_rate:value significant
+1,0.6478692769596701,False,0.5466599479259899,False
+2,0.8404048613908663,False,0.641700796636731,False
+3,0.9059112125089823,False,0.7142237645587086,False
+4,0.9129366570878439,False,0.09669074078857812,False
+5,0.9010996710291649,False,0.0897704961755854,False

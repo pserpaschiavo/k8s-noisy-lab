@@ -1,0 +1,6 @@
+lag,tenant-b:pod_ready_age:value -> tenant-a:network_packet_rate:value p-value,tenant-b:pod_ready_age:value -> tenant-a:network_packet_rate:value significant,tenant-a:network_packet_rate:value -> tenant-b:pod_ready_age:value p-value,tenant-a:network_packet_rate:value -> tenant-b:pod_ready_age:value significant
+1,0.6502239420742065,False,1.0,False
+2,8.400815765649975e-103,True,0.4962229664645964,False
+3,5.585160614062327e-186,True,0.7365060092003946,False
+4,1.0,False,0.5889051559810468,False
+5,1.0957435053173896e-72,True,0.7485879081365933,False

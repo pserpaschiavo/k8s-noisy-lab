@@ -1,29 +1,29 @@
 # 📊 analysis_pipeline
 
-Este diretório contém o pipeline completo para análise de métricas coletadas durante os experimentos de "Noisy Neighbours" em ambientes Kubernetes multi-tenant.
+This directory contains the complete pipeline for analyzing metrics collected during "Noisy Neighbours" experiments in multi-tenant Kubernetes environments.
 
-## 🔍 O que este pipeline faz
+## 🔍 What this pipeline does
 
-1. Carrega métricas de múltiplos tenants em formato `.csv` recursivamente (incluindo subdiretórios)
-2. Realiza análise estatística e estocástica (média, desvio, skew, kurtosis, estacionariedade)
-3. Calcula correlações (Pearson e Spearman) e gera heatmaps
-4. Gera visualizações (séries temporais e distribuições) com paletas daltônico-friendly
-5. Compara métricas entre diferentes fases do experimento (baseline, ataque, recuperação)
-6. Compara métricas entre diferentes tenants para identificar impactos do "noisy neighbor"
-7. Exporta tabelas estatísticas em formatos CSV e LaTeX para publicações científicas
-8. Organiza análises por categorias/componentes do sistema
-9. Organiza tudo de forma modular e fácil de expandir
+1. Recursively loads metrics from multiple tenants in `.csv` format (including subdirectories)
+2. Performs statistical and stochastic analysis (mean, deviation, skew, kurtosis, stationarity)
+3. Calculates correlations (Pearson and Spearman) and generates heatmaps
+4. Creates visualizations (time series and distributions) with colorblind-friendly palettes
+5. Compares metrics between different experiment phases (baseline, attack, recovery)
+6. Compares metrics between different tenants to identify "noisy neighbor" impacts
+7. Exports statistical tables in CSV and LaTeX formats for scientific publications
+8. Organizes analyses by system categories/components
+9. Organizes everything in a modular and easily expandable way
 
-## 🧰 Requisitos
+## 🧰 Requirements
 
 - Python 3.8+
-- Instale as dependências com:
+- Install dependencies with:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Requisitos mínimos:**
+**Minimum requirements:**
 - pandas
 - numpy
 - matplotlib
@@ -31,9 +31,9 @@ pip install -r requirements.txt
 - scipy
 - statsmodels
 
-## 📂 Estrutura esperada
+## 📂 Expected structure
 
-O pipeline espera os dados organizados assim:
+The pipeline expects data organized like this:
 
 ```
 results/
@@ -51,118 +51,239 @@ results/
                 └── 3 - Recovery/
 ```
 
-O pipeline agora processa recursivamente todos os subdiretórios dentro de cada fase, categorizando as métricas automaticamente com base na estrutura de diretórios.
+The pipeline now recursively processes all subdirectories within each phase, automatically categorizing metrics based on the directory structure.
 
-## 🚀 Como rodar
+## 🚀 How to run
 
-Edite os valores no `main.py`:
+Edit the values in `main.py`:
 
 ```python
 BASE_DIR = os.getenv("K8S_NOISY_LAB_ROOT", os.path.abspath(os.path.dirname(__file__) + "/..")) 
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
-EXPERIMENT_NAME = "2025-05-11/16-58-00/default-experiment-1"
+EXPERIMENT_NAME = "YYYY-MM-DD/HH-MM-SS/experiment-name"
 ROUND = "round-1"
 PHASES = ["1 - Baseline", "2 - Attack", "3 - Recovery"]
 ```
 
-E execute:
+And run:
 
 ```bash
 python main.py
 ```
 
-## 📊 Resultados
+## 📊 Results
 
-### Visualizações Geradas
+### Generated Visualizations
 
-Os seguintes arquivos e análises gráficas serão gerados:
+The following files and graphical analyses will be generated:
 
-- **Gráficos Temporais**:
-  - Séries temporais: `plots/<fase>/serie_temporal_<fonte>.png`
-  - Métricas por categoria: `plots/<fase>/metricas_<fonte>_<categoria>.png`
-  - Eixo X com períodos numerados para melhor legibilidade
+- **Time Series Charts**:
+  - Time series: `plots/<phase>/serie_temporal_<source>.png`
+  - Metrics by category: `plots/<phase>/metricas_<source>_<category>.png`
+  - X-axis with numbered periods for better readability
 
-- **Visualizações de Distribuição**:
-  - Distribuições: `plots/<fase>/dist_<fonte>_<categoria>.png`
-  - Heatmaps de correlação: `plots/<fase>/correlacao_pearson.png`
-  - Gráficos de dispersão para correlações fortes: `plots/<fase>/scatter_<metrica1>_vs_<metrica2>.png`
+- **Distribution Visualizations**:
+  - Distributions: `plots/<phase>/dist_<source>_<category>.png`
+  - Correlation heatmaps: `plots/<phase>/correlacao_pearson.png`
+  - Scatter plots for strong correlations: `plots/<phase>/scatter_<metric1>_vs_<metric2>.png`
 
-- **Comparações Entre Fases**:
-  - Boxplots: `plots/comparacao_fases/boxplot_<metrica>_<categoria>_<fonte>.png`
+- **Phase Comparisons**:
+  - Boxplots: `plots/comparacao_fases/boxplot_<metric>_<category>_<source>.png`
 
-- **Comparações Entre Tenants**:
-  - Séries temporais: `plots/comparacao_tenants/comp_<fase>_<metrica>.png`
-  - Boxplots: `plots/comparacao_tenants/boxplot_<fase>_<metrica>.png`
-  - Médias: `plots/comparacao_tenants/media_<fase>_<metrica>.png`
+- **Tenant Comparisons**:
+  - Time series: `plots/comparacao_tenants/comp_<phase>_<metric>.png`
+  - Boxplots: `plots/comparacao_tenants/boxplot_<phase>_<metric>.png`
+  - Means: `plots/comparacao_tenants/media_<phase>_<metric>.png`
 
-### Tabelas Estatísticas
+### Statistical Tables
 
-Além de visualizações, o pipeline agora exporta dados tabulares em formatos CSV e LaTeX:
+In addition to visualizations, the pipeline now exports tabular data in CSV and LaTeX formats:
 
-- **Estatísticas Descritivas**:
-  - `stats_results/<fase>_summary.{csv,tex}`: média, mediana, desvio padrão, quartis, etc.
+- **Descriptive Statistics**:
+  - `stats_results/<phase>_summary.{csv,tex}`: mean, median, standard deviation, quartiles, etc.
 
-- **Análise de Distribuição**:
-  - `stats_results/<fase>_skewkurt.{csv,tex}`: skewness e kurtosis para cada métrica
+- **Distribution Analysis**:
+  - `stats_results/<phase>_skewkurt.{csv,tex}`: skewness and kurtosis for each metric
 
-- **Análise de Estacionariedade**:
-  - `stats_results/<fase>_adf_test.{csv,tex}`: resultados do teste ADF (Augmented Dickey-Fuller)
+- **Stationarity Analysis**:
+  - `stats_results/<phase>_adf_test.{csv,tex}`: ADF (Augmented Dickey-Fuller) test results
 
-- **Comparações Entre Fases**:
-  - `stats_results/comparison_means.{csv,tex}`: comparação das médias entre fases
-  - `stats_results/comparison_medians.{csv,tex}`: comparação das medianas entre fases
-  - `stats_results/comparison_std.{csv,tex}`: comparação dos desvios padrão entre fases
-  - `stats_results/comparison_skewness.{csv,tex}`: comparação da assimetria entre fases
+- **Phase Comparisons**:
+  - `stats_results/comparison_means.{csv,tex}`: comparison of means between phases
+  - `stats_results/comparison_medians.{csv,tex}`: comparison of medians between phases
+  - `stats_results/comparison_std.{csv,tex}`: comparison of standard deviations between phases
+  - `stats_results/comparison_skewness.{csv,tex}`: comparison of skewness between phases
 
-Os arquivos LaTeX podem ser diretamente incorporados em artigos científicos ou relatórios técnicos.
+LaTeX files can be directly incorporated into scientific papers or technical reports.
 
-## 🔍 Resultados Esperados
+## 🔍 Expected Results
 
-Ao analisar os dados do experimento "Noisy Neighbours", espera-se observar:
+When analyzing data from the "Noisy Neighbours" experiment, you should expect to observe:
 
-1. **Durante a fase de Baseline**:
-   - Comportamento estável das métricas de todos os tenants
-   - Baixa correlação entre métricas de tenants diferentes
-   - Distribuição equilibrada dos recursos do cluster
+1. **During the Baseline phase**:
+   - Stable behavior of metrics across all tenants
+   - Low correlation between metrics from different tenants
+   - Balanced distribution of cluster resources
 
-2. **Durante a fase de Attack**:
-   - Aumento significativo no consumo de recursos pelo tenant barulhento (tenant-b)
-   - Degradação de desempenho nos tenants sensíveis (tenants a, c, d) evidenciada por:
-     - Aumento da latência de resposta no tenant-a (sensível à rede)
-     - Aumento do tempo de operação de memória no tenant-c (sensível à memória)
-     - Diminuição do throughput de queries no tenant-d (sensível a CPU/disco)
-   - Alta correlação entre o consumo de recursos do tenant-b e métricas de degradação dos outros tenants
-   - Assimetria (skewness) positiva nas distribuições de métricas de desempenho
+2. **During the Attack phase**:
+   - Significant increase in resource consumption by the noisy tenant (tenant-b)
+   - Performance degradation in sensitive tenants (tenants a, c, d) evidenced by:
+     - Increased response latency in tenant-a (network-sensitive)
+     - Increased memory operation time in tenant-c (memory-sensitive)
+     - Decreased query throughput in tenant-d (CPU/disk-sensitive)
+   - High correlation between tenant-b's resource consumption and degradation metrics of other tenants
+   - Positive skewness in performance metric distributions
 
-3. **Durante a fase de Recovery**:
-   - Gradual retorno aos valores de baseline após cessarem as atividades do tenant barulhento
-   - Possível persistência de efeitos residuais em alguns componentes do sistema
+3. **During the Recovery phase**:
+   - Gradual return to baseline values after the noisy tenant's activities cease
+   - Possible persistence of residual effects in some system components
 
-As tabelas estatísticas e visualizações facilitam a identificação desses padrões e a quantificação precisa do impacto do "noisy neighbor" em cada tipo de workload sensível.
+The statistical tables and visualizations facilitate the identification of these patterns and the precise quantification of the "noisy neighbor" impact on each type of sensitive workload.
 
-## 📋 Funcionalidades adicionadas
+### Data Analysis
 
-- **Processamento recursivo de subdiretórios**: Analisa automaticamente todas as subpastas de métricas
-- **Categorização automática**: Usa a estrutura de diretórios para categorizar métricas
-- **Análise por componente**: Separa análises por categoria (tenant, ingress, etc.)
-- **Metadados enriquecidos**: Adiciona informações de origem e caminho às métricas
-- **Detecção de correlações significativas**: Destaca automaticamente correlações fortes
-- **Comparação entre fases**: Análise estatística comparativa entre baseline, ataque e recuperação
-- **Comparação entre tenants**: Compara diretamente métricas similares entre diferentes tenants
-- **Períodos numerados no eixo X**: Melhora a legibilidade dos gráficos temporais
-- **Exportação de tabelas**: Gera tabelas estatísticas em formatos CSV e LaTeX
-- **Organização melhorada da saída**: Estrutura de diretórios organizada para os resultados
+After collecting the experiment results, you can analyze them using the analysis pipeline:
 
-## 🧠 Expansões possíveis
+1. **Configure the experiment variables**:
+   
+   Edit the `analysis_pipeline/main.py` file to point to your experiment:
+   ```python
+   EXPERIMENT_NAME = "YYYY-MM-DD/HH-MM-SS/default-experiment-1"
+   ROUND = "round-1"
+   PHASES = ["1 - Baseline", "2 - Attack", "3 - Recovery"]
+   ```
 
-- Exportar relatórios Markdown ou PDF com todos os resultados
-- Adicionar análise de séries temporais (ARIMA, decomposição, etc.)
-- Análise de causalidade (ex: Granger)
-- Análise de anomalias entre fases do experimento
-- Detecção automática de métricas com maiores variações durante ataques
-- Implementação de machine learning para detecção automática de "noisy neighbors"
+2. **Run the analysis pipeline**:
+   ```bash
+   cd analysis_pipeline
+   python main.py
+   ```
+
+3. **View the results**:
+   
+   The results will be organized in the following folders:
+   ```
+   plots/                           # Basic visualizations
+   ├── 1_-_Baseline/                # Charts from the baseline phase
+   ├── 2_-_Attack/                  # Charts from the attack phase
+   ├── 3_-_Recovery/                # Charts from the recovery phase
+   └── comparacao_fases/            # Comparisons between phases
+   
+   plots/time_series_analysis/      # Advanced time series analyses
+   ├── cross_corr_*.png             # Cross-correlation graphs
+   ├── lag_analysis_*.png           # Lag analyses
+   └── entropy_*.png                # Entropy analyses
+   
+   stats_results/                   # Statistical results in CSV and LaTeX
+   ├── granger_*.csv                # Granger causality results
+   └── entropy_*.csv                # Entropy analysis results
+   ```
+
+The pipeline provides:
+- Complete statistical analysis of metrics by tenant and component
+- Correlations between different metrics (identifying cause-effect relationships)
+- Advanced time series analyses to detect complex patterns:
+  - **Cross-correlation**: Identifies correlations considering different time lags
+  - **Lag analysis**: Determines the optimal delay between related events
+  - **Granger causality**: Statistically evaluates if one time series causes another
+  - **Entropy analysis**: Quantifies the complexity and regularity of the series
+- Comparative graphs between experiment phases
+- Automatic identification of metrics with significant variation during attacks
+
+For more details about data analysis, see the [pipeline documentation](analysis_pipeline/README.md).
 
 ---
 
-## 📄 Licença
+## Metrics Collected
+
+The experiment collects various metrics to analyze the noisy neighbor effect:
+
+### Tenant A (Network-Sensitive)
+- Network latency and jitter.
+- HTTP response times.
+- Connection throughput and errors.
+- TCP retransmission rates.
+
+### Tenant B (Noisy Neighbor)
+- CPU and memory consumption.
+- Network bandwidth utilization.
+- I/O operations and throughput.
+
+### Tenant C (Memory-Sensitive)
+- Memory usage and allocation.
+- Redis operation latency.
+- Cache hit/miss rates.
+- Memory pressure indicators.
+
+### Tenant D (CPU and Disk-Sensitive)
+- Query execution times.
+- Transaction throughput.
+- I/O wait times.
+- CPU throttling events.
+
+### System-wide Metrics
+- Node CPU, memory, and I/O utilization.
+- Network saturation.
+- Kubernetes scheduler decisions.
+- Resource contention indicators.
+
+Metrics are collected at configurable intervals (default: 5 seconds) and stored in CSV format for analysis.
+
+---
+
+## Advanced Statistical Techniques
+
+The analysis pipeline implements the following advanced statistical techniques for time series analysis:
+
+### Cross-Correlation
+- **Objective**: Identify correlations between time series considering time lags
+- **Application**: Detect how one tenant's activity affects others with temporal delay
+- **Output**: Graphs showing correlation coefficients for different lags
+- **Interpretation**: Peaks in the graph indicate lags where the relationship is strongest
+
+### Lag Analysis
+- **Objective**: Determine the optimal temporal delay between related events
+- **Application**: Quantify how long it takes for the noisy neighbor impact to be observed
+- **Output**: Comparative time series graphs with visual indication of the optimal lag
+- **Interpretation**: The lag with the highest correlation represents the delay in effect propagation
+
+### Granger Causality
+- **Objective**: Statistically test if one time series "causes" another
+- **Application**: Verify if the noisy tenant (B) metrics actually cause degradation in others
+- **Output**: Tables with p-values for different lags, indicating statistical significance
+- **Interpretation**: P-values < 0.05 indicate causal relationship with 95% statistical confidence
+
+### Entropy Analysis
+- **Objective**: Quantify the regularity and complexity of time series
+- **Methods**:
+  - **Approximate Entropy (ApEn)**: Measures the predictability of patterns in time series
+  - **Sample Entropy (SampEn)**: More robust version of ApEn, less sensitive to sample size
+- **Application**: 
+  - Identify changes in metric behavior complexity during attacks
+  - Compare regularity of metrics between different tenants
+- **Output**: Bar graphs comparing entropy between different series
+- **Interpretation**: 
+  - Higher entropy: more irregular/complex/unpredictable behavior
+  - Lower entropy: more regular/predictable behavior
+
+These analyses allow identification of more subtle patterns and causal relationships that would not be evident with basic statistical techniques, providing deeper insights into how tenants interact in a shared Kubernetes environment.
+
+---
+
+## 📋 Added features
+
+- **Recursive subdirectory processing**: Automatically analyzes all metric subfolders
+- **Automatic categorization**: Uses directory structure to categorize metrics
+- **Component-based analysis**: Separates analyses by category (tenant, ingress, etc.)
+- **Enriched metadata**: Adds source and path information to metrics
+- **Detection of significant correlations**: Automatically highlights strong correlations
+- **Phase comparison**: Comparative statistical analysis between baseline, attack, and recovery
+- **Tenant comparison**: Directly compares similar metrics between different tenants
+- **Numbered periods on X-axis**: Improves readability of time series charts
+- **Table export**: Generates statistical tables in CSV and LaTeX formats
+- **Improved output organization**: Organized directory structure for results
+
+---
+
+## 📄 License
 MIT

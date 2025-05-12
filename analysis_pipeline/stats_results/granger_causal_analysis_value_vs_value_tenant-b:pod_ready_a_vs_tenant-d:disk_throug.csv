@@ -1,0 +1,6 @@
+lag,tenant-b:pod_ready_age:value -> tenant-d:disk_throughput_total:value p-value,tenant-b:pod_ready_age:value -> tenant-d:disk_throughput_total:value significant,tenant-d:disk_throughput_total:value -> tenant-b:pod_ready_age:value p-value,tenant-d:disk_throughput_total:value -> tenant-b:pod_ready_age:value significant
+1,0.4619706731857979,False,1.0,False
+2,1.6032247751106706e-174,True,0.6103124995564311,False
+3,1.0,False,0.6644123459089766,False
+4,1.0,False,0.8696004994863058,False
+5,0.0,True,0.9392350453805101,False

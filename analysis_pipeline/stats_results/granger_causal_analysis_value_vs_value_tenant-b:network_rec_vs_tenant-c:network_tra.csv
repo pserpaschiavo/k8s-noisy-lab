@@ -1,0 +1,6 @@
+lag,tenant-b:network_receive:value -> tenant-c:network_transmit:value p-value,tenant-b:network_receive:value -> tenant-c:network_transmit:value significant,tenant-c:network_transmit:value -> tenant-b:network_receive:value p-value,tenant-c:network_transmit:value -> tenant-b:network_receive:value significant
+1,0.8872610583299316,False,0.0005435668665041684,True
+2,0.21947375413025447,False,0.005559558167211673,True
+3,0.23584488636918058,False,0.04798149754209563,True
+4,0.6115743417308959,False,0.003514925079740481,True
+5,0.910677373654108,False,0.001631288961944294,True

@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Teste de Causalidade de Granger entre tenant-b:disk_throughput_total:value e tenant-c:pod_ready_age:value (causal_analysis/value_vs_value)}
+\label{tab:granger_causal_analysis_value_vs_value_tenant-b:disk_throug_tenant-c:pod_ready_a}
+\begin{tabular}{rrrrr}
+\toprule
+lag & tenant-b:disk_throughput_total:value -> tenant-c:pod_ready_age:value p-value & tenant-b:disk_throughput_total:value -> tenant-c:pod_ready_age:value significant & tenant-c:pod_ready_age:value -> tenant-b:disk_throughput_total:value p-value & tenant-c:pod_ready_age:value -> tenant-b:disk_throughput_total:value significant \\
+\midrule
+1 & 1.0000 & False & 0.6946 & False \\
+2 & 0.9655 & False & 0.0000 & True \\
+3 & 0.9921 & False & 0.0000 & True \\
+4 & 0.9917 & False & 1.0000 & False \\
+5 & 0.6141 & False & 0.0000 & True \\
+\bottomrule
+\end{tabular}
+\end{table}

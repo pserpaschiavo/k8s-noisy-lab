@@ -27,58 +27,45 @@ def save_stats_to_csv(stats_df, phase, metrics_type, output_dir="stats_results")
     return filename
 
 
-def save_stats_to_tex(stats_df, phase, metrics_type, output_dir="stats_results"):
+def save_stats_to_tex(df, phase, suffix, output_dir="stats_results"):
     """
-    Salva um DataFrame de estatísticas em formato LaTeX (TEX).
-    
-    Args:
-        stats_df: DataFrame com estatísticas
-        phase: Nome da fase (ex: "baseline", "attack")
-        metrics_type: Tipo de métricas (ex: "summary", "stationarity")
-        output_dir: Diretório onde salvar os resultados
+    Salva o dataframe no formato LaTeX.
     """
-    os.makedirs(output_dir, exist_ok=True)
-    clean_phase = phase.replace("/", "_").replace(" ", "_")
-    filename = f"{output_dir}/{clean_phase}_{metrics_type}.tex"
-    
-    # Formata números no DataFrame para melhor apresentação no LaTeX
-    formatted_df = stats_df.copy()
-    for col in formatted_df.select_dtypes(include=[np.number]).columns:
-        if formatted_df[col].abs().max() < 0.01:
-            # Formato científico para números muito pequenos
-            formatted_df[col] = formatted_df[col].map(lambda x: f"{x:.4e}" if not pd.isna(x) else "")
-        elif formatted_df[col].abs().max() > 1000:
-            # Inteiros para números grandes
-            formatted_df[col] = formatted_df[col].map(lambda x: f"{x:.0f}" if not pd.isna(x) else "")
-        else:
-            # Duas casas decimais para outros números
-            formatted_df[col] = formatted_df[col].map(lambda x: f"{x:.2f}" if not pd.isna(x) else "")
-    
-    # Adiciona título à tabela
-    caption = f"Estatísticas de {metrics_type} para a fase {phase}"
-    label = f"tab:{clean_phase}_{metrics_type}"
-    
-    # Gera o código LaTeX
-    tex_code = formatted_df.to_latex(
-        index=True,
-        bold_rows=True,
-        caption=caption,
-        label=label,
-        float_format="%.2f"
-    )
-    
-    # Substitui o cabeçalho padrão do pandas por um mais amigável
-    header_line = tex_code.split('\n')[4]
-    if "metric" not in header_line.lower():
-        # Adiciona 'Metric' como nome da coluna de índice se não estiver presente
-        tex_code = tex_code.replace(header_line, header_line.replace("{}", "{Metric}"))
-    
-    with open(filename, 'w') as f:
-        f.write(tex_code)
-    
-    print(f"Estatísticas salvas em LaTeX: {filename}")
-    
-    return filename
+    try:
+        import jinja2  # Verificar se jinja2 está instalado
+        
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Limpando o nome da fase para uso em nome de arquivo
+        clean_phase = phase.replace("/", "_").replace(" ", "_")
+        output_path = f"{output_dir}/{clean_phase}_{suffix}.tex"
+        
+        # Formatação para melhor aparência em LaTeX
+        formatted_df = df.copy()
+        
+        # Arredondando valores numéricos para facilitar a leitura
+        for col in formatted_df.columns:
+            if formatted_df[col].dtype.kind in 'fc':  # float ou complex
+                formatted_df[col] = formatted_df[col].round(2)
+        
+        tex_code = formatted_df.to_latex(
+            index=True,
+            escape=False,
+            multicolumn=True,
+            multicolumn_format='c',
+            caption=f"Estatísticas para {phase}",
+            label=f"tab:{phase.lower().replace(' ', '_').replace('/', '_')}_{suffix}",
+            position='htbp',
+            float_format="%.2f"
+        )
+        
+        with open(output_path, 'w') as f:
+            f.write(tex_code)
+        
+        print(f"Estatísticas salvas em LaTeX: {output_path}")
+    except ImportError:
+        print(f"Aviso: Jinja2 não está instalado. A exportação para LaTeX foi ignorada.")
+        print(f"Para habilitar a exportação para LaTeX, instale o pacote com: pip install jinja2")
 
 
 def summarize_metrics(df, phase, save_results=True):

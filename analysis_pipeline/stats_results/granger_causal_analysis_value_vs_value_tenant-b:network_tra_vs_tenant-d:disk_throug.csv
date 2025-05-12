@@ -1,0 +1,6 @@
+lag,tenant-b:network_transmit:value -> tenant-d:disk_throughput_total:value p-value,tenant-b:network_transmit:value -> tenant-d:disk_throughput_total:value significant,tenant-d:disk_throughput_total:value -> tenant-b:network_transmit:value p-value,tenant-d:disk_throughput_total:value -> tenant-b:network_transmit:value significant
+1,0.35475599328902185,False,0.14256934296535165,False
+2,0.3475298847513491,False,0.09757283003957394,False
+3,0.04620071021971104,True,2.516036436806375e-05,True
+4,0.003959307902366431,True,6.380208077980208e-06,True
+5,0.000384221438100409,True,0.0003511436147461107,True

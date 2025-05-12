@@ -50,17 +50,17 @@ If you're using a cloud provider, these would be suitable instances:
 
 ### Kubernetes Version Compatibility
 
-O laboratório usa por padrão a versão **v1.32.0** do Kubernetes, escolhida por:
-- Compatibilidade com versões recentes do kubectl (até v1.33.x)
-- Estabilidade para os recursos utilizados no experimento
-- Suporte para todas as funcionalidades necessárias para demonstrar o efeito "noisy neighbor"
+The lab uses **v1.32.0** of Kubernetes by default, chosen for:
+- Compatibility with recent kubectl versions (up to v1.33.x)
+- Stability for the resources used in the experiment
+- Support for all the necessary features to demonstrate the "noisy neighbor" effect
 
-Você pode especificar uma versão diferente do Kubernetes usando o parâmetro `--k8s-version`:
+You can specify a different Kubernetes version using the `--k8s-version` parameter:
 ```bash
 ./setup-minikube.sh --k8s-version v1.29.2
 ```
 
-**Nota sobre compatibilidade**: O script `setup-minikube.sh` faz verificações automáticas de compatibilidade entre sua versão do kubectl e a versão do Kubernetes selecionada, alertando sobre possíveis problemas.
+**Compatibility note**: The `setup-minikube.sh` script automatically checks compatibility between your kubectl version and the selected Kubernetes version, alerting you to potential issues.
 
 ---
 
@@ -107,51 +107,57 @@ Você pode especificar uma versão diferente do Kubernetes usando o parâmetro `
 - **Characteristics**: Sensitive to CPU throttling and disk I/O performance.
 - **Metrics Focus**: Query execution time, transaction throughput, I/O latency.
 
-### Análise de Dados (Pipeline)
-- **Processamento Automático**: Pipeline em Python para análise recursiva de métricas de experimentos.
-- **Análise Estatística**: Cálculos de estatísticas descritivas, correlações e testes de estacionariedade.
-- **Visualizações**: Geração automática de gráficos de séries temporais, distribuições e correlações.
-- **Comparação de Fases**: Análise comparativa entre baseline, ataque e recuperação.
-- **Categorização**: Organização de métricas por categorias (tenants, componentes, etc.).
+### Data Analysis (Pipeline)
+- **Automatic Processing**: Python pipeline for recursive analysis of experiment metrics.
+- **Statistical Analysis**: Calculations of descriptive statistics, correlations, and stationarity tests.
+- **Visualizations**: Automatic generation of time series graphs, distributions, and correlations.
+- **Phase Comparison**: Comparative analysis between baseline, attack, and recovery phases.
+- **Categorization**: Organization of metrics by categories (tenants, components, etc.).
+- **Advanced Time Series Analysis**: 
+  - **Cross-Correlation**: Cross-correlation analysis to identify relationships between time series with different lags.
+  - **Lag Analysis**: Identification of the optimal time delay between events in different metrics.
+  - **Granger Causality**: Statistical tests to determine causal relationships between metric series.
+  - **Entropy Analysis**: Calculation of approximate entropy (ApEn) and sample entropy (SampEn) to quantify complexity and regularity of time series.
 
 ---
 
 ## Repository Structure
 ```
 .
-├── check-cluster.sh                # Verifies cluster readiness
-├── install-nginx-controller.sh     # Installs NGINX Ingress Controller
-├── install-prom-operator.sh        # Installs Prometheus and Grafana
-├── run-experiment.sh               # Main script to orchestrate the experiment
-├── setup-minikube.sh               # Sets up the Minikube cluster
-├── analysis_pipeline/              # Pipeline de análise de dados
-│   ├── correlation_analysis.py     # Análise de correlação entre métricas
-│   ├── data_loader.py              # Carregamento recursivo de métricas
-│   ├── main.py                     # Ponto de entrada principal do pipeline
-│   ├── stats_summary.py            # Análise estatística das métricas
-│   ├── visualizations.py           # Geração de visualizações
-│   └── README.md                   # Documentação específica do pipeline
-├── lib/                            # Helper libraries for the experiment
-│   ├── experiment.sh               # Experiment orchestration functions
-│   ├── kubernetes.sh               # Kubernetes interaction functions
-│   ├── logger.sh                   # Logging utilities
-│   ├── metrics.sh                  # Metrics collection functions
-│   └── tenant_metrics.sh           # Tenant-specific metrics definitions
-├── manifests/                      # Kubernetes manifests for workloads and namespaces
-│   ├── ingress-controller/         # Ingress controller configuration
-│   ├── namespace/                  # Namespace and resource quota definitions
-│   │   ├── limited-resource-quotas.yaml  # Resource quotas for limited resources mode
-│   │   └── resource-quotas.yaml    # Standard resource quotas
-│   ├── tenant-a/                   # Network-sensitive workloads
-│   ├── tenant-b/                   # Noisy neighbor workloads
-│   ├── tenant-c/                   # Memory-sensitive workloads
-│   └── tenant-d/                   # CPU and disk-sensitive workloads
-├── observability/                  # Prometheus and Grafana configurations
-│   ├── grafana-dashboards/         # Grafana dashboards
-│   ├── prometheus-rules/           # Prometheus alerting rules
-│   ├── servicemonitors/            # ServiceMonitors for tenants
-│   └── tenant-metrics.yaml         # Tenant-specific metric definitions
-└── results/                        # Directory for experiment results
+├── check-cluster.sh                          # Verifies cluster readiness
+├── install-nginx-controller.sh               # Installs NGINX Ingress Controller
+├── install-prom-operator.sh                  # Installs Prometheus and Grafana
+├── run-experiment.sh                         # Main script to orchestrate the experiment
+├── setup-minikube.sh                         # Sets up the Minikube cluster
+├── analysis_pipeline/                        # Data analysis pipeline
+│   ├── correlation_analysis.py               # Correlation analysis between metrics
+│   ├── data_loader.py                        # Recursive metric loading
+│   ├── main.py                               # Main pipeline entry point
+│   ├── stats_summary.py                      # Statistical analysis of metrics
+│   ├── time_series_analysis.py               # Advanced time series analysis
+│   ├── visualizations.py                     # Visualization generation
+│   └── README.md                             # Documentação específica do pipeline
+├── lib/                                      # Helper libraries for the experiment
+│   ├── experiment.sh                         # Experiment orchestration functions
+│   ├── kubernetes.sh                         # Kubernetes interaction functions
+│   ├── logger.sh                             # Logging utilities
+│   ├── metrics.sh                            # Metrics collection functions
+│   └── tenant_metrics.sh                     # Tenant-specific metrics definitions
+├── manifests/                                # Kubernetes manifests for workloads and namespaces
+│   ├── ingress-controller/                   # Ingress controller configuration
+│   ├── namespace/                            # Namespace and resource quota definitions
+│   │   ├── limited-resource-quotas.yaml      # Resource quotas for limited resources mode
+│   │   └── resource-quotas.yaml              # Standard resource quotas
+│   ├── tenant-a/                             # Network-sensitive workloads
+│   ├── tenant-b/                             # Noisy neighbor workloads
+│   ├── tenant-c/                             # Memory-sensitive workloads
+│   └── tenant-d/                             # CPU and disk-sensitive workloads
+├── observability/                            # Prometheus and Grafana configurations
+│   ├── grafana-dashboards/                   # Grafana dashboards
+│   ├── prometheus-rules/                     # Prometheus alerting rules
+│   ├── servicemonitors/                      # ServiceMonitors for tenants
+│   └── tenant-metrics.yaml                   # Tenant-specific metric definitions
+└── results/                                  # Directory for experiment results
 ```
 
 ---
@@ -255,84 +261,57 @@ kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 909
 ```
 Open your browser at [http://localhost:9090](http://localhost:9090).
 
-### 6. Análise de Dados
+### 6. Data Analysis
 
-Após coletar os resultados do experimento, você pode analisá-los usando o pipeline de análise:
+After collecting the experiment results, you can analyze them using the analysis pipeline:
 
-1. **Configure as variáveis do experimento**:
+1. **Configure the experiment variables**:
    
-   Edite o arquivo `analysis_pipeline/main.py` para apontar para seu experimento:
+   Edit the `analysis_pipeline/main.py` file to point to your experiment:
    ```python
    EXPERIMENT_NAME = "YYYY-MM-DD/HH-MM-SS/default-experiment-1"
    ROUND = "round-1"
    PHASES = ["1 - Baseline", "2 - Attack", "3 - Recovery"]
    ```
 
-2. **Execute o pipeline de análise**:
+2. **Run the analysis pipeline**:
    ```bash
    cd analysis_pipeline
    python main.py
    ```
 
-3. **Visualize os resultados**:
+3. **View the results**:
    
-   Os resultados serão organizados na pasta `plots/` com a seguinte estrutura:
+   The results will be organized in the following folders:
    ```
-   plots/
-   ├── 1_-_Baseline/
-   │   ├── correlacao_pearson.png
-   │   ├── serie_temporal_*.png
-   │   └── ...
-   ├── 2_-_Attack/
-   ├── 3_-_Recovery/
-   └── comparacao_fases/
-       └── boxplot_*.png
+   plots/                           # Basic visualizations
+   ├── 1_-_Baseline/                # Charts from the baseline phase
+   ├── 2_-_Attack/                  # Charts from the attack phase
+   ├── 3_-_Recovery/                # Charts from the recovery phase
+   └── comparacao_fases/            # Comparisons between phases
+   
+   plots/time_series_analysis/      # Advanced time series analyses
+   ├── cross_corr_*.png             # Cross-correlation graphs
+   ├── lag_analysis_*.png           # Lag analyses
+   └── entropy_*.png                # Entropy analyses
+   
+   stats_results/                   # Statistical results in CSV and LaTeX
+   ├── granger_*.csv                # Granger causality results
+   └── entropy_*.csv                # Entropy analysis results
    ```
 
-O pipeline fornece:
-- Análise estatística completa de métricas por tenant e componente
-- Correlações entre diferentes métricas (identificando relações causa-efeito)
-- Gráficos comparativos entre fases do experimento
-- Identificação automática de métricas com variação significativa durante ataques
+The pipeline provides:
+- Complete statistical analysis of metrics by tenant and component
+- Correlations between different metrics (identifying cause-effect relationships)
+- Advanced time series analyses to detect complex patterns:
+  - **Cross-correlation**: Identifies correlations considering different time lags
+  - **Lag analysis**: Determines the optimal delay between related events
+  - **Granger causality**: Statistically evaluates if one time series causes another
+  - **Entropy analysis**: Quantifies the complexity and regularity of the series
+- Comparative graphs between experiment phases
+- Automatic identification of metrics with significant variation during attacks
 
-Para mais detalhes sobre a análise de dados, consulte a [documentação do pipeline](analysis_pipeline/README.md).
-
----
-
-## Metrics Collected
-
-The experiment collects various metrics to analyze the noisy neighbor effect:
-
-### Tenant A (Network-Sensitive)
-- Network latency and jitter.
-- HTTP response times.
-- Connection throughput and errors.
-- TCP retransmission rates.
-
-### Tenant B (Noisy Neighbor)
-- CPU and memory consumption.
-- Network bandwidth utilization.
-- I/O operations and throughput.
-
-### Tenant C (Memory-Sensitive)
-- Memory usage and allocation.
-- Redis operation latency.
-- Cache hit/miss rates.
-- Memory pressure indicators.
-
-### Tenant D (CPU and Disk-Sensitive)
-- Query execution times.
-- Transaction throughput.
-- I/O wait times.
-- CPU throttling events.
-
-### System-wide Metrics
-- Node CPU, memory, and I/O utilization.
-- Network saturation.
-- Kubernetes scheduler decisions.
-- Resource contention indicators.
-
-Metrics are collected at configurable intervals (default: 5 seconds) and stored in CSV format for analysis.
+For more details about data analysis, see the [analysis pipeline documentation](analysis_pipeline/README.md).
 
 ---
 

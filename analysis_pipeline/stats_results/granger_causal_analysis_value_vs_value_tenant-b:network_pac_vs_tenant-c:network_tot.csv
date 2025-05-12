@@ -1,0 +1,6 @@
+lag,tenant-b:network_packet_rate:value -> tenant-c:network_total_bandwidth:value p-value,tenant-b:network_packet_rate:value -> tenant-c:network_total_bandwidth:value significant,tenant-c:network_total_bandwidth:value -> tenant-b:network_packet_rate:value p-value,tenant-c:network_total_bandwidth:value -> tenant-b:network_packet_rate:value significant
+1,0.458595432534295,False,0.0010981673270949012,True
+2,0.3214666511872351,False,0.00372828775175163,True
+3,0.04902146892786914,True,0.008437494662085456,True
+4,0.07339947182500221,False,0.008442661652220145,True
+5,0.4446913104331721,False,0.0019670341688506564,True

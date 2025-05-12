@@ -3,7 +3,7 @@
 from data_loader import load_metrics
 from stats_summary import summarize_metrics, compare_phase_stats
 from correlation_analysis import compute_correlations
-from visualizations import plot_all, plot_tenant_comparison
+from visualizations import plot_all, plot_tenant_comparison, plot_metrics_by_phase
 from time_series_analysis import run_time_series_analysis
 import os
 import pandas as pd
@@ -308,77 +308,9 @@ def main():
     print("\n>>> ANÁLISE COMPARATIVA ENTRE TENANTS")
     plot_tenant_comparison(all_data, metrics_to_compare=METRICS_TO_COMPARE)
     
-    # Análise de entropia comparativa entre tenants
-    if ENABLE_ADVANCED_ANALYSIS and ANALYZE_ENTROPY:
-        print("\n>>> ANÁLISE COMPARATIVA DE ENTROPIA ENTRE TENANTS")
-        
-        for phase in PHASES:
-            if phase in all_data:
-                phase_df = all_data[phase]
-                tenants = [cat for cat in phase_df['__category__'].unique() 
-                          if cat.startswith('tenant-')]
-                
-                if len(tenants) >= 2:
-                    # Preparar dados para análise de entropia
-                    entropy_data = {}
-                    
-                    # Selecionar métricas comuns para entropia
-                    common_metrics = set()
-                    first = True
-                    
-                    for tenant in tenants:
-                        tenant_df = phase_df[phase_df['__category__'] == tenant]
-                        numeric_cols = tenant_df.select_dtypes(include=[np.number]).columns
-                        tenant_metrics = {col for col in numeric_cols 
-                                        if col not in ['__source__', '__category__', '__path__']}
-                        
-                        if first:
-                            common_metrics = tenant_metrics
-                            first = False
-                        else:
-                            common_metrics &= tenant_metrics
-                    
-                    # Usar métricas comuns ou especificadas
-                    metrics_to_analyze = METRICS_TO_COMPARE if METRICS_TO_COMPARE else list(common_metrics)
-                    
-                    # Limitar a 5 métricas para entropia
-                    metrics_to_analyze = metrics_to_analyze[:5]
-                    
-                    for metric in metrics_to_analyze:
-                        print(f"\n=== Análise de entropia para métrica: {metric} ({phase}) ===")
-                        for tenant in tenants:
-                            tenant_df = phase_df[phase_df['__category__'] == tenant]
-                            
-                            if metric in tenant_df.columns:
-                                sources = tenant_df['__source__'].unique() if '__source__' in tenant_df.columns else ['']
-                                
-                                for source in sources:
-                                    if source == '':
-                                        series = tenant_df[metric].values
-                                        label = f"{tenant}:{metric}"
-                                    else:
-                                        source_df = tenant_df[tenant_df['__source__'] == source]
-                                        series = source_df[metric].values
-                                        label = f"{tenant}:{source}:{metric}"
-                                    
-                                    if len(series) >= 10:
-                                        entropy_data[label] = series
-                        
-                        # Calcular entropias se tivermos dados suficientes
-                        if len(entropy_data) >= 2:
-                            from time_series_analysis import entropy_analysis
-                            
-                            # SampEn
-                            entropy_analysis(
-                                entropy_data, method='sample',
-                                phase=f"{phase}/entropy_{metric}"
-                            )
-                            
-                            # ApEn
-                            entropy_analysis(
-                                entropy_data, method='approx',
-                                phase=f"{phase}/entropy_{metric}"
-                            )
+    # Gerar gráficos comparativos por métrica em cada fase
+    print("\n>>> GRÁFICOS COMPARATIVOS POR MÉTRICA EM CADA FASE")
+    plot_metrics_by_phase(all_data)
     
     print("\n>>> ANÁLISE CONCLUÍDA")
     print(f"Resultados estatísticos salvos no diretório 'stats_results'")

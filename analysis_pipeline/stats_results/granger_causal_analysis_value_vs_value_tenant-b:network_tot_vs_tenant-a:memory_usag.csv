@@ -1,0 +1,6 @@
+lag,tenant-b:network_total_bandwidth:value -> tenant-a:memory_usage:value p-value,tenant-b:network_total_bandwidth:value -> tenant-a:memory_usage:value significant,tenant-a:memory_usage:value -> tenant-b:network_total_bandwidth:value p-value,tenant-a:memory_usage:value -> tenant-b:network_total_bandwidth:value significant
+1,0.8589332662727399,False,0.9661715776129259,False
+2,0.5766384989320982,False,0.3463703842325747,False
+3,0.47275930488621953,False,0.3670813624042935,False
+4,0.43657235999847555,False,0.45046867828478376,False
+5,0.5336014685400161,False,0.4709330282394255,False

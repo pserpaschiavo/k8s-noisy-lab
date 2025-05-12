@@ -60,16 +60,27 @@ def compute_cross_correlation(x, y, maxlags=None, plot=True, phase=None, output_
         'cross_correlation': cross_corr
     })
     
-    # Encontrar o lag com maior correlação
-    best_lag = results_df.iloc[results_df['cross_correlation'].abs().idxmax()]
-    print(f"Lag com maior correlação: {best_lag['lag']} (r = {best_lag['cross_correlation']:.3f})")
+    # Encontrar o lag com maior correlação (tratando valores NaN)
+    try:
+        # Primeiramente verifica se há algum valor não-NaN
+        if results_df['cross_correlation'].notna().any():
+            # Usa idxmax apenas nos valores não-NaN
+            best_idx = results_df['cross_correlation'].abs().fillna(0).idxmax()
+            best_lag = results_df.iloc[best_idx]
+            print(f"Lag com maior correlação: {best_lag['lag']} (r = {best_lag['cross_correlation']:.3f})")
+        else:
+            print("Todos os valores de correlação cruzada são NaN.")
+            best_lag = pd.Series({'lag': 0, 'cross_correlation': np.nan})
+    except Exception as e:
+        print(f"Erro ao determinar o lag com maior correlação: {str(e)}")
+        best_lag = pd.Series({'lag': 0, 'cross_correlation': np.nan})
     
     # Plotar os resultados
     if plot:
         os.makedirs(output_dir, exist_ok=True)
         
         plt.figure(figsize=(12, 6))
-        plt.stem(results_df['lag'], results_df['cross_correlation'], use_line_collection=True)
+        plt.stem(results_df['lag'], results_df['cross_correlation'])  # Removido parâmetro use_line_collection=True
         plt.axhline(y=0, linestyle='--', color='gray', alpha=0.7)
         plt.axhline(y=0.2, linestyle=':', color='red', alpha=0.4)
         plt.axhline(y=-0.2, linestyle=':', color='red', alpha=0.4)
@@ -78,10 +89,11 @@ def compute_cross_correlation(x, y, maxlags=None, plot=True, phase=None, output_
         plt.xlabel('Lag')
         plt.ylabel('Correlação Cruzada')
         
-        # Destacar o lag com maior correlação
-        plt.plot(best_lag['lag'], best_lag['cross_correlation'], 'ro', 
-                 markersize=8, label=f'Melhor Lag: {best_lag["lag"]}')
-        plt.legend()
+        # Destacar o lag com maior correlação apenas se não for NaN
+        if not np.isnan(best_lag['cross_correlation']):
+            plt.plot(best_lag['lag'], best_lag['cross_correlation'], 'ro', 
+                    markersize=8, label=f'Melhor Lag: {best_lag["lag"]}')
+            plt.legend()
         
         if phase:
             clean_phase = phase.replace(" ", "_").replace("/", "_")

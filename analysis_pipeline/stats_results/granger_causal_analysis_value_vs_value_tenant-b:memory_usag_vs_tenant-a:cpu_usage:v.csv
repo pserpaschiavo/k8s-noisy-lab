@@ -1,0 +1,6 @@
+lag,tenant-b:memory_usage:value -> tenant-a:cpu_usage:value p-value,tenant-b:memory_usage:value -> tenant-a:cpu_usage:value significant,tenant-a:cpu_usage:value -> tenant-b:memory_usage:value p-value,tenant-a:cpu_usage:value -> tenant-b:memory_usage:value significant
+1,0.7271774179721273,False,0.8590327220765199,False
+2,0.09947053663920792,False,0.7620176104494166,False
+3,0.04843543403175502,True,0.47091377252251854,False
+4,0.03763493035674529,True,0.730214738229982,False
+5,0.0640713799998785,False,0.2627635145153553,False
