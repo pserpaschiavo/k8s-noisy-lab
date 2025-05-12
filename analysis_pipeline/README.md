@@ -50,8 +50,8 @@ Cada subpasta contém os arquivos CSV das métricas de cada tenant para aquela f
 Edite os valores no `main.py`:
 
 ```python
-EXPERIMENT_NAME = "../k8s-noisy-lab/results/YYYY-MM-DD/HH-MM-SS/default-experiment-1"       # De preferência o caminho absoluto.
-ROUND = "round-1"                                                                           # Altere o valor para rounds consequentes.
+EXPERIMENT_NAME = "../k8s-noisy-lab/results/YYYY-MM-DD/HH-MM-SS/experiment-#"       # De preferência o caminho absoluto até o diretório.
+ROUND = "round-1"                                                                   # Altere o valor para rounds consequentes.
 ```
 
 E execute:
@@ -81,7 +81,3 @@ Os seguintes arquivos serão gerados:
 
 MIT. Sinta-se livre para usar, modificar e contribuir!
 ```
-
----
-
-Se quiser, posso já incluir um `requirements.txt` com os pacotes. Quer que eu faça isso também?
