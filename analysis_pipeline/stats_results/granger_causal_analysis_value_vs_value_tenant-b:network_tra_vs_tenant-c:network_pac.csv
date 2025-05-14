@@ -1,6 +1,0 @@
-lag,tenant-b:network_transmit:value -> tenant-c:network_packet_rate:value p-value,tenant-b:network_transmit:value -> tenant-c:network_packet_rate:value significant,tenant-c:network_packet_rate:value -> tenant-b:network_transmit:value p-value,tenant-c:network_packet_rate:value -> tenant-b:network_transmit:value significant
-1,0.3670619629013987,False,0.6123328462204267,False
-2,0.30525243955253795,False,0.4010786876970366,False
-3,0.24291243627787734,False,0.00027583587672182523,True
-4,0.28600544333986366,False,0.001094931352660449,True
-5,0.828430401885074,False,0.0019974843306799542,True

@@ -1,6 +1,0 @@
-lag,tenant-b:disk_io_total:value -> tenant-c:pod_ready_age:value p-value,tenant-b:disk_io_total:value -> tenant-c:pod_ready_age:value significant,tenant-c:pod_ready_age:value -> tenant-b:disk_io_total:value p-value,tenant-c:pod_ready_age:value -> tenant-b:disk_io_total:value significant
-1,1.0,False,0.6282636987494477,False
-2,0.6485257778315107,False,1.1004408376403178e-36,True
-3,0.7840149482076756,False,1.1120071361947171e-229,True
-4,0.8134645292468111,False,5.780711358573238e-72,True
-5,0.7203909571681861,False,5.46318720890427e-169,True

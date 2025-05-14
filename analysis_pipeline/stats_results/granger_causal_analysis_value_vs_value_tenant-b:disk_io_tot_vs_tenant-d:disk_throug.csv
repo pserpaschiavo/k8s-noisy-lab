@@ -1,6 +1,0 @@
-lag,tenant-b:disk_io_total:value -> tenant-d:disk_throughput_total:value p-value,tenant-b:disk_io_total:value -> tenant-d:disk_throughput_total:value significant,tenant-d:disk_throughput_total:value -> tenant-b:disk_io_total:value p-value,tenant-d:disk_throughput_total:value -> tenant-b:disk_io_total:value significant
-1,0.0008153200281789402,True,2.667349289748073e-13,True
-2,1.2989492165864348e-05,True,7.161619200354988e-11,True
-3,1.6831328802764853e-05,True,2.0376721295579312e-08,True
-4,6.751392597396468e-06,True,3.2304761574581224e-09,True
-5,0.007516590234804147,True,6.597596354493381e-08,True

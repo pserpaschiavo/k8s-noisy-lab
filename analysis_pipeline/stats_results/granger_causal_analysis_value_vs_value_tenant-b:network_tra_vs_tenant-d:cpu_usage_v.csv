@@ -1,6 +1,0 @@
-lag,tenant-b:network_transmit:value -> tenant-d:cpu_usage_variability:value p-value,tenant-b:network_transmit:value -> tenant-d:cpu_usage_variability:value significant,tenant-d:cpu_usage_variability:value -> tenant-b:network_transmit:value p-value,tenant-d:cpu_usage_variability:value -> tenant-b:network_transmit:value significant
-1,0.8447900074829006,False,0.6231606927875841,False
-2,0.9512368390653858,False,0.5083170132881697,False
-3,0.9651642273598309,False,0.6671519834502124,False
-4,0.45010688854479797,False,0.5106404235091366,False
-5,0.6452992648217069,False,0.5830352792012021,False

@@ -1,6 +1,0 @@
-lag,tenant-b:network_total_bandwidth:value -> tenant-d:disk_io_total:value p-value,tenant-b:network_total_bandwidth:value -> tenant-d:disk_io_total:value significant,tenant-d:disk_io_total:value -> tenant-b:network_total_bandwidth:value p-value,tenant-d:disk_io_total:value -> tenant-b:network_total_bandwidth:value significant
-1,0.06843231111686882,False,0.9218464502688121,False
-2,0.022050583629516583,True,0.016448115857936315,True
-3,0.34406246169634525,False,4.320375323787205e-07,True
-4,0.06414597169819856,False,1.483712273621363e-07,True
-5,0.19560948599555308,False,4.0336565392289635e-05,True

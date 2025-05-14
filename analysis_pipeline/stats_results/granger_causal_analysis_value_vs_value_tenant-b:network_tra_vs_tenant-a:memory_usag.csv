@@ -1,6 +1,0 @@
-lag,tenant-b:network_transmit:value -> tenant-a:memory_usage:value p-value,tenant-b:network_transmit:value -> tenant-a:memory_usage:value significant,tenant-a:memory_usage:value -> tenant-b:network_transmit:value p-value,tenant-a:memory_usage:value -> tenant-b:network_transmit:value significant
-1,0.7005943658406182,False,0.9511592509176552,False
-2,0.5213374530878291,False,0.33525385316833006,False
-3,0.43928200203414314,False,0.4054852481818203,False
-4,0.509193301224304,False,0.46991778282346974,False
-5,0.6318981189062901,False,0.5339982955525149,False

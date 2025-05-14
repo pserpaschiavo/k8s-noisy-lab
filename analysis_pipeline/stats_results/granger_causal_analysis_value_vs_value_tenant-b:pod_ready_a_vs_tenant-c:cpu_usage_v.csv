@@ -1,6 +1,0 @@
-lag,tenant-b:pod_ready_age:value -> tenant-c:cpu_usage_variability:value p-value,tenant-b:pod_ready_age:value -> tenant-c:cpu_usage_variability:value significant,tenant-c:cpu_usage_variability:value -> tenant-b:pod_ready_age:value p-value,tenant-c:cpu_usage_variability:value -> tenant-b:pod_ready_age:value significant
-1,0.981234299765518,False,1.0,False
-2,1.4939792012139818e-98,True,0.9764009477001526,False
-3,1.0,False,0.836810850768472,False
-4,1.0,False,0.8054534266728377,False
-5,3.0287152476412517e-131,True,0.9800050307113586,False

@@ -1,6 +1,0 @@
-lag,tenant-b:cpu_usage:value -> tenant-c:network_receive:value p-value,tenant-b:cpu_usage:value -> tenant-c:network_receive:value significant,tenant-c:network_receive:value -> tenant-b:cpu_usage:value p-value,tenant-c:network_receive:value -> tenant-b:cpu_usage:value significant
-1,0.8871921870255286,False,6.928294093232932e-10,True
-2,0.03722259717491581,True,1.787201853346091e-10,True
-3,0.07242592441665366,False,2.9521927260594355e-09,True
-4,0.036721564332587,True,1.8132981585276346e-08,True
-5,0.3051934281156889,False,1.9166497653128647e-08,True

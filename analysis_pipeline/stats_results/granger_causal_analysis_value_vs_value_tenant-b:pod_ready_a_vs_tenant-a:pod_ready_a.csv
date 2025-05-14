@@ -1,6 +1,0 @@
-lag,tenant-b:pod_ready_age:value -> tenant-a:pod_ready_age:value p-value,tenant-b:pod_ready_age:value -> tenant-a:pod_ready_age:value significant,tenant-a:pod_ready_age:value -> tenant-b:pod_ready_age:value p-value,tenant-a:pod_ready_age:value -> tenant-b:pod_ready_age:value significant
-1,1.0,False,1.0,False
-2,1.0,False,1.0,False
-3,1.0,False,1.0,False
-4,1.0,False,1.0,False
-5,1.0,False,1.0,False

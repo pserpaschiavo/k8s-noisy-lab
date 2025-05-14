@@ -1,6 +1,0 @@
-lag,tenant-b:network_total_bandwidth:value -> tenant-a:pod_ready_age:value p-value,tenant-b:network_total_bandwidth:value -> tenant-a:pod_ready_age:value significant,tenant-a:pod_ready_age:value -> tenant-b:network_total_bandwidth:value p-value,tenant-a:pod_ready_age:value -> tenant-b:network_total_bandwidth:value significant
-1,0.997962920688982,False,0.7922865198168348,False
-2,0.6976530646081023,False,0.0019042436963238065,True
-3,0.8480232836346941,False,1.968759006721438e-07,True
-4,0.13132967525479414,False,1.0,False
-5,0.1914564598558519,False,3.0863371673336046e-32,True

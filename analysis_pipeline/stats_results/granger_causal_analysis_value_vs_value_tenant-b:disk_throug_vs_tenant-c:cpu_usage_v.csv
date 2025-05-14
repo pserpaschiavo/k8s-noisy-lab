@@ -1,6 +1,0 @@
-lag,tenant-b:disk_throughput_total:value -> tenant-c:cpu_usage_variability:value p-value,tenant-b:disk_throughput_total:value -> tenant-c:cpu_usage_variability:value significant,tenant-c:cpu_usage_variability:value -> tenant-b:disk_throughput_total:value p-value,tenant-c:cpu_usage_variability:value -> tenant-b:disk_throughput_total:value significant
-1,0.29156418328753875,False,0.6051480733241179,False
-2,0.5759402662400996,False,0.5429804845469559,False
-3,0.6282198982577087,False,0.13869464494644193,False
-4,0.7815576667893547,False,0.13970779273201142,False
-5,0.4278588337279621,False,0.17204128106952246,False

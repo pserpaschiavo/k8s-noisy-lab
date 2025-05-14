@@ -1,6 +1,0 @@
-lag,tenant-b:pod_ready_age:value -> tenant-d:network_receive:value p-value,tenant-b:pod_ready_age:value -> tenant-d:network_receive:value significant,tenant-d:network_receive:value -> tenant-b:pod_ready_age:value p-value,tenant-d:network_receive:value -> tenant-b:pod_ready_age:value significant
-1,0.8800546854908952,False,1.0,False
-2,0.0,True,0.9396040205834059,False
-3,1.0,False,0.9019105186440475,False
-4,1.0,False,0.8285176611003237,False
-5,1.3424539580031805e-95,True,0.9378196862885977,False

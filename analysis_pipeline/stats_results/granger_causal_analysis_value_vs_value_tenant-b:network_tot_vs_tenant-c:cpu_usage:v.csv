@@ -1,6 +1,0 @@
-lag,tenant-b:network_total_bandwidth:value -> tenant-c:cpu_usage:value p-value,tenant-b:network_total_bandwidth:value -> tenant-c:cpu_usage:value significant,tenant-c:cpu_usage:value -> tenant-b:network_total_bandwidth:value p-value,tenant-c:cpu_usage:value -> tenant-b:network_total_bandwidth:value significant
-1,0.3667110311149646,False,0.44755839698710287,False
-2,0.010541346407757201,True,0.008507408596423469,True
-3,0.008023715531924379,True,3.891869921558472e-06,True
-4,0.0256365939582261,True,2.565699628857294e-05,True
-5,0.07902070027910983,False,5.408618849093028e-05,True
