@@ -3,7 +3,7 @@
 ## Introduction
 The Kubernetes Noisy Neighbours Lab is a controlled experimental environment designed to study the "noisy neighbour" problem in multi-tenant Kubernetes clusters. This phenomenon occurs when one tenant's resource usage negatively impacts the performance of other tenants sharing the same infrastructure. The lab simulates real-world scenarios to analyze resource contention and its effects on latency-sensitive and resource-intensive workloads.
 
-This repository is part of the research for submission to SBSEG2025 and aims to provide insights into resource isolation, performance degradation, and mitigation strategies in Kubernetes environments.
+This repository is part of a project to obtain a master's degree and aims to provide insights into resource isolation, performance degradation, and mitigation strategies in Kubernetes environments.
 
 ---
 
