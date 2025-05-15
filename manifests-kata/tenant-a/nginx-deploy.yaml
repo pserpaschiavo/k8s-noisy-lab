@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: tenant-a
+spec:
+  replicas: 3  # Mantendo 3 réplicas para demonstrar o impacto na rede
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      runtimeClassName: kata  # Usando Kata Containers para isolamento adicional
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+        # Configurando o nginx para ser mais sensível às condições de rede
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: tenant-a
+data:
+  default.conf: |
+    server {
+        listen 80;
+        
+        # Configurações para tornar o nginx mais sensível a condições de rede
+        client_body_timeout 5s;       # Timeout mais curto para uploads
+        client_header_timeout 5s;     # Timeout mais curto para cabeçalhos
+        keepalive_timeout 30s;        # Manter conexões ativas
+        send_timeout 5s;              # Timeout mais curto para envio de resposta
+        
+        # Configuração para resposta de cabeçalho 'X-Runtime-Class'
+        add_header X-Runtime-Class 'kata' always;
+        
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            
+            # Response headers para teste
+            add_header X-Application-Type "Network-Sensitive";
+            add_header X-Isolation-Level "Kata-VM";
+        }
+        
+        location /metrics {
+            stub_status on;
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-kata-service
+  namespace: tenant-a
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    name: http
+  - port: 9113
+    name: metrics

@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  replicas: 2  # Mantendo 2 réplicas para distribuir a carga
+  selector:
+    matchLabels:
+      app: traffic-server
+  template:
+    metadata:
+      labels:
+        app: traffic-server
+    spec:
+      runtimeClassName: kata  # Usando Kata Containers para isolamento adicional
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: 400m
+            memory: 512Mi
+          limits:
+            cpu: 800m
+            memory: 1Gi
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: large-file
+          mountPath: /usr/share/nginx/html/large
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - |
+                # Criar diretórios necessários
+                mkdir -p /usr/share/nginx/html/large
+                
+                # Gerar arquivos para download nos testes
+                echo "Gerando arquivo de 10MB..."
+                dd if=/dev/urandom of=/usr/share/nginx/html/large/10mb.bin bs=1M count=10
+                
+                echo "Gerando arquivo de 100MB..."
+                dd if=/dev/urandom of=/usr/share/nginx/html/large/100mb.bin bs=1M count=100
+                
+                echo "Gerando página principal..."
+                echo "<html><body><h1>Traffic Server</h1><p>Servidor para testes de carga de rede</p></body></html>" > /usr/share/nginx/html/index.html
+                
+                echo "Configuração concluída!"
+      volumes:
+      - name: large-file
+        emptyDir: {}
+      - name: nginx-config
+        configMap:
+          name: nginx-traffic-server-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-traffic-server-config
+  namespace: tenant-b
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+        
+        # Configurações para maximizar tráfego e ajudar nos testes
+        keepalive_timeout 300s;
+        client_max_body_size 200M;
+        client_body_timeout 300s;
+        
+        # Adicionar cabeçalhos de runtime
+        add_header X-Runtime-Class 'kata' always;
+        
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+            add_header Content-Type text/html;
+        }
+        
+        location /large/ {
+            root /usr/share/nginx/html;
+            sendfile on;
+            tcp_nopush on;
+            tcp_nodelay on;
+            expires max;
+            add_header X-Served-By "Kata Traffic Server";
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-server
+  namespace: tenant-b
+spec:
+  selector:
+    app: traffic-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

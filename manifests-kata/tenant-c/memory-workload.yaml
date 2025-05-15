@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: tenant-c
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: tenant-c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      runtimeClassName: kata  # Usando Kata Containers para isolamento adicional
+      containers:
+      - name: redis
+        image: redis:6.2
+        ports:
+        - containerPort: 6379
+        command: ["redis-server"]
+        args:
+        - "--maxmemory"
+        - "1200mb"  # Mantendo configuração de memória
+        - "--maxmemory-policy"
+        - "allkeys-lru"
+        - "--save"
+        - "60 1000"  # Salvar a cada 60 segundos se houver 1000 chaves alteradas
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            cpu: 500m
+            memory: 1.5Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-benchmark
+  namespace: tenant-c
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis-benchmark
+    spec:
+      runtimeClassName: kata  # Usando Kata Containers para isolamento adicional
+      containers:
+      - name: redis-benchmark
+        image: redis:6.2
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Iniciando benchmark do Redis para simular carga de memória..."
+          # Executa uma série de benchmarks com diferentes cargas
+          
+          # Espera o Redis estar pronto
+          until redis-cli -h redis ping; do
+            echo "Aguardando Redis inicializar..."
+            sleep 2
+          done
+          
+          echo "Redis está pronto! Iniciando benchmark..."
+          
+          # Teste com chaves pequenas mas muitas operações
+          echo "Executando benchmark com chaves pequenas e muitas operações..."
+          redis-cli -h redis flushall
+          redis-benchmark -h redis -t set,get -n 1000000 -q -d 32
+          
+          # Teste com chaves médias
+          echo "Executando benchmark com chaves médias..."
+          redis-cli -h redis flushall
+          redis-benchmark -h redis -t set,get -n 500000 -q -d 1024
+          
+          # Teste com chaves grandes para consumir memória
+          echo "Executando benchmark com chaves grandes..."
+          redis-cli -h redis flushall
+          redis-benchmark -h redis -t set,get -n 100000 -q -d 16384
+          
+          # Teste de pipeline para avaliar latência
+          echo "Executando teste de pipeline..."
+          redis-benchmark -h redis -t set,get -n 1000000 -q -P 100
+          
+          echo "Benchmark concluído!"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+      restartPolicy: Never
+  backoffLimit: 1

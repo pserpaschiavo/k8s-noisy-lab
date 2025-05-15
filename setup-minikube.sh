@@ -16,8 +16,9 @@ DISK_SIZE=40g
 LIMITED_RESOURCES=false
 # Atualizando a versão do Kubernetes para ser mais compatível com kubectl 1.33.0
 K8S_VERSION="v1.32.0"  # Versão mais compatível com kubectl 1.33.0
-MINIKUBE_TIMEOUT=600  # Timeout em segundos (10 minutos)
-FORCE_DELETE=false    # Flag para forçar exclusão do cluster existente
+MINIKUBE_TIMEOUT=600   # Timeout em segundos (10 minutos)
+FORCE_DELETE=false     # Flag para forçar exclusão do cluster existente
+CNI_PLUGIN="flannel"   # CNI padrão, mais compatível com Kata Containers
 
 # Função para imprimir mensagens
 print_message() {
@@ -37,6 +38,7 @@ show_help() {
     print_message "$BLUE" "  --disk SIZE            Define o tamanho do disco (padrão: 40g)"
     print_message "$BLUE" "  --k8s-version VERSION  Define a versão do Kubernetes (padrão: ${K8S_VERSION})"
     print_message "$BLUE" "  --timeout SECONDS      Define o timeout para inicialização do Minikube (padrão: ${MINIKUBE_TIMEOUT}s)"
+    print_message "$BLUE" "  --cni PLUGIN           Define o CNI a ser usado (padrão: $CNI_PLUGIN, opções: flannel, calico, cilium)"
     print_message "$BLUE" "  -f, --force            Força a exclusão do cluster existente antes de criar um novo"
 }
 
@@ -73,6 +75,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --timeout)
             MINIKUBE_TIMEOUT="$2"
+            shift 2
+            ;;
+        --cni)
+            CNI_PLUGIN="$2"
             shift 2
             ;;
         *)
@@ -205,13 +211,14 @@ start_minikube() {
     # Comando de inicialização do minikube com timeout
     print_message "$YELLOW" "Iniciando Minikube com configurações otimizadas..."
 
+    print_message "$GREEN" "Usando CNI: $CNI_PLUGIN"
     timeout $MINIKUBE_TIMEOUT minikube start \
         --driver=$DRIVER \
         --cpus=$CPUS \
         --memory=$MEMORY \
         --disk-size=$DISK_SIZE \
         --kubernetes-version=$K8S_VERSION \
-        --cni=calico \
+        --cni=$CNI_PLUGIN \
         --driver=docker \
         --container-runtime=containerd \
         --bootstrapper=kubeadm \

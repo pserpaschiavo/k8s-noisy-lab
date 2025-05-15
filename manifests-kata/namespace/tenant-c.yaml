@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-c
+  labels:
+    kata-runtime: "enabled"
+    isolation-level: "enhanced"

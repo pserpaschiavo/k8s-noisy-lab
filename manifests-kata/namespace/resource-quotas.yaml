@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-a-quota
+  namespace: tenant-a
+spec:
+  hard:
+    requests.cpu: "1.5"
+    requests.memory: "2Gi"
+    limits.cpu: "3"
+    limits.memory: "4Gi"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-b-quota
+  namespace: tenant-b
+spec:
+  hard:
+    requests.cpu: "3"
+    requests.memory: "4Gi"
+    limits.cpu: "6"
+    limits.memory: "8Gi"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-c-quota
+  namespace: tenant-c
+spec:
+  hard:
+    requests.cpu: "1.5"
+    requests.memory: "3Gi"
+    limits.cpu: "3"
+    limits.memory: "6Gi"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-d-quota
+  namespace: tenant-d
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: "3Gi"
+    limits.cpu: "4"
+    limits.memory: "6Gi"

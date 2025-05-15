@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-ng
+  namespace: tenant-b
+spec:
+  replicas: 2  # Mantendo 2 réplicas para gerar carga
+  selector:
+    matchLabels:
+      app: stress-ng
+  template:
+    metadata:
+      labels:
+        app: stress-ng
+    spec:
+      runtimeClassName: kata  # Usando Kata Containers para isolamento adicional
+      containers:
+      - name: stress-ng
+        image: colinianking/stress-ng:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Iniciando stress-ng com timeout de ${ATTACK_DURATION} segundos"
+          stress-ng --cpu 4 --vm 2 --vm-bytes 1536M --io 2 --timeout ${ATTACK_DURATION}s --metrics-brief
+        env:
+        - name: ATTACK_DURATION
+          value: "360"  # Será substituído pelo script principal
+        resources:
+          requests:
+            cpu: 800m        # Mantendo solicitação de CPU
+            memory: 1Gi      # Mantendo solicitação de memória
+          limits:
+            cpu: 2           # Mantendo limite de CPU
+            memory: 3Gi      # Mantendo limite de memória
+        livenessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 20
+        readinessProbe:
+          exec:
+            command:
+            - stress-ng
+            - --version
+          initialDelaySeconds: 5
+          periodSeconds: 20

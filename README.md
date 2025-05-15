@@ -13,6 +13,9 @@ The primary goals of this experiment are:
 2. **Analyze tenant performance**: Measure the impact of resource contention on latency-sensitive and resource-intensive workloads.
 3. **Collect and visualize metrics**: Use Prometheus and Grafana to collect and analyze metrics such as CPU usage, memory usage, network latency, jitter, and disk I/O.
 4. **Evaluate mitigation strategies**: Provide insights into resource isolation mechanisms and their effectiveness in mitigating the noisy neighbour problem.
+5. **Test advanced isolation technologies**: Evaluate solutions like Kata Containers to provide stronger workload isolation.
+
+Both standard container environments and Kata Containers environments now use Flannel as the default CNI for consistent networking behavior. This change ensures more accurate comparisons between isolation technologies.
 
 ---
 
@@ -66,12 +69,17 @@ You can specify a different Kubernetes version using the `--k8s-version` paramet
 
 ## Tools and Resources
 
+### Container Runtimes
+- **containerd**: Default container runtime used by Minikube.
+- **Kata Containers**: Optional runtime that provides stronger isolation using lightweight VMs, ideal for multi-tenant security.
+
 ### Kubernetes Cluster
 - **Minikube**: A local Kubernetes cluster is set up using Minikube with configurable resources:
   - Recommended: 8 CPUs, 16GB RAM, and 40GB disk space
   - Minimum: 4 CPUs, 8GB RAM, and 30GB disk space
   - Static CPU manager policy and eviction thresholds
   - Addons: `metrics-server`, `dashboard`, `ingress`, `storage-provisioner`
+  - Optional: Kata Containers for enhanced workload isolation
 
 ### Monitoring Stack
 - **Prometheus**: Collects metrics from workloads and the Kubernetes cluster.
@@ -117,6 +125,7 @@ You can specify a different Kubernetes version using the `--k8s-version` paramet
 ├── install-prom-operator.sh                  # Installs Prometheus and Grafana
 ├── run-experiment.sh                         # Main script to orchestrate the experiment
 ├── setup-minikube.sh                         # Sets up the Minikube cluster
+├── setup-kata-containers.sh                  # Configures Kata Containers with Minikube
 ├── lib/                                      # Helper libraries for the experiment
 │   ├── experiment.sh                         # Experiment orchestration functions
 │   ├── kubernetes.sh                         # Kubernetes interaction functions
@@ -125,6 +134,7 @@ You can specify a different Kubernetes version using the `--k8s-version` paramet
 │   └── tenant_metrics.sh                     # Tenant-specific metrics definitions
 ├── manifests/                                # Kubernetes manifests for workloads and namespaces
 │   ├── ingress-controller/                   # Ingress controller configuration
+│   ├── kata-containers/                      # Kata Containers example deployments
 │   ├── namespace/                            # Namespace and resource quota definitions
 │   │   ├── limited-resource-quotas.yaml      # Resource quotas for limited resources mode
 │   │   └── resource-quotas.yaml              # Standard resource quotas
@@ -171,7 +181,16 @@ The script:
 - Creates the tenant namespaces with appropriate labels.
 - Verifies the cluster status.
 
-### 2. Install Monitoring Stack
+### 2. (Optional) Set Up Kata Containers
+
+For enhanced isolation between workloads, you can set up Kata Containers:
+```bash
+./setup-kata-containers.sh
+```
+
+To deploy workloads using Kata Containers, add `runtimeClassName: kata` to your pod specs. An example is provided in `manifests/tenant-a/kata-secured-deploy.yaml`.
+
+### 3. Install Monitoring Stack
 
 Install Prometheus and Grafana:
 ```bash
@@ -184,7 +203,7 @@ This installs:
 - ServiceMonitors for tenant workloads.
 - Custom dashboards for visualizing the noisy neighbor effect.
 
-### 3. Install NGINX Ingress Controller
+### 4. Install NGINX Ingress Controller
 
 Deploy the NGINX Ingress Controller:
 ```bash
@@ -196,7 +215,7 @@ This:
 - Configures it to expose metrics for Prometheus.
 - Sets up routes to tenant services.
 
-### 4. Run the Experiment
+### 5. Run the Experiment
 
 Execute the main experiment script:
 
@@ -227,7 +246,7 @@ The experiment proceeds through three phases for each round:
 2. **Attack**: Tenant B activates its noisy workloads.
 3. **Recovery**: Tenant B returns to normal operation.
 
-### 5. View Results
+### 6. View Results
 
 #### Access Grafana dashboards:
 ```bash

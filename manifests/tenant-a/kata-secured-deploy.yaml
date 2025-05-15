@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kata-secured-workload
+  namespace: tenant-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kata-secured-workload
+  template:
+    metadata:
+      labels:
+        app: kata-secured-workload
+    spec:
+      runtimeClassName: kata
+      containers:
+      - name: nginx
+        image: nginx:latest
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "0.5"
+            memory: "256Mi"
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
