@@ -22,5 +22,25 @@ init_logger() {
 log() {
     local color="$1" message="$2"
     printf "%b%s%b\n" "$color" "$message" "$NO_COLOR"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $message" >> "$LOG_FILE"
+    # Only write to log file if LOG_FILE is set
+    if [ -n "$LOG_FILE" ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $message" >> "$LOG_FILE"
+    fi
+}
+
+# Funções específicas de log
+log_info() {
+    log "$BLUE" "[INFO] $1"
+}
+
+log_success() {
+    log "$GREEN" "[SUCCESS] $1"
+}
+
+log_warning() {
+    log "$YELLOW" "[WARNING] $1"
+}
+
+log_error() {
+    log "$RED" "[ERROR] $1"
 }

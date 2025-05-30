@@ -8,6 +8,11 @@ BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Import logging library
 source "$BASE_DIR/lib/logger.sh"
 
+# Initialize logger with default log file
+LOG_DIR="$BASE_DIR/logs"
+mkdir -p "$LOG_DIR"
+init_logger "$LOG_DIR/kata-containers-setup-$(date +%Y%m%d-%H%M%S).log"
+
 # Configurações padrão (alinhadas com setup-minikube.sh)
 CPUS=8
 MEMORY=16g
@@ -148,10 +153,11 @@ setup_minikube() {
     --cpus=${CPUS} \
     --disk-size=${DISK_SIZE} \
     --kubernetes-version=${K8S_VERSION} \
-    --driver=kvm2 \
+    --driver=docker \
     --cni=${CNI_PLUGIN} \
     --container-runtime=containerd \
     --bootstrapper=kubeadm \
+    --image-mirror-country='cn' \
     --extra-config=kubelet.cpu-manager-policy=static \
     --extra-config=kubelet.housekeeping-interval=5s \
     --extra-config=kubelet.system-reserved=cpu=1,memory=2Gi \
@@ -163,13 +169,15 @@ setup_minikube() {
       return 1
   fi
   
-  # Verificar se a virtualização está habilitada dentro do Minikube
-  virt_count=$(minikube ssh "grep -c -E 'vmx|svm' /proc/cpuinfo")
-  if [ "$virt_count" -eq "0" ]; then
-      log_error "Virtualização não está disponível dentro do Minikube."
-      log_error "O Kata Containers não funcionará corretamente."
+  # Verificar se a virtualização está habilitada dentro do Minikube (adaptado para driver docker)
+  # Como estamos usando o driver Docker, verificamos se o Docker está executando e tem suporte a virtualização
+  if ! docker info 2>/dev/null | grep -q "Operating System"; then
+      log_error "Docker não parece estar funcionando corretamente."
+      log_error "O Kata Containers pode não funcionar corretamente."
       return 1
   fi
+  
+  log_info "Usando driver Docker para Minikube, a virtualização aninhada depende do host."
   
   log_success "Minikube configurado e pronto para Kata Containers."
   return 0
@@ -592,11 +600,24 @@ main() {
     log_success "Para executar experimentos, use: ./run-kata-experiment.sh"
 }
 
-# Executar com timeout para evitar ficar preso indefinidamente
-timeout $KATA_SETUP_TIMEOUT bash -c "main" || {
+# Definir uma função de limpeza em caso de timeout
+cleanup_on_timeout() {
     log_error "Timeout de $KATA_SETUP_TIMEOUT segundos atingido durante a configuração."
     log_error "Verifique se há problemas com a instalação do Kata Containers."
     exit 1
 }
+
+# Registrar trap para o SIGALRM
+trap cleanup_on_timeout ALRM
+
+# Configurar o timeout usando o SIGALRM
+( sleep $KATA_SETUP_TIMEOUT && kill -ALRM $$ ) &
+TIMEOUT_PID=$!
+
+# Executar a função main
+main
+
+# Cancelar o timeout se chegamos aqui
+kill $TIMEOUT_PID 2>/dev/null || true
 
 exit 0
